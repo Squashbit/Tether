@@ -7,7 +7,6 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_include_directories(${PROJECT_NAME} 
     PUBLIC "Headers"
     PUBLIC "../../Headers"
-    PUBLIC "../../Vendor/SBSTD/SBSTDC++/Headers"
 )
 
 target_link_directories(${PROJECT_NAME}

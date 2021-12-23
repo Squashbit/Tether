@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <SBSTD/Stopwatch.hpp>
-
 #include <Link/Link.hpp>
 
 #include <math.h>
@@ -18,6 +16,11 @@ public:
 			:
 			pWindow(pWindow)
 		{}
+
+		// void OnMouseMove(Events::MouseMoveEvent event)
+		// {
+		// 	std::cout << "YOOOO" << std::endl;
+		// }
 	private:
 		TestWindow* pWindow = nullptr;
 	};
@@ -30,12 +33,15 @@ public:
 
 	~TestWindow()
 	{
+		RemoveEventHandler(handler);
+		
 		for (uint64_t i = 0; i < shits.size(); i++)
 			delete shits[i];
 	}
 
 	void InitializeComponent()
 	{
+		AddEventHandler(handler, Events::EventType::MOUSE_MOVE);
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 		
 		uint64_t numShits = 1920;
@@ -69,7 +75,31 @@ private:
 int main()
 {
 	TestWindow window;
-	if (window.Init() != ErrorCode::SUCCESS)
+	if (!window.Init())
+	{
+		std::cout << "Failed to initialize window" << std::endl;
+		return 1;
+	}
+
+	window.Dispose();
+	
+	if (!window.Init())
+	{
+		std::cout << "Failed to initialize window" << std::endl;
+		return 1;
+	}
+
+	window.Dispose();
+	
+	if (!window.Init())
+	{
+		std::cout << "Failed to initialize window" << std::endl;
+		return 1;
+	}
+
+	window.Dispose();
+	
+	if (!window.Init())
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
@@ -81,6 +111,8 @@ int main()
 	{
 		window.PollEvents();
 	}
+
+	window.Dispose();
 
 	return 0;
 }

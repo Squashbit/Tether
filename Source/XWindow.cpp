@@ -1,7 +1,6 @@
 #ifdef __linux__
 
 #include <Link/Window.hpp>
-#include <Link/Common/VectorUtils.hpp>
 #include <Link/Controls/Control.hpp>
 
 #include <algorithm>
@@ -11,29 +10,7 @@
 
 static bool initializedGlad = false;
 
-Link::Window::Window()
-{
-    display = XOpenDisplay("");
-    if (!display)
-        return;
-    
-    wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
-}
-
-Link::Window::~Window()
-{
-    if (!initialized)
-        return;
-    
-    Hide();
-
-    MakeCurrent();
-    glXDestroyContext(display, glxContext);
-
-    XCloseDisplay((Display*)display);
-}
-
-Link::ErrorCode Link::Window::Init(
+bool Link::Window::Init(
     int	x,
     int	y,
     unsigned int width,
@@ -42,9 +19,13 @@ Link::ErrorCode Link::Window::Init(
 )
 {
     if (initialized)
-        return ErrorCode::DOUBLE_INIT;
+        return false;
+    
+    display = XOpenDisplay(NULL);
     if (!display)
-        return ErrorCode::DISPLAY_NOT_FOUND;
+        return false;
+    
+    wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     
     this->x = x;
     this->y = y;
@@ -59,7 +40,7 @@ Link::ErrorCode Link::Window::Init(
     {
         visual = glXChooseVisual(display, screen, attribs);
         if (!visual)
-            return ErrorCode::VISUAL_NOT_FOUND;
+            return false;
     }
 
     unsigned long root = RootWindow(display, this->screen);
@@ -83,7 +64,6 @@ Link::ErrorCode Link::Window::Init(
         &swa
     );
 
-    XMapWindow(display, window);
     XSetWMProtocols(display, window, &wmDelete, 1);
     XFlush(display);
 
@@ -93,22 +73,26 @@ Link::ErrorCode Link::Window::Init(
         glxContext = glXCreateContext(display, visual, NULL, GL_TRUE);
         // Make context current
         glXMakeCurrent(display, window, glxContext);
+
+        if (!initializedGlad)
+        {
+            if (!gladLoadGLLoader((GLADloadproc)glXGetProcAddress))
+                return false;
+            
+            initializedGlad = true;
+        }
+
+        InitGraphics();
     }
 
-    if (!initializedGlad || !stripped)
-    {
-        if (!gladLoadGLLoader((GLADloadproc)glXGetProcAddress))
-            return ErrorCode::GL_INIT_FAILED;
-        
-        initializedGlad = true;
-    }
+    XMapWindow(display, window);
 
     initialized = true;
     InitializeComponent();
 
     Repaint();
 
-    return ErrorCode::SUCCESS;
+    return true;
 }
 
 void Link::Window::MakeCurrent()
@@ -117,60 +101,6 @@ void Link::Window::MakeCurrent()
         return;
     
     glXMakeCurrent(display, window, glxContext);
-}
-
-void Link::Window::AddEventHandler(Events::EventHandler& handler, 
-    Events::EventType eventType)
-{
-    AddEventHandler(&handler, eventType);
-}
-
-void Link::Window::AddEventHandler(Events::EventHandler* handler,
-    Events::EventType eventType)
-{
-    using namespace Events;
-
-    switch (eventType)
-    {
-        case EventType::MOUSE_MOVE:
-        {
-            if (VectorUtils::Contains(mouseMoveHandlers, handler))
-                break;
-            
-            mouseMoveHandlers.push_back(handler);
-        }
-        break;
-
-        case EventType::WINDOW_CLOSING:
-        {
-            if (VectorUtils::Contains(windowClosingHandlers, handler))
-                break;
-            
-            windowClosingHandlers.push_back(handler);
-        }
-        break;
-
-        case EventType::WINDOW_RESIZE:
-        {
-            if (VectorUtils::Contains(windowResizeHandlers, handler))
-                break;
-            
-            windowResizeHandlers.push_back(handler);
-        }
-        break;
-    }
-}
-
-void Link::Window::RemoveEventHandler(Events::EventHandler& handler)
-{
-    RemoveEventHandler(&handler);
-}
-
-void Link::Window::RemoveEventHandler(Events::EventHandler* handler)
-{
-    VectorUtils::EraseAll(mouseMoveHandlers, handler);
-    VectorUtils::EraseAll(windowClosingHandlers, handler);
-    VectorUtils::EraseAll(windowResizeHandlers, handler);
 }
 
 void Link::Window::Show()
@@ -267,44 +197,10 @@ int64_t Link::Window::GetY()
     return attributes.y;
 }
 
-uint64_t Link::Window::GetMouseX()
-{
-    return mouseX;
-}
-
-uint64_t Link::Window::GetMouseY()
-{
-    return mouseY;
-}
-
-uint64_t Link::Window::GetRelativeMouseX()
-{
-    return relMouseX;
-}
-
-uint64_t Link::Window::GetRelativeMouseY()
-{
-    return relMouseY;
-}
-
-uint64_t Link::Window::GetWidth()
-{
-    if (!initialized)
-        return 0;
-
-    return width;
-}
-
-uint64_t Link::Window::GetHeight()
-{
-    if (!initialized)
-        return 0;
-
-    return height;
-}
-
 void Link::Window::PollEvents()
 {
+    using namespace Events;
+
     if (!initialized)
         return;
 
@@ -340,19 +236,25 @@ void Link::Window::PollEvents()
                     relMouseY = event.xmotion.y;
                 }
 
-                Events::MouseMoveEvent linkEvent(
-                    event.xmotion.x_root,
-                    event.xmotion.y_root,
-                    event.xmotion.x,
-                    event.xmotion.y,
-                    mouseX,
-                    mouseY,
-                    relMouseX,
-                    relMouseY
-                );
+                if (handlers.count(EventType::MOUSE_MOVE))
+                {
+                    MouseMoveEvent linkEvent(
+                        event.xmotion.x_root,
+                        event.xmotion.y_root,
+                        event.xmotion.x,
+                        event.xmotion.y,
+                        mouseX,
+                        mouseY,
+                        relMouseX,
+                        relMouseY
+                    );
 
-                for (uint64_t i = 0; i < mouseMoveHandlers.size(); i++)
-                    mouseMoveHandlers[i]->OnMouseMove(linkEvent);
+                    std::vector<Events::EventHandler*> eventList = 
+                        handlers[EventType::MOUSE_MOVE];
+                    
+                    for (uint64_t i = 0; i < eventList.size(); i++)
+                        eventList[i]->OnMouseMove(linkEvent);
+                }
 
                 if (prevReceivedMouseMove)
                 {
@@ -368,13 +270,19 @@ void Link::Window::PollEvents()
 
             case Expose:
             {
-                Events::WindowResizeEvent linkEvent(
-                    event.xexpose.width, 
-                    event.xexpose.height
-                );
+                if (handlers.count(EventType::WINDOW_RESIZE))
+                {
+                    Events::WindowResizeEvent linkEvent(
+                        event.xexpose.width, 
+                        event.xexpose.height
+                    );
 
-                for (uint64_t i = 0; i < windowResizeHandlers.size(); i++)
-                    windowResizeHandlers[i]->OnWindowResize(linkEvent);
+                    std::vector<Events::EventHandler*> eventList = 
+                        handlers[EventType::WINDOW_RESIZE];
+
+                    for (uint64_t i = 0; i < eventList.size(); i++)
+                        eventList[i]->OnWindowResize(linkEvent);
+                }
 
                 width = event.xexpose.width;
                 height = event.xexpose.height;
@@ -384,9 +292,16 @@ void Link::Window::PollEvents()
             case ClientMessage:
             {
                 closeRequested = true;
-                for (uint64_t i = 0; i < windowClosingHandlers.size(); i++)
-                    windowClosingHandlers[i]->OnWindowClosing(
-                        Events::WindowClosingEvent());
+
+                if (handlers.count(EventType::WINDOW_CLOSING))
+                {
+                    std::vector<Events::EventHandler*> eventList = 
+                        handlers[EventType::WINDOW_CLOSING];
+                    
+                    for (uint64_t i = 0; i < eventList.size(); i++)
+                        eventList[i]->OnWindowClosing(
+                            Events::WindowClosingEvent());
+                }
             }
             break;
         }
@@ -394,68 +309,6 @@ void Link::Window::PollEvents()
 
     if (eventReceived)
         Repaint();
-}
-
-void Link::Window::AddControl(Controls::Control* pControl)
-{
-    if (!initialized)
-        return;
-
-    AddControlNoRepaint(pControl);
-    Repaint();
-}
-
-bool Link::Window::RemoveControl(Controls::Control* pControl)
-{
-    if (!initialized)
-        return false;
-
-    if (RemoveControlNoRepaint(pControl))
-    {
-        Repaint();
-        return true;
-    }
-
-    return false;
-}
-
-void Link::Window::AddControlNoRepaint(Controls::Control* pControl)
-{
-    if (!initialized)
-        return;
-
-    controls.push_back(pControl);
-}
-
-bool Link::Window::RemoveControlNoRepaint(Controls::Control* pControl)
-{
-    if (!initialized)
-        return false;
-
-    for (uint64_t i = 0; i < controls.size(); i++)
-        if (controls[i] == pControl)
-        {
-            controls.erase(controls.begin() + i);
-            return true;
-        }
-    
-    return false;
-}
-
-void Link::Window::SetBackgroundColor(Color backgroundColor)
-{
-    if (!initialized)
-        return;
-
-    this->backgroundColor = backgroundColor;
-}
-
-void Link::Window::ClearWindow()
-{
-    if (!initialized)
-        return;
-
-    XClearWindow(display, window);
 }
 
 void Link::Window::SetDrawingColor(Color color)
@@ -487,45 +340,23 @@ Display* Link::Window::GetXDisplay()
     return display;
 }
 
-void Link::Window::Repaint()
+void Link::Window::OnDispose()
 {
-    if (!initialized || stripped)
-        return;
+    Hide();
 
-    glViewport(GetX(), GetY(), width, height);
+    rectVertexBuffer.Dispose();
+    rectVAO.Dispose();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, width, height, 0, -10000, 10000);
-    
-    glClearColor(
-        backgroundColor.GetR(),
-        backgroundColor.GetG(),
-        backgroundColor.GetB(),
-        1.0f
-    );
-    glClear(GL_COLOR_BUFFER_BIT);
-    
-    for (uint64_t i = 0; i < controls.size(); i++)
-        controls[i]->Render(this);
-    
+    MakeCurrent();
+    glXDestroyContext(display, glxContext);
+
+    XDestroyWindow(display, window);
+    XCloseDisplay((Display*)display);
+}
+
+void Link::Window::SwapBuffers()
+{
     glXSwapBuffers(display, window);
-}
-
-bool Link::Window::IsCloseRequested()
-{
-    if (!initialized)
-        return false;
-
-    return closeRequested;
-}
-
-void Link::Window::IgnoreClose()
-{
-    if (!initialized)
-        return;
-
-    closeRequested = false;
 }
 
 #endif //__linux__

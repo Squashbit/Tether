@@ -1,2 +1,2 @@
-# GUIED
- A GUI library in C++ with OpenGL
+# TestApp
+  Literally a test app.

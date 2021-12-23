@@ -1,8 +1,8 @@
-#ifndef _LINK_WINDOW_H
-#define _LINK_WINDOW_H
+#ifndef _LINK_WINDOW_HPP
+#define _LINK_WINDOW_HPP
 
 #include <Link/Common/Color.hpp>
-#include <Link/Common/Errors.hpp>
+#include <Link/Common/IDisposable.hpp>
 #include <Link/Events/EventHandler.hpp>
 #include <Link/Events/EventType.hpp>
 
@@ -10,6 +10,9 @@
 #include <functional>
 
 #include <Link/glad/glad.h>
+#include <Link/Graphics/VAO.hpp>
+#include <Link/Graphics/Buffer.hpp>
+#include <Link/Graphics/SimpleShader.hpp>
 
 #ifdef __linux__
 #include <Link/XDefs.hpp>
@@ -25,13 +28,12 @@ namespace Link
         class Control;
     }
 
-    class Window
+    class Window : public IDisposable
     {
         friend Link::Controls::Control;
     public:
-        Window();
-        ~Window();
-
+        Window() {}
+        
         Window(const Window&) = delete;
 		Window(Window&&) = delete;
 		Window& operator=(const Window&) = delete;
@@ -50,7 +52,7 @@ namespace Link
          * @returns True if the window was successfully created. 
          *      Otherwise, false.
          */
-        ErrorCode Init(
+        bool Init(
             int	x = 200,
             int	y = 200,
             unsigned int width = 800,
@@ -139,8 +141,8 @@ namespace Link
         void SetBackgroundColor(Color backgroundColor);
 
         void ClearWindow();
-
         void SetDrawingColor(Color color);
+        void UseDefaultShader();
         void DrawRect(uint64_t x, uint64_t y, uint64_t width, uint64_t height);
         
         uint64_t GetHandle();
@@ -155,6 +157,8 @@ namespace Link
 
         void Repaint();
     protected:
+        void OnDispose();
+
     #ifdef __linux__
         Display* display = nullptr;
         int screen = 0;
@@ -166,29 +170,35 @@ namespace Link
         Colormap cmap;
     #endif //__linux__
     private:
+        void InitGraphics();
+        void SwapBuffers();
+        
         std::vector<Controls::Control*> controls;
 
-        Color backgroundColor;
-
+        // Window stuff
         int64_t x = 200;
         int64_t y = 200;
         uint64_t width = 800;
         uint64_t height = 600;
+        Color backgroundColor;
 
+        // Mouse stuff
         bool prevReceivedMouseMove = false;
         uint64_t mouseX = 0;
         uint64_t mouseY = 0;
         uint64_t relMouseX = 0;
         uint64_t relMouseY = 0;
+
+        // Each event has a list of handlers to handle that specific event.
+        std::unordered_map<Events::EventType, 
+            std::vector<Events::EventHandler*>> handlers;
         
-        std::vector<Events::EventHandler*> mouseMoveHandlers;
-        std::vector<Events::EventHandler*> windowClosingHandlers;
-        std::vector<Events::EventHandler*> windowResizeHandlers;
+        Graphics::VAO rectVAO;
+        Graphics::Buffer rectVertexBuffer;
         
         bool closeRequested = false;
-        bool initialized = false;
         bool stripped = false;
     };
 }
 
-#endif //_LINK_WINDOW_H
+#endif //_LINK_WINDOW_HPP
