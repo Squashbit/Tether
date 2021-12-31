@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 3.8)
-project ("link")
+project ("tether")
 
 add_subdirectory(Tests/TestApp)
 

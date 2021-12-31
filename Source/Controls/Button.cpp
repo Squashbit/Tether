@@ -1,6 +1,6 @@
-#include <Link/Controls/Button.hpp>
+#include <Tether/Controls/Button.hpp>
 
-using namespace Link::Controls;
+using namespace Tether::Controls;
 
 void Button::Render(Window* pWindow)
 {

@@ -1,7 +1,5 @@
 {
     "files.associations": {
-        "iostream": "cpp",
-        "xlib.h": "c",
         "cctype": "cpp",
         "clocale": "cpp",
         "cmath": "cpp",
@@ -50,6 +48,7 @@
         "initializer_list": "cpp",
         "iomanip": "cpp",
         "iosfwd": "cpp",
+        "iostream": "cpp",
         "istream": "cpp",
         "limits": "cpp",
         "mutex": "cpp",
@@ -66,6 +65,5 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp"
-    },
-    "cmake.configureOnOpen": true
+    }
 }

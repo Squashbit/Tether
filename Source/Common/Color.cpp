@@ -1,6 +1,6 @@
-#include <Link/Common/Color.hpp>
+#include <Tether/Common/Color.hpp>
 
-using namespace Link;
+using namespace Tether;
 
 Color::Color()
     :

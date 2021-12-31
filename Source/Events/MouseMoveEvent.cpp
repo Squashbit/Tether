@@ -1,6 +1,6 @@
-#include <Link/Events/MouseMoveEvent.hpp>
+#include <Tether/Events/MouseMoveEvent.hpp>
 
-using namespace Link::Events;
+using namespace Tether::Events;
 
 MouseMoveEvent::MouseMoveEvent(
     uint64_t rootX,

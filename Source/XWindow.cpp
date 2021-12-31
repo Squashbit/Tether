@@ -1,7 +1,8 @@
 #ifdef __linux__
 
-#include <Link/Window.hpp>
-#include <Link/Controls/Control.hpp>
+#include <Tether/Application.hpp>
+#include <Tether/Window.hpp>
+#include <Tether/Controls/Control.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -10,45 +11,37 @@
 
 static bool initializedGlad = false;
 
-bool Link::Window::Init(
+bool Tether::Window::Init(
     int	x,
     int	y,
     unsigned int width,
     unsigned int height,
+    bool showAfterInit,
     bool stripped
 )
 {
     if (initialized)
+    {
+        DispatchNoInit("Window::Init");
         return false;
+    }
     
-    display = XOpenDisplay(NULL);
-    if (!display)
-        return false;
+    if (!Application::IsInitialized())
+        if (!Application::Init())
+            return false;
     
-    wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
+    Display* display = Application::GetDisplay();
+    int screen = Application::GetScreen();
     
     this->x = x;
     this->y = y;
     this->width = width;
     this->height = height;
     this->stripped = stripped;
-    
-    screen = DefaultScreen(display);
-    
-    GLint attribs[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, GLX_DOUBLEBUFFER, None };
-    if (!stripped)
-    {
-        visual = glXChooseVisual(display, screen, attribs);
-        if (!visual)
-            return false;
-    }
 
-    unsigned long root = RootWindow(display, this->screen);
-
-    cmap = XCreateColormap(display, root, visual->visual, AllocNone);
+    unsigned long root = RootWindow(display, screen);
 
     XSetWindowAttributes swa;
-    swa.colormap = cmap;
     swa.event_mask = 0xFFFF;
 
     window = XCreateWindow(
@@ -57,35 +50,25 @@ bool Link::Window::Init(
         x, y,
         width, height,
         0, // Border width
-        visual->depth,
+        DefaultDepth(display, screen),
         InputOutput,
-        visual->visual,
-        CWColormap | CWEventMask,
+        DefaultVisual(display, screen),
+        CWEventMask,
         &swa
     );
 
-    XSetWMProtocols(display, window, &wmDelete, 1);
+    XSetWMProtocols(display, window, Application::GetWMDeleteAtom(), 1);
     XFlush(display);
 
     if (!stripped)
+        if (!InitGraphics())
+            return false;
+    
+    if (showAfterInit)
     {
-        // Initialize glX context
-        glxContext = glXCreateContext(display, visual, NULL, GL_TRUE);
-        // Make context current
-        glXMakeCurrent(display, window, glxContext);
-
-        if (!initializedGlad)
-        {
-            if (!gladLoadGLLoader((GLADloadproc)glXGetProcAddress))
-                return false;
-            
-            initializedGlad = true;
-        }
-
-        InitGraphics();
+        XMapWindow(display, window);
+        visible = true;
     }
-
-    XMapWindow(display, window);
 
     initialized = true;
     InitializeComponent();
@@ -95,114 +78,160 @@ bool Link::Window::Init(
     return true;
 }
 
-void Link::Window::MakeCurrent()
+void Tether::Window::SetVisible(bool visibility)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetVisible");
         return;
+    }
     
-    glXMakeCurrent(display, window, glxContext);
-}
-
-void Link::Window::Show()
-{
-    if (!initialized)
-        return;
-
-    XMapWindow(display, window);
-}
-
-void Link::Window::Hide()
-{
-    if (!initialized)
-        return;
+    if (visibility)
+        XMapWindow(Application::GetDisplay(), window);
+    else
+        XUnmapWindow(Application::GetDisplay(), window);
     
-    XUnmapWindow(display, window);
+    visible = visibility;
 }
 
-void Link::Window::SetX(int64_t x)
+bool Tether::Window::IsVisible()
+{
+    return visible && initialized;
+}
+
+void Tether::Window::SetX(int64_t x)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetX");
         return;
+    }
     
-    XMoveWindow(display, window, x, GetY());
+    XMoveWindow(Application::GetDisplay(), window, x, GetY());
 }
 
-void Link::Window::SetY(int64_t y)
+void Tether::Window::SetY(int64_t y)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetY");
         return;
+    }
 
-    XMoveWindow(display, window, GetX(), y);
+    XMoveWindow(Application::GetDisplay(), window, GetX(), y);
 }
 
-void Link::Window::SetPosition(int64_t x, int64_t y)
+void Tether::Window::SetPosition(int64_t x, int64_t y)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetPosition");
         return;
+    }
 
-    XMoveWindow(display, window, x, y);
+    XMoveWindow(Application::GetDisplay(), window, x, y);
 }
 
-void Link::Window::SetWidth(uint64_t width)
+void Tether::Window::SetWidth(uint64_t width)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetWidth");
         return;
+    }
 
-    XResizeWindow(display, window, width, this->height);
+    XResizeWindow(Application::GetDisplay(), window, width, this->height);
 }
 
-void Link::Window::SetHeight(uint64_t height)
+void Tether::Window::SetHeight(uint64_t height)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetHeight");
         return;
+    }
 
-    XResizeWindow(display, window, this->width, height);
+    XResizeWindow(Application::GetDisplay(), window, this->width, height);
 }
 
-void Link::Window::SetSize(uint64_t width, uint64_t height)
+void Tether::Window::SetSize(uint64_t width, uint64_t height)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetSize");
         return;
+    }
 
-    XResizeWindow(display, window, width, height);
+    XResizeWindow(Application::GetDisplay(), window, width, height);
 }
 
-void Link::Window::SetTitle(const char* title)
+void Tether::Window::SetTitle(const char* title)
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::SetTitle");
         return;
+    }
 
-    XStoreName(display, window, title);
+    XStoreName(Application::GetDisplay(), window, title);
 }
 
-int64_t Link::Window::GetX()
+int64_t Tether::Window::GetX()
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::GetX");
         return 0;
+    }
 
-    XWindowAttributes attributes;
-    XGetWindowAttributes(display, window, &attributes);
+    Display* display = Application::GetDisplay();
+    long unsigned int child;
+
+    int x, y;
+    XTranslateCoordinates(display, window, 
+        DefaultRootWindow(display), 0, 0, &x, &y, &child);
     
-    return attributes.x;
+    XWindowAttributes attribs;
+    XGetWindowAttributes(display, window, &attribs);
+    
+    return x - attribs.x;
 }
 
-int64_t Link::Window::GetY()
+int64_t Tether::Window::GetY()
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::GetY");
         return 0;
+    }
 
-    XWindowAttributes attributes;
-    XGetWindowAttributes(display, window, &attributes);
+    Display* display = Application::GetDisplay();
+    long unsigned int child;
+
+    int x, y;
+    XTranslateCoordinates(display, window, 
+        DefaultRootWindow(display), 0, 0, &x, &y, &child);
     
-    return attributes.y;
+    XWindowAttributes attribs;
+    XGetWindowAttributes(display, window, &attribs);
+    
+    return y - attribs.y;
 }
 
-void Link::Window::PollEvents()
+void Tether::Window::PollEvents()
 {
     using namespace Events;
 
     if (!initialized)
+    {
+        DispatchNoInit("Window::PollEvents");
         return;
+    }
+    
+    if (!visible)
+        return;
+
+    Display* display = Application::GetDisplay();
 
     bool eventReceived = false;
     while (XPending(display))
@@ -236,25 +265,22 @@ void Link::Window::PollEvents()
                     relMouseY = event.xmotion.y;
                 }
 
-                if (handlers.count(EventType::MOUSE_MOVE))
+                MouseMoveEvent linkEvent(
+                    event.xmotion.x_root,
+                    event.xmotion.y_root,
+                    event.xmotion.x,
+                    event.xmotion.y,
+                    mouseX,
+                    mouseY,
+                    relMouseX,
+                    relMouseY
+                );
+                
+                SpawnEvent(Events::EventType::MOUSE_MOVE, 
+                [&](Events::EventHandler* pEventHandler)
                 {
-                    MouseMoveEvent linkEvent(
-                        event.xmotion.x_root,
-                        event.xmotion.y_root,
-                        event.xmotion.x,
-                        event.xmotion.y,
-                        mouseX,
-                        mouseY,
-                        relMouseX,
-                        relMouseY
-                    );
-
-                    std::vector<Events::EventHandler*> eventList = 
-                        handlers[EventType::MOUSE_MOVE];
-                    
-                    for (uint64_t i = 0; i < eventList.size(); i++)
-                        eventList[i]->OnMouseMove(linkEvent);
-                }
+                    pEventHandler->OnMouseMove(linkEvent);
+                });
 
                 if (prevReceivedMouseMove)
                 {
@@ -270,19 +296,11 @@ void Link::Window::PollEvents()
 
             case Expose:
             {
-                if (handlers.count(EventType::WINDOW_RESIZE))
+                SpawnEvent(Events::EventType::WINDOW_RESIZE, 
+                [this](Events::EventHandler* pEventHandler)
                 {
-                    Events::WindowResizeEvent linkEvent(
-                        event.xexpose.width, 
-                        event.xexpose.height
-                    );
-
-                    std::vector<Events::EventHandler*> eventList = 
-                        handlers[EventType::WINDOW_RESIZE];
-
-                    for (uint64_t i = 0; i < eventList.size(); i++)
-                        eventList[i]->OnWindowResize(linkEvent);
-                }
+                    pEventHandler->OnWindowResize(Events::WindowResizeEvent());
+                });
 
                 width = event.xexpose.width;
                 height = event.xexpose.height;
@@ -293,15 +311,11 @@ void Link::Window::PollEvents()
             {
                 closeRequested = true;
 
-                if (handlers.count(EventType::WINDOW_CLOSING))
+                SpawnEvent(Events::EventType::WINDOW_CLOSING, 
+                [this](Events::EventHandler* pEventHandler)
                 {
-                    std::vector<Events::EventHandler*> eventList = 
-                        handlers[EventType::WINDOW_CLOSING];
-                    
-                    for (uint64_t i = 0; i < eventList.size(); i++)
-                        eventList[i]->OnWindowClosing(
-                            Events::WindowClosingEvent());
-                }
+                    pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
+                });
             }
             break;
         }
@@ -311,52 +325,35 @@ void Link::Window::PollEvents()
         Repaint();
 }
 
-void Link::Window::SetDrawingColor(Color color)
-{
-    if (!initialized || stripped)
-        return;
-}
-
-void Link::Window::DrawRect(uint64_t x, uint64_t y, uint64_t width, 
-    uint64_t height)
-{
-    if (!initialized || stripped)
-        return;
-}
-
-uint64_t Link::Window::GetHandle()
+uint64_t Tether::Window::GetHandle()
 {
     if (!initialized)
+    {
+        DispatchNoInit("Window::GetHandle");
         return 0;
+    }
 
     return window;
 }
 
-Display* Link::Window::GetXDisplay()
+void Tether::Window::OnDispose()
+{
+    XUnmapWindow(Application::GetDisplay(), window);
+
+    DisposeGraphics();
+
+    XDestroyWindow(Application::GetDisplay(), window);
+}
+
+void Tether::Window::SwapBuffers()
 {
     if (!initialized)
-        return nullptr;
+    {
+        DispatchNoInit("Window::SwapBuffers");
+        return;
+    }
 
-    return display;
-}
 
-void Link::Window::OnDispose()
-{
-    Hide();
-
-    rectVertexBuffer.Dispose();
-    rectVAO.Dispose();
-
-    MakeCurrent();
-    glXDestroyContext(display, glxContext);
-
-    XDestroyWindow(display, window);
-    XCloseDisplay((Display*)display);
-}
-
-void Link::Window::SwapBuffers()
-{
-    glXSwapBuffers(display, window);
 }
 
 #endif //__linux__

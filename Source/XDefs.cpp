@@ -1,7 +1,7 @@
-#include <Link/XDefs.hpp>
+#include <Tether/XDefs.hpp>
 #ifdef __linux__
 
-using namespace Link;
+using namespace Tether;
 
 bool XDefs::QueryPointer(
     Display* display,

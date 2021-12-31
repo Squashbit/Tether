@@ -1,6 +1,6 @@
-#include <Link/Controls/Control.hpp>
+#include <Tether/Controls/Control.hpp>
 
-using namespace Link::Controls;
+using namespace Tether::Controls;
 
 void Control::SetX(float x)
 {
@@ -52,12 +52,12 @@ float Control::GetHeight() const
     return height;
 }
 
-Link::Color Control::GetForegroundColor() const
+Tether::Color Control::GetForegroundColor() const
 {
     return foreground;
 }
 
-Link::Color Control::GetBackgroundColor() const
+Tether::Color Control::GetBackgroundColor() const
 {
     return background;
 }

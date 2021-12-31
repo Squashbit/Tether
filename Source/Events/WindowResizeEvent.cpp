@@ -1,6 +1,6 @@
-#include <Link/Events/WindowResizeEvent.hpp>
+#include <Tether/Events/WindowResizeEvent.hpp>
 
-using namespace Link::Events;
+using namespace Tether::Events;
 
 WindowResizeEvent::WindowResizeEvent(
     uint64_t newWidth,

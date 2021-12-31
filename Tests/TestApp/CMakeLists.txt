@@ -14,5 +14,5 @@ target_link_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} 
-    ${CMAKE_DL_LIBS} pthread link X11 GL
+    ${CMAKE_DL_LIBS} pthread tether X11 GL
 )

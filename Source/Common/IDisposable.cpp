@@ -1,6 +1,6 @@
-#include <Link/Common/IDisposable.hpp>
+#include <Tether/Common/IDisposable.hpp>
 
-using namespace Link;
+using namespace Tether;
 
 IDisposable::~IDisposable()
 {
@@ -11,8 +11,7 @@ void IDisposable::Dispose()
 {
     if (!initialized)
         return;
+    initialized = false;
     
     OnDispose();
-
-    initialized = false;
 }
