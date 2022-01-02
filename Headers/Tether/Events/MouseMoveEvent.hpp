@@ -30,6 +30,8 @@ namespace Tether::Events
         uint64_t GetOldRelativeY();
         uint64_t GetOldRootX();
         uint64_t GetOldRootY();
+        int64_t GetRawX();
+        int64_t GetRawY();
     private:
         uint64_t rootX = 0;
         uint64_t rootY = 0;

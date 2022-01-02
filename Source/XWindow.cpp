@@ -63,15 +63,15 @@ bool Tether::Window::Init(
     if (!stripped)
         if (!InitGraphics())
             return false;
-    
+
+    initialized = true;
+    InitializeComponent();
+
     if (showAfterInit)
     {
         XMapWindow(display, window);
         visible = true;
     }
-
-    initialized = true;
-    InitializeComponent();
 
     Repaint();
 
@@ -270,10 +270,10 @@ void Tether::Window::PollEvents()
                     event.xmotion.y_root,
                     event.xmotion.x,
                     event.xmotion.y,
-                    mouseX,
-                    mouseY,
                     relMouseX,
-                    relMouseY
+                    relMouseY,
+                    mouseX,
+                    mouseY
                 );
                 
                 SpawnEvent(Events::EventType::MOUSE_MOVE, 
@@ -282,13 +282,10 @@ void Tether::Window::PollEvents()
                     pEventHandler->OnMouseMove(linkEvent);
                 });
 
-                if (prevReceivedMouseMove)
-                {
-                    mouseX = event.xmotion.x_root;
-                    mouseY = event.xmotion.y_root;
-                    relMouseX = event.xmotion.x;
-                    relMouseY = event.xmotion.y;
-                }
+                mouseX = event.xmotion.x_root;
+                mouseY = event.xmotion.y_root;
+                relMouseX = event.xmotion.x;
+                relMouseY = event.xmotion.y;
 
                 prevReceivedMouseMove = true;
             }

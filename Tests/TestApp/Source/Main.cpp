@@ -2,8 +2,11 @@
 
 #include <Tether/Tether.hpp>
 
+#include <thread>
+#include <chrono>
 #include <math.h>
 
+using namespace std::literals::chrono_literals;
 using namespace Tether;
 
 class TestWindow : public Tether::Window
@@ -58,8 +61,6 @@ public:
 		panel.SetHeight(100);
 		panel.SetBackgroundColor(Color(255));
 		AddControl(&panel);
-		
-		SetVisible(true);
 	}
 private:
 	Controls::Panel panel;
@@ -75,30 +76,21 @@ int main()
 	}
 
 	TestWindow window;
-	if (!window.Init(1280, 720))
+	if (!window.Init(200, 200, 1280, 720, true, true))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
 	
-	TestWindow window2;
-	if (!window2.Init())
-	{
-		std::cout << "Failed to initialize window" << std::endl;
-		return 1;
-	}
-
 	window.SetTitle("yep");
-	window2.SetTitle("yep 2");
 	
-	while (!(window.IsCloseRequested() && window2.IsCloseRequested()))
+	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
-		window2.PollEvents();
+		std::this_thread::sleep_for(1ms);
 	}
 
 	window.Dispose();
-	window2.Dispose();
 	
 	Application::Dispose();
 	return 0;

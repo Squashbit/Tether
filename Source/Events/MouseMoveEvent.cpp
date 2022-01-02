@@ -74,3 +74,13 @@ uint64_t MouseMoveEvent::GetOldRootY()
 {
     return oldRootY;
 }
+
+int64_t MouseMoveEvent::GetRawX()
+{
+    return rootX - oldRootX;
+}
+
+int64_t MouseMoveEvent::GetRawY()
+{
+    return rootY - oldRootY;
+}
