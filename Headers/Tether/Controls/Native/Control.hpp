@@ -1,13 +1,13 @@
-#ifndef _TETHER_CONTROL_HPP
-#define _TETHER_CONTROL_HPP
+#ifndef _TETHER_NATIVE_CONTROL_HPP
+#define _TETHER_NATIVE_CONTROL_HPP
 
-#include <Tether/Window.hpp>
+#include <Tether/NativeWindow.hpp>
 
-namespace Tether::Controls
+namespace Tether::Controls::Native
 {
     class Control
     {
-        friend Window;
+        friend NativeWindow;
     public:
         Control() {}
         
@@ -38,4 +38,4 @@ namespace Tether::Controls
     };
 }
 
-#endif //_TETHER_CONTROL_HPP
+#endif //_TETHER_NATIVE_CONTROL_HPP

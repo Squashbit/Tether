@@ -1,6 +1,7 @@
 /**
- * Main link header.
+ * Main Tether header.
  * Includes all required headers to use the Tether library.
+ * 
  * Not a link library, the Tether library.
  */
 
@@ -12,8 +13,8 @@
 #endif //__linux__
 
 #include <Tether/Application.hpp>
+#include <Tether/SimpleWindow.hpp>
+#include <Tether/NativeWindow.hpp>
 #include <Tether/Window.hpp>
-#include <Tether/Controls/Button.hpp>
-#include <Tether/Controls/Panel.hpp>
 
 #endif //_TETHER_TETHER_HPP

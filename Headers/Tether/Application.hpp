@@ -1,6 +1,16 @@
 #ifndef _TETHER_APPLICATION_HPP
 #define _TETHER_APPLICATION_HPP
 
+#ifdef VULKAN_API
+#include <vulkan/vulkan.h>
+#endif
+
+#ifdef OPENGL_API
+#include <GL/gl.h>
+#endif
+
+#include <Tether/Common/WindowHint.hpp>
+
 #ifdef __linux__
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -16,7 +26,8 @@ namespace Tether
         ~ApplicationInternal();
 
         bool Init();
-
+        bool InitOpenGL();
+        
         bool IsInitialized();
     
     #ifdef __linux__
@@ -34,6 +45,9 @@ namespace Tether
         int screen = 0;
 
         bool initialized = false;
+    #ifdef OPENGL_API
+        bool initializedOpenGL = false;
+    #endif
     };
 
     class Application
@@ -43,7 +57,8 @@ namespace Tether
         ~Application();
 
         static bool Init();
-
+        static bool InitOpenGL();
+        
         static bool IsInitialized();
 
     #ifdef __linux__

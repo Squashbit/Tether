@@ -1,7 +1,12 @@
 cmake_minimum_required (VERSION 3.8)
 project ("TestApp")
 
-file(GLOB_RECURSE SOURCES "Source/*.cpp" "Source/*.c")
+file(GLOB_RECURSE SOURCES 
+    "Source/*.cpp" "Source/*.c"
+    "Headers/*.hpp" "Source/*.h"
+)
+
+add_definitions(-DOPENGL_API -DTETHER_PREVIEW_FEATURES)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} 

@@ -8,6 +8,7 @@ file(GLOB_RECURSE SOURCES
     "Source/*.c" 
 )
 
+add_definitions(-DOPENGL_API -DTETHER_PREVIEW_FEATURES)
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} 

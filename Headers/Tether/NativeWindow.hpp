@@ -1,14 +1,15 @@
 /*
- * The Window class uses OpenGL to draw graphics. As a result, it can
- * draw far more complicated graphics then the NativeWindow class.
+ * The NativeWindow class uses native operating-system controls to draw
+ * graphics. It cannot do nearly as complicated graphics as the Window class,
+ * but it is useful for tool apps.
  * 
  * NOTICE:
  * This file is still in preview. If you want to use it, you have to declare
  * the TETHER_PREVIEW_FEATURES preprocessor definition.
  */
 
-#ifndef _TETHER_WINDOW_HPP
-#define _TETHER_WINDOW_HPP
+#ifndef _TETHER_NATIVEWINDOW_HPP
+#define _TETHER_NATIVEWINDOW_HPP
 #ifdef TETHER_PREVIEW_FEATURES
 
 #include <Tether/IWindow.hpp>
@@ -20,16 +21,16 @@ namespace Tether
         class Control;
     }
 
-    class Window : public IWindow
+    class NativeWindow : public IWindow
     {
         friend Tether::Controls::Control;
     public:
-        Window() {}
+        NativeWindow() {}
         
-        Window(const Window&) = delete;
-		Window(Window&&) = delete;
-		Window& operator=(const Window&) = delete;
-		Window& operator=(Window&&) = delete;
+        NativeWindow(const NativeWindow&) = delete;
+		NativeWindow(NativeWindow&&) = delete;
+		NativeWindow& operator=(const NativeWindow&) = delete;
+		NativeWindow& operator=(NativeWindow&&) = delete;
 
         /**
          * @brief Adds a control to the window.
@@ -72,16 +73,10 @@ namespace Tether
         
         void Repaint();
     private:
-        bool InitGraphics();
-        void SwapBuffers();
-        
-        void DisposeGraphics();
-        
         std::vector<Controls::Control*> controls;
-        
         Color backgroundColor;
     };
 }
 
 #endif // TETHER_PREVIEW_FEATURES
-#endif //_TETHER_WINDOW_HPP
+#endif //_TETHER_NATIVEWINDOW_HPP

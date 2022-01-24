@@ -7,6 +7,11 @@ bool Application::Init()
     return app.Init();
 }
 
+bool Application::InitOpenGL()
+{
+    return app.InitOpenGL();
+}
+
 bool Application::IsInitialized()
 {
     return app.IsInitialized();
@@ -50,6 +55,17 @@ bool ApplicationInternal::Init()
     wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     
     initialized = true;
+    return true;
+}
+
+bool ApplicationInternal::InitOpenGL()
+{
+#ifdef OPENGL_API
+
+#else
+    throw "This version of Tether was compiled without OpenGL support";
+#endif
+    
     return true;
 }
 

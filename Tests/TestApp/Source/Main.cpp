@@ -49,21 +49,13 @@ public:
 		RemoveEventHandler(handler);
 	}
 
-	void InitializeComponent()
+	void OnInit()
 	{
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
-
-		panel.SetX(100);
-		panel.SetY(100);
-		panel.SetWidth(100);
-		panel.SetHeight(100);
-		panel.SetBackgroundColor(Color(255));
-		AddControl(&panel);
 	}
 private:
-	Controls::Panel panel;
 	EventHandler handler;
 };
 
@@ -76,14 +68,14 @@ int main()
 	}
 
 	TestWindow window;
-	if (!window.Init(200, 200, 1280, 720, true, true))
+	window.Hint(HintType::X, 120);
+	window.Hint(HintType::Y, 120);
+	if (!window.Init(1280, 720, "sup"))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
-	
-	window.SetTitle("yep");
-	
+
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();

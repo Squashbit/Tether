@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/Headers"
             ],
-            "defines": [],
+            "defines": [ "OPENGL_API", "TETHER_PREVIEW_FEATURES" ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++14",

@@ -1,7 +1,7 @@
 #ifdef __linux__
 
 #include <Tether/Application.hpp>
-#include <Tether/Window.hpp>
+#include <Tether/IWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 
 #include <algorithm>
@@ -11,18 +11,11 @@
 
 static bool initializedGlad = false;
 
-bool Tether::Window::Init(
-    int	x,
-    int	y,
-    unsigned int width,
-    unsigned int height,
-    bool showAfterInit,
-    bool stripped
-)
+bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
     if (initialized)
     {
-        DispatchNoInit("Window::Init");
+        DispatchNoInit("IWindow::Init");
         return false;
     }
     
@@ -32,13 +25,22 @@ bool Tether::Window::Init(
     
     Display* display = Application::GetDisplay();
     int screen = Application::GetScreen();
-    
-    this->x = x;
-    this->y = y;
+
     this->width = width;
     this->height = height;
-    this->stripped = stripped;
 
+    bool shouldShow = true;
+    for (uint64_t i = 0; i < hints.size(); i++)
+    {
+        int64_t value = hints[i].value;
+        switch (hints[i].type)
+        {
+            case HintType::X: this->x = value; break;
+            case HintType::Y: this->y = value; break;
+            case HintType::VISIBLE: shouldShow = (bool)value; break;
+        }
+    }
+    
     unsigned long root = RootWindow(display, screen);
 
     XSetWindowAttributes swa;
@@ -60,127 +62,130 @@ bool Tether::Window::Init(
     XSetWMProtocols(display, window, Application::GetWMDeleteAtom(), 1);
     XFlush(display);
 
-    if (!stripped)
-        if (!InitGraphics())
-            return false;
-
-    initialized = true;
-    InitializeComponent();
-
-    if (showAfterInit)
+    if (shouldShow)
     {
         XMapWindow(display, window);
         visible = true;
     }
 
-    Repaint();
+    XMoveWindow(display, window, x, y);
+    XStoreName(display, window, title);
+
+    initialized = true;
+    OnInit();
 
     return true;
 }
 
-void Tether::Window::SetVisible(bool visibility)
+void Tether::IWindow::SetVisible(bool visibility)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetVisible");
+        DispatchNoInit("IWindow::SetVisible");
         return;
     }
+
+    Display* display = Application::GetDisplay();
     
     if (visibility)
-        XMapWindow(Application::GetDisplay(), window);
+    {
+        XMapWindow(display, window);
+        XMoveWindow(display, window, x, y);
+        XResizeWindow(display, window, this->width, height);
+    }
     else
-        XUnmapWindow(Application::GetDisplay(), window);
+        XUnmapWindow(display, window);
     
     visible = visibility;
 }
 
-bool Tether::Window::IsVisible()
+bool Tether::IWindow::IsVisible()
 {
     return visible && initialized;
 }
 
-void Tether::Window::SetX(int64_t x)
+void Tether::IWindow::SetX(int64_t x)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetX");
+        DispatchNoInit("IWindow::SetX");
         return;
     }
     
     XMoveWindow(Application::GetDisplay(), window, x, GetY());
 }
 
-void Tether::Window::SetY(int64_t y)
+void Tether::IWindow::SetY(int64_t y)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetY");
+        DispatchNoInit("IWindow::SetY");
         return;
     }
 
     XMoveWindow(Application::GetDisplay(), window, GetX(), y);
 }
 
-void Tether::Window::SetPosition(int64_t x, int64_t y)
+void Tether::IWindow::SetPosition(int64_t x, int64_t y)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetPosition");
+        DispatchNoInit("IWindow::SetPosition");
         return;
     }
 
     XMoveWindow(Application::GetDisplay(), window, x, y);
 }
 
-void Tether::Window::SetWidth(uint64_t width)
+void Tether::IWindow::SetWidth(uint64_t width)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetWidth");
+        DispatchNoInit("IWindow::SetWidth");
         return;
     }
 
     XResizeWindow(Application::GetDisplay(), window, width, this->height);
 }
 
-void Tether::Window::SetHeight(uint64_t height)
+void Tether::IWindow::SetHeight(uint64_t height)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetHeight");
+        DispatchNoInit("IWindow::SetHeight");
         return;
     }
 
     XResizeWindow(Application::GetDisplay(), window, this->width, height);
 }
 
-void Tether::Window::SetSize(uint64_t width, uint64_t height)
+void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetSize");
+        DispatchNoInit("IWindow::SetSize");
         return;
     }
 
     XResizeWindow(Application::GetDisplay(), window, width, height);
 }
 
-void Tether::Window::SetTitle(const char* title)
+void Tether::IWindow::SetTitle(const char* title)
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::SetTitle");
+        DispatchNoInit("IWindow::SetTitle");
         return;
     }
 
     XStoreName(Application::GetDisplay(), window, title);
 }
 
-int64_t Tether::Window::GetX()
+int64_t Tether::IWindow::GetX()
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::GetX");
+        DispatchNoInit("IWindow::GetX");
         return 0;
     }
 
@@ -197,11 +202,11 @@ int64_t Tether::Window::GetX()
     return x - attribs.x;
 }
 
-int64_t Tether::Window::GetY()
+int64_t Tether::IWindow::GetY()
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::GetY");
+        DispatchNoInit("IWindow::GetY");
         return 0;
     }
 
@@ -218,13 +223,13 @@ int64_t Tether::Window::GetY()
     return y - attribs.y;
 }
 
-void Tether::Window::PollEvents()
+void Tether::IWindow::PollEvents()
 {
     using namespace Events;
 
     if (!initialized)
     {
-        DispatchNoInit("Window::PollEvents");
+        DispatchNoInit("IWindow::PollEvents");
         return;
     }
     
@@ -250,8 +255,6 @@ void Tether::Window::PollEvents()
             &relativeX, &relativeY,
             &modKeyMask
         );
-
-        Repaint();
 
         switch (event.type)
         {
@@ -317,40 +320,26 @@ void Tether::Window::PollEvents()
             break;
         }
     }
-
-    if (eventReceived)
-        Repaint();
 }
 
-uint64_t Tether::Window::GetHandle()
+uint64_t Tether::IWindow::GetHandle()
 {
     if (!initialized)
     {
-        DispatchNoInit("Window::GetHandle");
+        DispatchNoInit("IWindow::GetHandle");
         return 0;
     }
 
     return window;
 }
 
-void Tether::Window::OnDispose()
+void Tether::IWindow::OnDispose()
 {
     XUnmapWindow(Application::GetDisplay(), window);
 
-    DisposeGraphics();
-
     XDestroyWindow(Application::GetDisplay(), window);
-}
 
-void Tether::Window::SwapBuffers()
-{
-    if (!initialized)
-    {
-        DispatchNoInit("Window::SwapBuffers");
-        return;
-    }
-
-
+    hints.clear();
 }
 
 #endif //__linux__
