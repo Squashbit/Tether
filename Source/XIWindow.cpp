@@ -1,6 +1,5 @@
 #ifdef __linux__
 
-#include <Tether/Application.hpp>
 #include <Tether/IWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 
@@ -19,12 +18,12 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         return false;
     }
     
-    if (!Application::IsInitialized())
-        if (!Application::Init())
-            return false;
+    display = XOpenDisplay(NULL);
+    if (!display)
+        return false;
     
-    Display* display = Application::GetDisplay();
-    int screen = Application::GetScreen();
+    int screen = DefaultScreen(display);
+    wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
 
     this->width = width;
     this->height = height;
@@ -59,7 +58,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         &swa
     );
 
-    XSetWMProtocols(display, window, Application::GetWMDeleteAtom(), 1);
+    XSetWMProtocols(display, window, &wmDelete, 1);
     XFlush(display);
 
     if (shouldShow)
@@ -85,8 +84,6 @@ void Tether::IWindow::SetVisible(bool visibility)
         return;
     }
 
-    Display* display = Application::GetDisplay();
-    
     if (visibility)
     {
         XMapWindow(display, window);
@@ -112,7 +109,7 @@ void Tether::IWindow::SetX(int64_t x)
         return;
     }
     
-    XMoveWindow(Application::GetDisplay(), window, x, GetY());
+    XMoveWindow(display, window, x, GetY());
 }
 
 void Tether::IWindow::SetY(int64_t y)
@@ -123,7 +120,7 @@ void Tether::IWindow::SetY(int64_t y)
         return;
     }
 
-    XMoveWindow(Application::GetDisplay(), window, GetX(), y);
+    XMoveWindow(display, window, GetX(), y);
 }
 
 void Tether::IWindow::SetPosition(int64_t x, int64_t y)
@@ -134,7 +131,7 @@ void Tether::IWindow::SetPosition(int64_t x, int64_t y)
         return;
     }
 
-    XMoveWindow(Application::GetDisplay(), window, x, y);
+    XMoveWindow(display, window, x, y);
 }
 
 void Tether::IWindow::SetWidth(uint64_t width)
@@ -145,7 +142,7 @@ void Tether::IWindow::SetWidth(uint64_t width)
         return;
     }
 
-    XResizeWindow(Application::GetDisplay(), window, width, this->height);
+    XResizeWindow(display, window, width, this->height);
 }
 
 void Tether::IWindow::SetHeight(uint64_t height)
@@ -156,7 +153,7 @@ void Tether::IWindow::SetHeight(uint64_t height)
         return;
     }
 
-    XResizeWindow(Application::GetDisplay(), window, this->width, height);
+    XResizeWindow(display, window, this->width, height);
 }
 
 void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
@@ -167,7 +164,7 @@ void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
         return;
     }
 
-    XResizeWindow(Application::GetDisplay(), window, width, height);
+    XResizeWindow(display, window, width, height);
 }
 
 void Tether::IWindow::SetTitle(const char* title)
@@ -178,7 +175,7 @@ void Tether::IWindow::SetTitle(const char* title)
         return;
     }
 
-    XStoreName(Application::GetDisplay(), window, title);
+    XStoreName(display, window, title);
 }
 
 int64_t Tether::IWindow::GetX()
@@ -189,7 +186,6 @@ int64_t Tether::IWindow::GetX()
         return 0;
     }
 
-    Display* display = Application::GetDisplay();
     long unsigned int child;
 
     int x, y;
@@ -210,7 +206,6 @@ int64_t Tether::IWindow::GetY()
         return 0;
     }
 
-    Display* display = Application::GetDisplay();
     long unsigned int child;
 
     int x, y;
@@ -235,8 +230,6 @@ void Tether::IWindow::PollEvents()
     
     if (!visible)
         return;
-
-    Display* display = Application::GetDisplay();
 
     bool eventReceived = false;
     while (XPending(display))
@@ -322,6 +315,16 @@ void Tether::IWindow::PollEvents()
     }
 }
 
+Display* Tether::IWindow::GetDisplay()
+{
+    return display;
+}
+
+int Tether::IWindow::GetScreen()
+{
+    return screen;
+}
+
 uint64_t Tether::IWindow::GetHandle()
 {
     if (!initialized)
@@ -335,9 +338,13 @@ uint64_t Tether::IWindow::GetHandle()
 
 void Tether::IWindow::OnDispose()
 {
-    XUnmapWindow(Application::GetDisplay(), window);
+    XLockDisplay(display);
+        XUnmapWindow(display, window);
+        XDestroyWindow(display, window);
+        XFlush(display);
+    XUnlockDisplay(display);
 
-    XDestroyWindow(Application::GetDisplay(), window);
+    XCloseDisplay(display);
 
     hints.clear();
 }

@@ -61,29 +61,32 @@ private:
 
 int main()
 {
-	if (!Application::Init())
-	{
-		std::cout << "Failed to initialize window" << std::endl;
-		return 1;
-	}
-
 	TestWindow window;
 	window.Hint(HintType::X, 120);
 	window.Hint(HintType::Y, 120);
-	if (!window.Init(1280, 720, "sup"))
+	if (!window.Init(1280, 720, "Window 1"))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
 
-	while (!window.IsCloseRequested())
+	TestWindow window2;
+	window2.Hint(HintType::X, 240);
+	window2.Hint(HintType::Y, 240);
+	if (!window2.Init(1280, 720, "Window 2"))
+	{
+		std::cout << "Failed to initialize window" << std::endl;
+		return 1;
+	}
+
+	while (!window.IsCloseRequested() || !window2.IsCloseRequested())
 	{
 		window.PollEvents();
+		window2.PollEvents();
 		std::this_thread::sleep_for(1ms);
 	}
 
 	window.Dispose();
-	
-	Application::Dispose();
+	window2.Dispose();
 	return 0;
 }

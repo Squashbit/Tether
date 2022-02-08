@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 3.8)
-project ("TestApp")
+project ("MultipleWindows")
 
 file(GLOB_RECURSE SOURCES 
     "Source/*.cpp" "Source/*.c"
     "Headers/*.hpp" "Source/*.h"
 )
 
-add_definitions(-DOPENGL_API -DTETHER_PREVIEW_FEATURES)
+add_definitions(-DTETHER_PREVIEW_FEATURES)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} 
@@ -19,5 +19,5 @@ target_link_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} 
-    ${CMAKE_DL_LIBS} pthread tether X11 GL
+    ${CMAKE_DL_LIBS} pthread tether X11
 )

@@ -86,6 +86,10 @@ namespace Tether
          */
         void PollEvents();
         
+    #ifdef __linux__
+        Display* GetDisplay();
+        int GetScreen();
+    #endif
         uint64_t GetHandle();
 
         bool IsCloseRequested();
@@ -102,6 +106,9 @@ namespace Tether
 
     #ifdef __linux__
         unsigned long window = 0;
+        Display* display = nullptr;
+        Atom wmDelete;
+        int screen = 0;
         XEvent event;
     #endif //__linux__
     private:

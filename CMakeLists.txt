@@ -1,7 +1,8 @@
 cmake_minimum_required (VERSION 3.8)
 project ("tether")
 
-add_subdirectory(Tests/TestApp)
+add_subdirectory(Tests/SimpleWindow)
+add_subdirectory(Tests/MultipleWindows)
 
 file(GLOB_RECURSE SOURCES 
     "Source/*.cpp" 
