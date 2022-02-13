@@ -8,7 +8,27 @@
 
 #include <string.h>
 
-static bool initializedGlad = false;
+struct MwmHints 
+{
+    unsigned long flags;
+    unsigned long functions;
+    unsigned long decorations;
+    long input_mode;
+    unsigned long status;
+};
+
+enum 
+{
+    MWM_HINTS_FUNCTIONS = (1L << 0),
+    MWM_HINTS_DECORATIONS =  (1L << 1),
+
+    MWM_FUNC_ALL = (1L << 0),
+    MWM_FUNC_RESIZE = (1L << 1),
+    MWM_FUNC_MOVE = (1L << 2),
+    MWM_FUNC_MINIMIZE = (1L << 3),
+    MWM_FUNC_MAXIMIZE = (1L << 4),
+    MWM_FUNC_CLOSE = (1L << 5)
+};
 
 bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
@@ -30,6 +50,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     this->height = height;
 
     bool shouldShow = true;
+    bool fullscreenMode = false;
     for (uint64_t i = 0; i < hints.size(); i++)
     {
         int64_t value = hints[i].value;
@@ -38,6 +59,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
             case HintType::X: this->x = value; break;
             case HintType::Y: this->y = value; break;
             case HintType::VISIBLE: shouldShow = (bool)value; break;
+            case HintType::FULLSCREEN: fullscreenMode = (bool)value; break;
         }
     }
     
@@ -64,6 +86,17 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     XSetWMProtocols(display, window, &wmDelete, 1);
 
+    if (fullscreenMode)
+    {
+        fullscreen = true;
+
+        Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
+        Atom fullscreen = XInternAtom(display, 
+            "_NET_WM_STATE_FULLSCREEN", true);
+        XChangeProperty(display, window, wmState, XA_ATOM, 32, 
+            PropModeReplace, (unsigned char*)&fullscreen, 1);
+    }
+
     if (shouldShow)
     {
         XMapWindow(display, window);
@@ -77,9 +110,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     
     initialized = true;
     OnInit();
-
-    SetState(WindowState::NORMAL);
-    SetState(WindowState::NORMAL);
 
     return true;
 }
@@ -154,28 +184,90 @@ void Tether::IWindow::SetTitle(const char* title)
     XStoreName(display, window, title);
 }
 
-void Tether::IWindow::SetState(WindowState state)
+void Tether::IWindow::SetBounds(int minWidth, int minHeight, int maxWidth, 
+    int maxHeight)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetState");
+    XSizeHints sizeHints{};
+    sizeHints.min_width = minWidth;
+    sizeHints.min_height = minHeight;
+    sizeHints.max_width = maxWidth;
+    sizeHints.max_height = maxHeight;
+    sizeHints.flags = PMinSize | PMaxSize;
+
+    XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
+}
+
+void Tether::IWindow::SetDecorated(bool decorated)
+{
+    Atom motifWmHints = XInternAtom(display, "_MOTIF_WM_HINTS", true);
+
+    MwmHints hints{};
+    hints.flags = MWM_HINTS_DECORATIONS;
+    hints.decorations = decorated;
+
+    XChangeProperty(
+        display, window,
+        motifWmHints,
+        motifWmHints, 
+        32,
+        PropModeReplace,
+        (unsigned char*)&hints,
+        sizeof(hints) / sizeof(long)
+    );
+}
+
+void Tether::IWindow::SetClosable(bool closable)
+{
+    if (this->closable == closable)
+        return;
+    this->closable = closable;
+
+    ProcessMwmFunctions();
+}
+
+void Tether::IWindow::SetResizable(bool isResizable)
+{
+    if (isResizable == resizable)
+        return;
+    resizable = isResizable;
+
+    ProcessMwmFunctions();
+}
+
+void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
+{
+    TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
+
+    if (this->fullscreen == fullscreen)
+        return;
 
     Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
-    switch (state)
+    if (fullscreen)
     {
-        case WindowState::NORMAL:
-        {
-            XDeleteProperty(display, window, wmState);
-        }
-        break;
+        Atom wmFullscreenMonitors = 
+            XInternAtom(display, "_NET_WM_FULLSCREEN_MONITORS", true);
+        XEvent event{};
+        event.type = ClientMessage;
+        event.xclient.window = window;
+        event.xclient.message_type = wmFullscreenMonitors;
+        event.xclient.format = 32;
+        event.xclient.data.l[0] = monitor;
+        event.xclient.data.l[1] = monitor;
+        event.xclient.data.l[2] = monitor;
+        event.xclient.data.l[3] = monitor;
 
-        case WindowState::FULLSCREEN:
-        {
-            Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
-                true);
-            XChangeProperty(display, window, wmState, XA_ATOM, 32, 
-                PropModeReplace, (unsigned char*)&fullscreen, 1);
-        }
-        break;
+        XSendEvent(display, DefaultRootWindow(display), false, 
+            SubstructureRedirectMask | SubstructureNotifyMask, &event);
+        
+        Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
+            true);
+        XChangeProperty(display, window, wmState, XA_ATOM, 32, 
+            PropModeReplace, (unsigned char*)&fullscreen, 1);
     }
+    else
+        XDeleteProperty(display, window, wmState);
+    
+    this->fullscreen = fullscreen;
 }
 
 int64_t Tether::IWindow::GetX()
@@ -208,6 +300,22 @@ int64_t Tether::IWindow::GetY()
     XGetWindowAttributes(display, window, &attribs);
     
     return y - attribs.y;
+}
+
+uint64_t Tether::IWindow::GetWidth()
+{
+    XWindowAttributes attribs;
+    XGetWindowAttributes(display, window, &attribs);
+
+    return attribs.width;
+}
+
+uint64_t Tether::IWindow::GetHeight()
+{
+    XWindowAttributes attribs;
+    XGetWindowAttributes(display, window, &attribs);
+
+    return attribs.height;
 }
 
 void Tether::IWindow::PollEvents()
@@ -293,6 +401,10 @@ void Tether::IWindow::PollEvents()
 
             case ClientMessage:
             {
+                // Check for WM_PROTOCOLS
+                if (event.xclient.message_type != 315)
+                    break;
+                
                 closeRequested = true;
 
                 SpawnEvent(Events::EventType::WINDOW_CLOSING, 
@@ -334,6 +446,30 @@ void Tether::IWindow::OnDispose()
     XCloseDisplay(display);
 
     hints.clear();
+}
+
+void Tether::IWindow::ProcessMwmFunctions()
+{
+    Atom motifWmHints = XInternAtom(display, "_MOTIF_WM_HINTS", true);
+
+    MwmHints hints{};
+    hints.flags = MWM_HINTS_FUNCTIONS;
+    hints.functions = MWM_FUNC_MOVE | MWM_FUNC_MAXIMIZE;
+
+    if (closable)
+        hints.functions |= MWM_FUNC_CLOSE;
+    if (resizable)
+        hints.functions |= MWM_FUNC_RESIZE;
+    
+    XChangeProperty(
+        display, window,
+        motifWmHints,
+        motifWmHints, 
+        32,
+        PropModeReplace,
+        (unsigned char*)&hints,
+        sizeof(hints) / sizeof(long)
+    );
 }
 
 #endif //__linux__

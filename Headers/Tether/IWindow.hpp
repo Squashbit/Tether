@@ -77,6 +77,16 @@ namespace Tether
         void SetVisible(bool visibility);
         bool IsVisible();
 
+        /**
+         * @brief Sets the window's fullscreen state.
+         * 
+         * @param fullscreen True if the window should be fullscreen;
+         *  otherwise, false.
+         * @param monitor The monitor index to fullscreen on. Obsolete if
+         *  fullscreen is false.
+         */
+        void SetFullscreen(bool fullscreen, int monitor = 0);
+
         void SetX(int64_t x);
         void SetY(int64_t y);
         void SetPosition(int64_t x, int64_t y);
@@ -84,7 +94,11 @@ namespace Tether
         void SetHeight(uint64_t height);
         void SetSize(uint64_t width, uint64_t height);
         void SetTitle(const char* title);
-        void SetState(WindowState state);
+        void SetDecorated(bool decorated);
+        void SetClosable(bool closable);
+        void SetResizable(bool resizable);
+        void SetBounds(int minWidth, int minHeight, int maxWidth, 
+            int maxHeight);
         // Window X
         int64_t GetX();
         // Window Y
@@ -127,6 +141,10 @@ namespace Tether
         XEvent event;
     #endif //__linux__
     private:
+    #ifdef __linux__
+        void ProcessMwmFunctions();
+    #endif
+
         std::vector<WindowHint> hints;
 
         // Window stuff
@@ -135,6 +153,9 @@ namespace Tether
         uint64_t width = 800;
         uint64_t height = 600;
         bool visible = false;
+        bool fullscreen = false;
+        bool closable = true;
+        bool resizable = true;
 
         // Mouse stuff
         bool prevReceivedMouseMove = false;

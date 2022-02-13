@@ -6,17 +6,16 @@
 namespace Tether
 {
     /**
-     * @brief The type of window hint. Each window hint has a value.
-     *  The comment next to each HintType entry describes the value ptr type.
-     * @see WindowHint
+     * @brief The type of window hint.
      */
     enum class HintType
     {
-        X, // int64 (screen coordinates)
-        Y, // int64 (screen coordinates)
-        WIDTH, // uint64
-        HEIGHT, // uint64
-        VISIBLE, // bool
+        X,
+        Y,
+        WIDTH,
+        HEIGHT,
+        VISIBLE,
+        FULLSCREEN,
     };
     
     struct WindowHint

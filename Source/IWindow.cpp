@@ -87,16 +87,6 @@ uint64_t Tether::IWindow::GetRelativeMouseY()
     return relMouseY;
 }
 
-uint64_t Tether::IWindow::GetWidth()
-{
-    return width;
-}
-
-uint64_t Tether::IWindow::GetHeight()
-{
-    return height;
-}
-
 bool Tether::IWindow::IsCloseRequested()
 {
     return closeRequested;

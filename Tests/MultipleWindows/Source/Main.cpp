@@ -89,8 +89,6 @@ int main()
 		return 1;
 	}
 
-	window2.SetState(WindowState::FULLSCREEN);
-
 	while (!window.IsCloseRequested() || !window2.IsCloseRequested())
 	{
 		window.PollEvents();
