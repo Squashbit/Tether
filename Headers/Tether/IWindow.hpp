@@ -11,10 +11,24 @@
 #include <functional>
 
 #ifdef __linux__
-#include <Tether/XDefs.hpp>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 #endif //__linux__
+
+#define TETHER_ASSERT_INITIALIZED(funcName) \
+    if (!initialized) \
+    { \
+        DispatchNoInit(funcName); \
+        return; \
+    }
+
+#define TETHER_ASSERT_INITIALIZED_RET(funcName, returnValue) \
+    if (!initialized) \
+    { \
+        DispatchNoInit(funcName); \
+        return returnValue; \
+    }
 
 namespace Tether
 {
@@ -70,6 +84,7 @@ namespace Tether
         void SetHeight(uint64_t height);
         void SetSize(uint64_t width, uint64_t height);
         void SetTitle(const char* title);
+        void SetState(WindowState state);
         // Window X
         int64_t GetX();
         // Window Y
@@ -107,8 +122,8 @@ namespace Tether
     #ifdef __linux__
         unsigned long window = 0;
         Display* display = nullptr;
-        Atom wmDelete;
         int screen = 0;
+
         XEvent event;
     #endif //__linux__
     private:

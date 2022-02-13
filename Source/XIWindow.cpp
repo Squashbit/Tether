@@ -12,6 +12,8 @@ static bool initializedGlad = false;
 
 bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
+    // Check if initialized
+    // Not possible to use TETHER_ASSERT_INITIALIZED here
     if (initialized)
     {
         DispatchNoInit("IWindow::Init");
@@ -23,7 +25,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         return false;
     
     int screen = DefaultScreen(display);
-    wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
 
     this->width = width;
     this->height = height;
@@ -42,8 +43,10 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     
     unsigned long root = RootWindow(display, screen);
 
-    XSetWindowAttributes swa;
-    swa.event_mask = 0xFFFF;
+    XSetWindowAttributes swa{};
+    swa.event_mask = 
+          PointerMotionMask 
+        | StructureNotifyMask;
 
     window = XCreateWindow(
         display, 
@@ -57,32 +60,33 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         CWEventMask,
         &swa
     );
-
+    
+    Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     XSetWMProtocols(display, window, &wmDelete, 1);
-    XFlush(display);
 
     if (shouldShow)
     {
         XMapWindow(display, window);
         visible = true;
     }
-
+    
     XMoveWindow(display, window, x, y);
     XStoreName(display, window, title);
 
+    XSync(display, false);
+    
     initialized = true;
     OnInit();
+
+    SetState(WindowState::NORMAL);
+    SetState(WindowState::NORMAL);
 
     return true;
 }
 
 void Tether::IWindow::SetVisible(bool visibility)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetVisible");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
 
     if (visibility)
     {
@@ -103,88 +107,80 @@ bool Tether::IWindow::IsVisible()
 
 void Tether::IWindow::SetX(int64_t x)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetX");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetX");
     
     XMoveWindow(display, window, x, GetY());
 }
 
 void Tether::IWindow::SetY(int64_t y)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetY");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetY");
 
     XMoveWindow(display, window, GetX(), y);
 }
 
 void Tether::IWindow::SetPosition(int64_t x, int64_t y)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetPosition");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetPosition");
 
     XMoveWindow(display, window, x, y);
 }
 
 void Tether::IWindow::SetWidth(uint64_t width)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetWidth");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetWidth");
 
     XResizeWindow(display, window, width, this->height);
 }
 
 void Tether::IWindow::SetHeight(uint64_t height)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetHeight");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetHeight");
 
     XResizeWindow(display, window, this->width, height);
 }
 
 void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetSize");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetSize");
 
     XResizeWindow(display, window, width, height);
 }
 
 void Tether::IWindow::SetTitle(const char* title)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::SetTitle");
-        return;
-    }
+    TETHER_ASSERT_INITIALIZED("IWindow::SetTitle");
 
     XStoreName(display, window, title);
 }
 
+void Tether::IWindow::SetState(WindowState state)
+{
+    TETHER_ASSERT_INITIALIZED("IWindow::SetState");
+
+    Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
+    switch (state)
+    {
+        case WindowState::NORMAL:
+        {
+            XDeleteProperty(display, window, wmState);
+        }
+        break;
+
+        case WindowState::FULLSCREEN:
+        {
+            Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
+                true);
+            XChangeProperty(display, window, wmState, XA_ATOM, 32, 
+                PropModeReplace, (unsigned char*)&fullscreen, 1);
+        }
+        break;
+    }
+}
+
 int64_t Tether::IWindow::GetX()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::GetX");
-        return 0;
-    }
+    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetX", 0);
 
     long unsigned int child;
 
@@ -200,11 +196,7 @@ int64_t Tether::IWindow::GetX()
 
 int64_t Tether::IWindow::GetY()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::GetY");
-        return 0;
-    }
+    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetY", 0);
 
     long unsigned int child;
 
@@ -236,18 +228,6 @@ void Tether::IWindow::PollEvents()
     {
         XNextEvent(display, &event);
         eventReceived = true;
-        
-        uint32_t queryRoot, queryChild;
-        int absoluteX, absoluteY;
-        int relativeX, relativeY;
-        uint32_t modKeyMask;
-        XDefs::QueryPointer(
-            display, window,
-            &queryRoot, &queryChild,
-            &absoluteX, &absoluteY,
-            &relativeX, &relativeY,
-            &modKeyMask
-        );
 
         switch (event.type)
         {
@@ -287,16 +267,27 @@ void Tether::IWindow::PollEvents()
             }
             break;
 
-            case Expose:
+            case ConfigureNotify:
             {
+                XConfigureEvent xce = event.xconfigure;
+
+                // Verify that the event was a resize event
+                if (xce.width == width && xce.height == height)
+                    break;
+                
+                WindowResizeEvent linkEvent(
+                    xce.width,
+                    xce.height
+                );
+
                 SpawnEvent(Events::EventType::WINDOW_RESIZE, 
-                [this](Events::EventHandler* pEventHandler)
+                [&](Events::EventHandler* pEventHandler)
                 {
-                    pEventHandler->OnWindowResize(Events::WindowResizeEvent());
+                    pEventHandler->OnWindowResize(linkEvent);
                 });
 
-                width = event.xexpose.width;
-                height = event.xexpose.height;
+                width = xce.width;
+                height = xce.height;
             }
             break;
 
@@ -327,11 +318,7 @@ int Tether::IWindow::GetScreen()
 
 uint64_t Tether::IWindow::GetHandle()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("IWindow::GetHandle");
-        return 0;
-    }
+    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetHandle", 0);
 
     return window;
 }

@@ -116,6 +116,18 @@ namespace Tether
 		MEDIUM = 2,
 		HIGH = 3,
 	};
+
+	enum class WindowState
+	{
+		NORMAL,
+		FULLSCREEN
+	};
+
+	// UNIMPLEMENTED
+	enum class WindowType
+	{
+		NORMAL
+	};
 }
 
 #endif //_TETHER_TYPES_HPP

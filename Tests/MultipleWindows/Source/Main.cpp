@@ -23,6 +23,15 @@ public:
 		void OnWindowClosing(Events::WindowClosingEvent event)
 		{
 			pWindow->SetVisible(false);
+			std::cout << "Closed window" << std::endl;
+		}
+
+		void OnMouseMove(Events::MouseMoveEvent event)
+		{
+			std::cout << 
+				"X=" << event.GetRelativeX() <<
+				", Y=" << event.GetRelativeY() 
+			<< std::endl;
 		}
 
 		void OnWindowError(Events::WindowErrorEvent event)
@@ -52,6 +61,7 @@ public:
 	void OnInit()
 	{
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
+		AddEventHandler(handler, Events::EventType::MOUSE_MOVE);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 	}
@@ -78,6 +88,8 @@ int main()
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
+
+	window2.SetState(WindowState::FULLSCREEN);
 
 	while (!window.IsCloseRequested() || !window2.IsCloseRequested())
 	{
