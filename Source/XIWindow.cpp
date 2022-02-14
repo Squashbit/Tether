@@ -242,8 +242,24 @@ void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
         return;
 
     Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
+    Atom fullscreenAtom = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
+            true);
     if (fullscreen)
     {
+        XEvent fullscreenEvent{};
+        fullscreenEvent.type = ClientMessage;
+        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.message_type = wmState;
+        fullscreenEvent.xclient.format = 32;
+        fullscreenEvent.xclient.data.l[0] = 2; // Replace
+        fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
+        
+        XSendEvent(display, DefaultRootWindow(display), false, 
+            SubstructureRedirectMask | SubstructureNotifyMask, 
+            &fullscreenEvent);
+        
+        XSync(display, false);
+        
         Atom wmFullscreenMonitors = 
             XInternAtom(display, "_NET_WM_FULLSCREEN_MONITORS", true);
         XEvent event{};
@@ -258,14 +274,23 @@ void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
 
         XSendEvent(display, DefaultRootWindow(display), false, 
             SubstructureRedirectMask | SubstructureNotifyMask, &event);
-        
-        Atom fullscreen = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
-            true);
-        XChangeProperty(display, window, wmState, XA_ATOM, 32, 
-            PropModeReplace, (unsigned char*)&fullscreen, 1);
     }
     else
-        XDeleteProperty(display, window, wmState);
+    {
+        XEvent fullscreenEvent{};
+        fullscreenEvent.type = ClientMessage;
+        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.message_type = wmState;
+        fullscreenEvent.xclient.format = 32;
+        fullscreenEvent.xclient.data.l[0] = 0; // Remove
+        fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
+        
+        XSendEvent(display, DefaultRootWindow(display), false, 
+            SubstructureRedirectMask | SubstructureNotifyMask, 
+            &fullscreenEvent);
+    }
+
+    XSync(display, false);
     
     this->fullscreen = fullscreen;
 }

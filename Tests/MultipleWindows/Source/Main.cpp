@@ -60,6 +60,8 @@ public:
 
 	void OnInit()
 	{
+		SetBounds(960, 540, 1366, 768);
+		
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::MOUSE_MOVE);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
@@ -88,7 +90,7 @@ int main()
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
-
+	
 	while (!window.IsCloseRequested() || !window2.IsCloseRequested())
 	{
 		window.PollEvents();
