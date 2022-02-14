@@ -90,7 +90,7 @@ int main()
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
-	
+
 	while (!window.IsCloseRequested() || !window2.IsCloseRequested())
 	{
 		window.PollEvents();

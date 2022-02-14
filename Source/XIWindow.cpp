@@ -427,7 +427,8 @@ void Tether::IWindow::PollEvents()
             case ClientMessage:
             {
                 // Check for WM_PROTOCOLS
-                if (event.xclient.message_type != 315)
+                if (event.xclient.message_type != 
+                    XInternAtom(display, "WM_PROTOCOLS", false))
                     break;
                 
                 closeRequested = true;
