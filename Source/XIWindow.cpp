@@ -197,6 +197,16 @@ void Tether::IWindow::SetBounds(int minWidth, int minHeight, int maxWidth,
     XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
 }
 
+void Tether::IWindow::SetPreferredResizeInc(int width, int height)
+{
+    XSizeHints sizeHints{};
+    sizeHints.width_inc = width;
+    sizeHints.height_inc = height;
+    sizeHints.flags = PResizeInc;
+
+    XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
+}
+
 void Tether::IWindow::SetDecorated(bool decorated)
 {
     Atom motifWmHints = XInternAtom(display, "_MOTIF_WM_HINTS", true);

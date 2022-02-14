@@ -99,6 +99,7 @@ namespace Tether
         void SetResizable(bool resizable);
         void SetBounds(int minWidth, int minHeight, int maxWidth, 
             int maxHeight);
+        void SetPreferredResizeInc(int width, int height);
         // Window X
         int64_t GetX();
         // Window Y
