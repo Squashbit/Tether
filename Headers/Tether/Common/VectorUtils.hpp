@@ -1,6 +1,10 @@
 #ifndef _TETHER_VECTORUTILS_HPP
 #define _TETHER_VECTORUTILS_HPP
 
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
 namespace Tether::VectorUtils
 {
     template<typename VecType, typename T>
