@@ -8,9 +8,9 @@
 #ifndef _TETHER_TETHER_HPP
 #define _TETHER_TETHER_HPP
 
-#ifndef __linux__
-#error Sorry! Linux is currently the only supported platform!
-#endif //__linux__
+#if !defined(__linux__) && !defined(_WIN32)
+#error Sorry! Linux and Windows are currently the only supported platforms!
+#endif
 
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/NativeWindow.hpp>
