@@ -6,6 +6,8 @@ file(GLOB_RECURSE SOURCES
     "Headers/*.hpp" "Source/*.h"
 )
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_definitions(-DTETHER_PREVIEW_FEATURES)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
