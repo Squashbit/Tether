@@ -446,6 +446,8 @@ void Tether::IWindow::ReconstructStyle()
 LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, 
 	LPARAM lParam)
 {
+	using namespace Tether::Events;
+
 	// The window variable should never be used in this function because
 	// the CreateWindow function sends events before it has finished execution;
 	// therefore, it is possible for the window variable to be null. 
@@ -540,6 +542,26 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 
 	switch (msg)
 	{
+		case WM_SIZING:
+		{
+			RECT bounds = *(RECT*)lParam;
+
+			WindowResizeEvent event(
+				bounds.right - bounds.left,
+				bounds.bottom - bounds.top
+			);
+
+			SpawnEvent(Events::EventType::WINDOW_RESIZE,
+			[&](Events::EventHandler* pEventHandler)
+			{
+				pEventHandler->OnWindowResize(event);
+			});
+
+			width = event.GetNewWidth();
+			height = event.GetNewHeight();
+		}
+		break;
+
 		default:
 		{
 			return DefWindowProc(hWnd, msg, wParam, lParam);

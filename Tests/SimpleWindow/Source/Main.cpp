@@ -20,6 +20,12 @@ public:
 			pWindow(pWindow)
 		{}
 
+		void OnWindowResize(Events::WindowResizeEvent event)
+		{
+			std::cout << "Resized window to W=" << event.GetNewWidth()
+				<< ", H=" << event.GetNewHeight() << std::endl;
+		}
+
 		void OnWindowClosing(Events::WindowClosingEvent event)
 		{
 			pWindow->SetVisible(false);
@@ -53,6 +59,7 @@ public:
 	{
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
+		AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 	}
 private:
