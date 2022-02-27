@@ -5,10 +5,8 @@ add_subdirectory(Tests/SimpleWindow)
 add_subdirectory(Tests/MultipleWindows)
 
 file(GLOB_RECURSE SOURCES 
-    "Source/*.cpp" 
-    "Source/*.c" 
-    "Headers/*.hpp" 
-    "Headers/*.h" 
+    "Source/*.cpp" "Source/*.c" 
+    "Headers/*.hpp" "Headers/*.h" 
 )
 
 set(CMAKE_CXX_STANDARD 17)

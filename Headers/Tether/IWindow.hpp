@@ -41,8 +41,21 @@ namespace Tether
 		class Control;
 	}
 
+#ifdef _WIN32
+	class IWindow;
+	class WindowProcCaller
+	{
+	public:
+		LRESULT HandleMessage(HWND hWnd, Tether::IWindow* pWnd,
+			UINT msg, WPARAM wParam, LPARAM lParam);
+	};
+#endif
+
 	class IWindow : public IDisposable
 	{
+	#ifdef _WIN32
+		friend WindowProcCaller;
+	#endif
 		friend Tether::Controls::Control;
 	public:
 		IWindow() {}
@@ -127,12 +140,21 @@ namespace Tether
 	#ifdef __linux__
 		Display* GetDisplay();
 		int GetScreen();
-	#endif
 		uint64_t GetHandle();
+	#endif
+
+	#ifdef _WIN32
+		HINSTANCE GetHIstance();
+		HWND GetHandle();
+	#endif
 
 		bool IsCloseRequested();
 		void IgnoreClose();
 	protected:
+	#ifdef _WIN32
+		LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+	#endif
+
 		void OnDispose();
 
 		void SpawnEvent(
@@ -154,7 +176,9 @@ namespace Tether
 		// There is only ever one hinstance but for simplicity it is stored in the
 		// window.
 		HINSTANCE hinst = nullptr;
-#endif // _WIN32
+
+		WNDCLASSEX wndClass;
+	#endif // _WIN32
 	private:
 	#ifdef __linux__
 		void ProcessMwmFunctions();
@@ -167,6 +191,7 @@ namespace Tether
 		
 		int64_t minWidth, minHeight, maxWidth, maxHeight = 0;
 		bool decorated = true;
+		std::string className = "";
 	#endif
 
 		std::vector<WindowHint> hints;

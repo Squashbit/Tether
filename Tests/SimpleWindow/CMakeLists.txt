@@ -3,7 +3,7 @@ project ("SimpleWindow")
 
 file(GLOB_RECURSE SOURCES 
 	"Source/*.cpp" "Source/*.c"
-	"Headers/*.hpp" "Source/*.h"
+	"Headers/*.hpp" "Headers/*.h"
 )
 
 set(CMAKE_CXX_STANDARD 17)

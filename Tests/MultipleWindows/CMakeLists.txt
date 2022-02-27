@@ -3,7 +3,7 @@ project ("MultipleWindows")
 
 file(GLOB_RECURSE SOURCES 
     "Source/*.cpp" "Source/*.c"
-    "Headers/*.hpp" "Source/*.h"
+    "Headers/*.hpp" "Headers/*.h"
 )
 
 set(CMAKE_CXX_STANDARD 17)
@@ -20,6 +20,12 @@ target_link_directories(${PROJECT_NAME}
     PRIVATE "../../Build"
 )
 
-target_link_libraries(${PROJECT_NAME} 
-    ${CMAKE_DL_LIBS} pthread tether X11
-)
+if (UNIX)
+	target_link_libraries(${PROJECT_NAME} 
+		${CMAKE_DL_LIBS} pthread tether X11
+	)
+elseif(WIN32)
+	target_link_libraries(${PROJECT_NAME} 
+		${CMAKE_DL_LIBS} tether
+	)
+endif()
