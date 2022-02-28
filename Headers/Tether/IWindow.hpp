@@ -51,6 +51,21 @@ namespace Tether
 	};
 #endif
 
+	enum class FullscreenFields
+	{
+		WIDTH,
+		HEIGHT,
+		BITSPERPIXEL
+	};
+
+	struct FullscreenSettings
+	{
+		uint64_t width = 0;
+		uint64_t height = 0;
+		uint64_t bitsPerPixel = 0;
+		uint64_t fields = 0;
+	};
+
 	class IWindow : public IDisposable
 	{
 	#ifdef _WIN32
@@ -94,6 +109,10 @@ namespace Tether
 		void SetVisible(bool visibility);
 		bool IsVisible();
 
+		void SetCursorVisible(bool show);
+		void SetMousePos(uint64_t x, uint64_t y);
+		void SetMouseRootPos(uint64_t x, uint64_t y);
+
 		/**
 		 * @brief Sets the window's fullscreen state.
 		 * 
@@ -116,11 +135,10 @@ namespace Tether
 		void SetResizable(bool resizable);
 		void SetMinimizeBox(bool enabled);
 		void SetMaximizeBox(bool enabled);
-		void SetBounds(int minWidth, int minHeight, int maxWidth, 
-			int maxHeight);
-	#ifdef __linux__
-		void SetPreferredResizeInc(int width, int height);
-	#endif
+		void SetMaximized(bool maximized);
+		void SetBoundsEnabled(bool enabled);
+		void SetBounds(int64_t minWidth, int64_t minHeight, int64_t maxWidth,
+			int64_t maxHeight);
 		// Window X
 		int64_t GetX();
 		// Window Y
@@ -138,6 +156,8 @@ namespace Tether
 		void PollEvents();
 		
 	#ifdef __linux__
+		void SetPreferredResizeInc(int width, int height);
+
 		Display* GetDisplay();
 		int GetScreen();
 		uint64_t GetHandle();
@@ -151,12 +171,6 @@ namespace Tether
 		bool IsCloseRequested();
 		void IgnoreClose();
 	protected:
-	#ifdef _WIN32
-		LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-	#endif
-
-		void OnDispose();
-
 		void SpawnEvent(
 			Events::EventType eventType,
 			std::function<void(Events::EventHandler*)> callEventFun
@@ -172,6 +186,8 @@ namespace Tether
 		XEvent event;
 	#endif //__linux__
 	#ifdef _WIN32
+		LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 		HWND window = 0;
 		// There is only ever one hinstance but for simplicity it is stored in the
 		// window.
@@ -180,6 +196,8 @@ namespace Tether
 		WNDCLASSEX wndClass;
 	#endif // _WIN32
 	private:
+		void OnDispose();
+
 	#ifdef __linux__
 		void ProcessMwmFunctions();
 	#endif
@@ -189,7 +207,7 @@ namespace Tether
 		RECT GetAdjustedRect();
 		void ReconstructStyle();
 		
-		int64_t minWidth, minHeight, maxWidth, maxHeight = 0;
+		int64_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
 		bool decorated = true;
 		std::string className = "";
 	#endif
@@ -205,6 +223,7 @@ namespace Tether
 		bool fullscreen = false;
 		bool closable = true;
 		bool resizable = true;
+		bool boundsEnabled = false;
 
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;

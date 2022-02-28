@@ -10,6 +10,7 @@ namespace Tether::Events
         WINDOW_REPAINT,
         WINDOW_RESIZE,
         WINDOW_ERROR,
+        WINDOW_MOVE,
     };
 }
 

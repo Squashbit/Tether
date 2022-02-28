@@ -165,6 +165,26 @@ bool Tether::IWindow::IsVisible()
 	return visible && initialized;
 }
 
+void Tether::IWindow::SetCursorVisible(bool show)
+{
+	ShowCursor(show);
+}
+
+void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
+{
+	POINT pt;
+	pt.x = x;
+	pt.y = y;
+
+	ClientToScreen(window, &pt);
+	SetCursorPos(pt.x, pt.y);
+}
+
+void Tether::IWindow::SetMouseRootPos(uint64_t x, uint64_t y)
+{
+	SetCursorPos(x, y);
+}
+
 void Tether::IWindow::SetX(int64_t x)
 {
 	TETHER_ASSERT_INITIALIZED("IWindow::SetX");
@@ -256,8 +276,13 @@ void Tether::IWindow::SetTitle(const char* title)
 	SetWindowTextA(window, title);
 }
 
-void Tether::IWindow::SetBounds(int minWidth, int minHeight, int maxWidth, 
-	int maxHeight)
+void Tether::IWindow::SetBoundsEnabled(bool enabled)
+{
+	boundsEnabled = enabled;
+}
+
+void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
+	int64_t maxWidth, int64_t maxHeight)
 {
 	this->minWidth  = minWidth;
 	this->minHeight = minHeight;
@@ -304,22 +329,27 @@ void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
 		DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		dmScreenSettings.dmPelsWidth = 1280;
-		dmScreenSettings.dmPelsHeight = 720;
-		dmScreenSettings.dmBitsPerPel = 32;
+		dmScreenSettings.dmPelsWidth = 1920;
+		dmScreenSettings.dmPelsHeight = 1080;
 		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 		ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
+
+		SetWindowLongPtr(window, GWL_STYLE, WS_POPUP);
+		SetWindowPos(window, HWND_TOP, 0, 0, dmScreenSettings.dmPelsWidth,
+			dmScreenSettings.dmPelsHeight, SWP_SHOWWINDOW);
+		ShowWindow(window, SW_MAXIMIZE);
 	}
 	else
 	{
 		DEVMODE dmScreenSettings;
 		memset(&dmScreenSettings, 0, sizeof(dmScreenSettings));
 		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-		dmScreenSettings.dmPelsWidth = 1280;
-		dmScreenSettings.dmPelsHeight = 720;
-		dmScreenSettings.dmBitsPerPel = 32;
-		dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+
 		ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
+
+		ReconstructStyle();
+		SetWindowPos(window, HWND_TOP, x, y, width, height, SWP_SHOWWINDOW);
+		ShowWindow(window, SW_SHOW);
 	}
 	
 	this->fullscreen = fullscreen;
@@ -390,7 +420,15 @@ void Tether::IWindow::PollEvents()
 
 	if (msg.message == WM_NULL)
 		if (!IsWindow(window))
+		{
 			closeRequested = true;
+
+			SpawnEvent(Events::EventType::WINDOW_CLOSING,
+			[this](Events::EventHandler* pEventHandler)
+			{
+				pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
+			});
+		}
 }
 
 HINSTANCE Tether::IWindow::GetHIstance()
@@ -542,6 +580,72 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 
 	switch (msg)
 	{
+		case WM_CLOSE:
+		{
+			closeRequested = true;
+
+			SpawnEvent(Events::EventType::WINDOW_CLOSING,
+			[this](Events::EventHandler* pEventHandler)
+			{
+				pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
+			});
+
+			return 0;
+		}
+		break;
+
+		case WM_MOUSEMOVE:
+		{
+			int x = (int)(short)LOWORD(lParam);
+			int y = (int)(short)HIWORD(lParam);
+
+			MouseMoveEvent event(
+				this->x + x,
+				this->y + y,
+				x,
+				y,
+				relMouseX,
+				relMouseY,
+				mouseX,
+				mouseY
+			);
+
+			SpawnEvent(Events::EventType::MOUSE_MOVE,
+			[&](Events::EventHandler* pEventHandler)
+			{
+				pEventHandler->OnMouseMove(event);
+			});
+
+			mouseX = this->x + x;
+			mouseY = this->y + y;
+			relMouseX = x;
+			relMouseY = y;
+
+			prevReceivedMouseMove = true;
+		}
+		break;
+
+		case WM_MOVE:
+		{
+			int x = (int)(short)LOWORD(lParam);
+			int y = (int)(short)HIWORD(lParam);
+
+			WindowMoveEvent event(
+				x,
+				y
+			);
+
+			SpawnEvent(Events::EventType::WINDOW_MOVE,
+			[&](Events::EventHandler* pEventHandler)
+			{
+				pEventHandler->OnWindowMove(event);
+			});
+
+			this->x = x;
+			this->y = y;
+		}
+		break;
+
 		case WM_SIZING:
 		{
 			RECT bounds = *(RECT*)lParam;
@@ -559,6 +663,17 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 
 			width = event.GetNewWidth();
 			height = event.GetNewHeight();
+		}
+		break;
+
+		case WM_GETMINMAXINFO:
+		{
+			if (boundsEnabled)
+			{
+				MINMAXINFO* pInfo = (MINMAXINFO*)lParam;
+				pInfo->ptMinTrackSize = { (LONG)minWidth, (LONG)minHeight };
+				pInfo->ptMaxTrackSize = { (LONG)maxWidth, (LONG)maxHeight };
+			}
 		}
 		break;
 
