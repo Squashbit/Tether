@@ -8,7 +8,7 @@ file(GLOB_RECURSE SOURCES
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_definitions(-DTETHER_PREVIEW_FEATURES)
+add_definitions(-DTETHER_PREVIEW_FEATURES -DTETHER_MONITORS)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_include_directories(${PROJECT_NAME} 
@@ -22,7 +22,7 @@ target_link_directories(${PROJECT_NAME}
 
 if (UNIX)
 	target_link_libraries(${PROJECT_NAME} 
-		${CMAKE_DL_LIBS} pthread tether X11
+		${CMAKE_DL_LIBS} pthread tether X11 Xrandr
 	)
 elseif(WIN32)
 	target_link_libraries(${PROJECT_NAME} 

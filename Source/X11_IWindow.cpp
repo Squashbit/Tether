@@ -1,5 +1,9 @@
 #ifdef __linux__
 
+#ifdef TETHER_MONITORS
+#include <X11/extensions/Xrandr.h>
+#endif // TETHER_MONITORS
+
 #include <Tether/IWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 
@@ -50,7 +54,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     this->height = height;
 
     bool shouldShow = true;
-    bool fullscreenMode = false;
     for (uint64_t i = 0; i < hints.size(); i++)
     {
         int64_t value = hints[i].value;
@@ -59,7 +62,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
             case HintType::X: this->x = value; break;
             case HintType::Y: this->y = value; break;
             case HintType::VISIBLE: shouldShow = (bool)value; break;
-            case HintType::FULLSCREEN: fullscreenMode = (bool)value; break;
         }
     }
     
@@ -68,6 +70,8 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     XSetWindowAttributes swa{};
     swa.event_mask = 
           PointerMotionMask 
+        | ButtonPressMask
+        | ButtonReleaseMask
         | StructureNotifyMask;
 
     window = XCreateWindow(
@@ -86,17 +90,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     XSetWMProtocols(display, window, &wmDelete, 1);
 
-    if (fullscreenMode)
-    {
-        fullscreen = true;
-
-        Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
-        Atom fullscreen = XInternAtom(display, 
-            "_NET_WM_STATE_FULLSCREEN", true);
-        XChangeProperty(display, window, wmState, XA_ATOM, 32, 
-            PropModeReplace, (unsigned char*)&fullscreen, 1);
-    }
-
     if (shouldShow)
     {
         XMapWindow(display, window);
@@ -107,12 +100,91 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     XStoreName(display, window, title);
 
     XSync(display, false);
-    
+
     initialized = true;
     OnInit();
 
     return true;
 }
+
+#ifdef TETHER_MONITORS
+
+uint64_t Tether::IWindow::GetMonitorCount()
+{
+    int numMonitors;
+    XRRGetMonitors(display, window, false, &numMonitors);
+
+    return numMonitors;
+}
+
+bool Tether::IWindow::GetMonitor(uint64_t index, Monitor* pMonitor)
+{
+    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetMonitor", false);
+
+    if (!pMonitor)
+        return false;
+
+    unsigned long root = RootWindow(display, screen);
+    XRRScreenResources* resources = XRRGetScreenResources(display, root);
+
+    int numMonitors;
+    XRRMonitorInfo* monitorInfos = XRRGetMonitors(display, window, false, 
+        &numMonitors);
+
+    if (index >= numMonitors)
+        return false;
+    
+    XRRMonitorInfo monitorInfo = monitorInfos[index];
+
+    pMonitor->modes.clear();
+    for (uint64_t i = 0; i < monitorInfo.noutput; i++)
+    {
+        XRROutputInfo* outputInfo = XRRGetOutputInfo(display, resources,
+            monitorInfo.outputs[i]);
+        XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
+            outputInfo->crtc);
+        
+        for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
+        {
+            XRRModeInfo mode;
+            for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
+                if (resources->modes[i3].id == outputInfo->modes[i2])
+                    mode = resources->modes[i3];
+            
+            DisplayMode displayMode;
+            displayMode.name = mode.name;
+            displayMode.exactRefreshRate = mode.dotClock 
+                    / ((double)mode.hTotal * mode.vTotal);
+            displayMode.refreshRate = round(displayMode.exactRefreshRate);
+            displayMode.width = mode.width;
+            displayMode.height = mode.height;
+
+            if (info->mode == mode.id)
+                pMonitor->currentMode = displayMode;
+            
+            pMonitor->modes.push_back(displayMode);
+        }
+
+        XRRFreeCrtcInfo(info);
+        XRRFreeOutputInfo(outputInfo);
+    }
+
+    char* name = XGetAtomName(display, monitorInfo.name);
+    
+    pMonitor->index = index;
+    pMonitor->width = monitorInfo.width;
+    pMonitor->height = monitorInfo.height;
+    pMonitor->name = name;
+    pMonitor->primary = monitorInfo.primary;
+
+    XFree(name);
+    XRRFreeMonitors(monitorInfos);
+    XRRFreeScreenResources(resources);
+    
+    return true;
+}
+
+#endif // TETHER_MONITORS
 
 void Tether::IWindow::SetVisible(bool visibility)
 {
@@ -135,10 +207,45 @@ bool Tether::IWindow::IsVisible()
     return visible && initialized;
 }
 
+void Tether::IWindow::SetCursorVisible(bool show)
+{
+    if (!show)
+    {
+        unsigned int root = DefaultRootWindow(display);
+        XColor color = { .pixel = 0, .red = 0, .flags = 0 };
+
+        Pixmap mask = XCreatePixmap(display, root, 1, 1, 1);
+        Cursor cursor = XCreatePixmapCursor(display, mask, mask, &color, 
+            &color, 0, 0);
+
+        XGrabPointer(
+            display, root, 0,
+            PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+            GrabModeAsync, GrabModeAsync, None, cursor, CurrentTime
+        );
+
+        XFreeCursor(display, cursor);
+        XFreePixmap(display, mask);
+    }
+    else
+        XUngrabPointer(display, CurrentTime);
+}
+
+void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
+{
+    XWarpPointer(display, window, window, 0, 0, 0, 0, x, y);
+}
+
+void Tether::IWindow::SetMouseRootPos(uint64_t x, uint64_t y)
+{
+    unsigned int root = DefaultRootWindow(display);
+    XWarpPointer(display, root, root, 0, 0, 0, 0, x, y);
+}
+
 void Tether::IWindow::SetX(int64_t x)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetX");
-    
+
     XMoveWindow(display, window, x, GetY());
 }
 
@@ -160,6 +267,9 @@ void Tether::IWindow::SetWidth(uint64_t width)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetWidth");
 
+    if (width == 0)
+        return;
+
     XResizeWindow(display, window, width, this->height);
 }
 
@@ -167,12 +277,18 @@ void Tether::IWindow::SetHeight(uint64_t height)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetHeight");
 
+    if (height == 0)
+        return;
+
     XResizeWindow(display, window, this->width, height);
 }
 
 void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetSize");
+
+    if (width == 0 || height == 0)
+        return;
 
     XResizeWindow(display, window, width, height);
 }
@@ -184,8 +300,20 @@ void Tether::IWindow::SetTitle(const char* title)
     XStoreName(display, window, title);
 }
 
-void Tether::IWindow::SetBounds(int minWidth, int minHeight, int maxWidth, 
-    int maxHeight)
+void Tether::IWindow::SetBoundsEnabled(bool enabled)
+{
+    if (this->boundsEnabled == enabled)
+        return;
+    this->boundsEnabled = enabled;
+
+    if (enabled)
+        SetBounds(minWidth, minHeight, maxWidth, maxHeight);
+    else
+        SetBounds(INT32_MIN, INT32_MIN, INT32_MAX, INT32_MAX);
+}
+
+void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
+    int64_t maxWidth, int64_t maxHeight)
 {
     XSizeHints sizeHints{};
     sizeHints.min_width = minWidth;
@@ -193,6 +321,11 @@ void Tether::IWindow::SetBounds(int minWidth, int minHeight, int maxWidth,
     sizeHints.max_width = maxWidth;
     sizeHints.max_height = maxHeight;
     sizeHints.flags = PMinSize | PMaxSize;
+
+    this->minWidth  = minWidth;
+	this->minHeight = minHeight;
+	this->maxWidth  = maxWidth;
+	this->maxHeight = maxHeight;
 
     XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
 }
@@ -244,7 +377,29 @@ void Tether::IWindow::SetResizable(bool isResizable)
     ProcessMwmFunctions();
 }
 
-void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
+void Tether::IWindow::SetMinimizeBox(bool enabled)
+{
+    if (this->minimizeBox == enabled)
+        return;
+    this->minimizeBox = enabled;
+
+    ProcessMwmFunctions();
+}
+
+void Tether::IWindow::SetMaximizeBox(bool enabled)
+{
+    if (this->maximizeBox == enabled)
+        return;
+    this->maximizeBox = enabled;
+
+    ProcessMwmFunctions();
+}
+
+void Tether::IWindow::SetFullscreen(
+    bool fullscreen, 
+	FullscreenSettings* settings,
+	Monitor* monitor
+)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
 
@@ -277,10 +432,14 @@ void Tether::IWindow::SetFullscreen(bool fullscreen, int monitor)
         event.xclient.window = window;
         event.xclient.message_type = wmFullscreenMonitors;
         event.xclient.format = 32;
-        event.xclient.data.l[0] = monitor;
-        event.xclient.data.l[1] = monitor;
-        event.xclient.data.l[2] = monitor;
-        event.xclient.data.l[3] = monitor;
+
+        if (monitor)
+        {
+            event.xclient.data.l[0] = monitor->index;
+            event.xclient.data.l[1] = monitor->index;
+            event.xclient.data.l[2] = monitor->index;
+            event.xclient.data.l[3] = monitor->index;
+        }
 
         XSendEvent(display, DefaultRootWindow(display), false, 
             SubstructureRedirectMask | SubstructureNotifyMask, &event);
@@ -371,7 +530,7 @@ void Tether::IWindow::PollEvents()
     {
         XNextEvent(display, &event);
         eventReceived = true;
-
+        
         switch (event.type)
         {
             case MotionNotify:
@@ -416,7 +575,23 @@ void Tether::IWindow::PollEvents()
 
                 // Verify that the event was a resize event
                 if (xce.width == width && xce.height == height)
+                {
+                    WindowMoveEvent event(
+                        xce.x,
+                        xce.y
+                    );
+
+                    SpawnEvent(Events::EventType::WINDOW_MOVE,
+                    [&](Events::EventHandler* pEventHandler)
+                    {
+                        pEventHandler->OnWindowMove(event);
+                    });
+
+                    this->x = xce.x;
+                    this->y = xce.y;
+
                     break;
+                }
                 
                 WindowResizeEvent linkEvent(
                     xce.width,
@@ -490,12 +665,16 @@ void Tether::IWindow::ProcessMwmFunctions()
 
     MwmHints hints{};
     hints.flags = MWM_HINTS_FUNCTIONS;
-    hints.functions = MWM_FUNC_MOVE | MWM_FUNC_MAXIMIZE;
+    hints.functions = MWM_FUNC_MOVE;
 
     if (closable)
         hints.functions |= MWM_FUNC_CLOSE;
     if (resizable)
         hints.functions |= MWM_FUNC_RESIZE;
+    if (minimizeBox)
+        hints.functions |= MWM_FUNC_MINIMIZE;
+    if (maximizeBox)
+        hints.functions |= MWM_FUNC_MAXIMIZE;
     
     XChangeProperty(
         display, window,

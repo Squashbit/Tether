@@ -15,7 +15,6 @@ namespace Tether
         WIDTH,
         HEIGHT,
         VISIBLE,
-        FULLSCREEN,
     };
     
     struct WindowHint

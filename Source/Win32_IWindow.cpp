@@ -687,4 +687,4 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 	return 0;
 }
 
-#endif //__linux__
+#endif //_WIN32

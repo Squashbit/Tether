@@ -22,8 +22,8 @@ public:
 
 		void OnMouseMove(Events::MouseMoveEvent event)
 		{
-			std::cout << "Moved mouse to XROOT=" << event.GetRawX()
-				<< ", YROOT=" << event.GetRawY() << std::endl;
+			std::cout << "Moved mouse to X=" << event.GetRelativeX()
+				<< ", Y=" << event.GetOldRelativeY() << std::endl;
 		}
 
 		void OnWindowResize(Events::WindowResizeEvent event)
@@ -34,8 +34,8 @@ public:
 
 		void OnWindowMove(Events::WindowMoveEvent event)
 		{
-			std::cout << "Resized window to W=" << event.GetX()
-				<< ", H=" << event.GetY() << std::endl;
+			std::cout << "Moved window to X=" << event.GetX()
+				<< ", Y=" << event.GetY() << std::endl;
 		}
 
 		void OnWindowClosing(Events::WindowClosingEvent event)
@@ -83,25 +83,16 @@ private:
 int main()
 {
 	TestWindow window;
-	window.Hint(HintType::X, 0);
-	window.Hint(HintType::Y, 0);
+	window.Hint(HintType::X, 120);
+	window.Hint(HintType::Y, 120);
 	if (!window.Init(1280, 720, "sup"))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
-	
+
 	while (!window.IsCloseRequested())
 	{
-		int64_t x = window.GetX();
-		if (x > 1920)
-		{
-			window.SetX(0);
-			x = 0;
-		}
-
-		window.SetX(x + 1);
-
 		window.PollEvents();
 		std::this_thread::sleep_for(1ms);
 	}

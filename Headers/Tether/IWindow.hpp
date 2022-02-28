@@ -6,6 +6,7 @@
 #include <Tether/Common/WindowHint.hpp>
 #include <Tether/Events/EventHandler.hpp>
 #include <Tether/Events/EventType.hpp>
+#include <Tether/Monitor.hpp>
 
 #include <vector>
 #include <functional>
@@ -51,13 +52,15 @@ namespace Tether
 	};
 #endif
 
+	// Note: Only works on Windows
 	enum class FullscreenFields
 	{
-		WIDTH,
-		HEIGHT,
-		BITSPERPIXEL
+		WIDTH        = 1,
+		HEIGHT       = 1 << 1,
+		BITSPERPIXEL = 1 << 2
 	};
 
+	// Note: Only works on Windows
 	struct FullscreenSettings
 	{
 		uint64_t width = 0;
@@ -99,6 +102,11 @@ namespace Tether
 		 */
 		virtual void OnInit() {}
 		
+	#ifdef TETHER_MONITORS
+        uint64_t GetMonitorCount();
+        bool GetMonitor(uint64_t index, Monitor* pMonitor);
+	#endif // TETHER_MONITORS
+		
 		void AddEventHandler(Events::EventHandler& handler, 
 			Events::EventType eventType);
 		void AddEventHandler(Events::EventHandler* handler, 
@@ -118,10 +126,17 @@ namespace Tether
 		 * 
 		 * @param fullscreen True if the window should be fullscreen;
 		 *  otherwise, false.
-		 * @param monitor The monitor index to fullscreen on. Obsolete if
-		 *  fullscreen is false.
+		 * @param settings The settings to change the monitor to. 
+		 * 	Note: Only works on Windows. On linux, this parameter is ignored.
+		 * @param monitor The monitor to go fullscreen on. 
+		 * 	If this value is nullptr, fullscreen is on the first monitor.
+		 * 	Tether must be compiled with TETHER_MONITORS to use this parameter.
 		 */
-		void SetFullscreen(bool fullscreen, int monitor = 0);
+		void SetFullscreen(
+			bool fullscreen, 
+			FullscreenSettings* settings = nullptr,
+			Monitor* monitor = nullptr
+		);
 
 		void SetX(int64_t x);
 		void SetY(int64_t y);
@@ -207,7 +222,6 @@ namespace Tether
 		RECT GetAdjustedRect();
 		void ReconstructStyle();
 		
-		int64_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
 		bool decorated = true;
 		std::string className = "";
 	#endif
@@ -223,7 +237,10 @@ namespace Tether
 		bool fullscreen = false;
 		bool closable = true;
 		bool resizable = true;
+		bool minimizeBox = true;
+		bool maximizeBox = true;
 		bool boundsEnabled = false;
+		int64_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
 
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;
