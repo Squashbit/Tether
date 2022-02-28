@@ -14,6 +14,16 @@ Monitor::Monitor(const Monitor& ref)
         modes.push_back(mode);
 }
 
+int64_t Monitor::GetX() const
+{
+    return x;
+}
+
+int64_t Monitor::GetY() const
+{
+    return y;
+}
+
 uint64_t Monitor::GetIndex() const
 {
     return index;

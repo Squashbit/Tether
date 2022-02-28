@@ -50,9 +50,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     
     int screen = DefaultScreen(display);
 
-    this->width = width;
-    this->height = height;
-
+    int64_t x = 0, y = 0;
     bool shouldShow = true;
     for (uint64_t i = 0; i < hints.size(); i++)
     {

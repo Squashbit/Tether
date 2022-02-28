@@ -23,7 +23,7 @@ public:
 		void OnMouseMove(Events::MouseMoveEvent event)
 		{
 			std::cout << "Moved mouse to X=" << event.GetRelativeX()
-				<< ", Y=" << event.GetOldRelativeY() << std::endl;
+				<< ", Y=" << event.GetRelativeY() << std::endl;
 		}
 
 		void OnWindowResize(Events::WindowResizeEvent event)

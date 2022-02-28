@@ -67,22 +67,22 @@ void Tether::IWindow::RemoveEventHandler(Events::EventHandler* handler)
         handlers.erase(handlers.find(toErase[i]));
 }
 
-uint64_t Tether::IWindow::GetMouseX()
+int64_t Tether::IWindow::GetMouseX()
 {
     return mouseX;
 }
 
-uint64_t Tether::IWindow::GetMouseY()
+int64_t Tether::IWindow::GetMouseY()
 {
     return mouseY;
 }
 
-uint64_t Tether::IWindow::GetRelativeMouseX()
+int64_t Tether::IWindow::GetRelativeMouseX()
 {
     return relMouseX;
 }
 
-uint64_t Tether::IWindow::GetRelativeMouseY()
+int64_t Tether::IWindow::GetRelativeMouseY()
 {
     return relMouseY;
 }

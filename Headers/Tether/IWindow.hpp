@@ -158,10 +158,10 @@ namespace Tether
 		int64_t GetX();
 		// Window Y
 		int64_t GetY();
-		uint64_t GetMouseX();
-		uint64_t GetMouseY();
-		uint64_t GetRelativeMouseX();
-		uint64_t GetRelativeMouseY();
+		int64_t GetMouseX();
+		int64_t GetMouseY();
+		int64_t GetRelativeMouseX();
+		int64_t GetRelativeMouseY();
 		uint64_t GetWidth();
 		uint64_t GetHeight();
 		
@@ -219,8 +219,14 @@ namespace Tether
 
 	#ifdef _WIN32
 		std::shared_ptr<wchar_t> ToWide(const char* str);
-		RECT GetAdjustedRect();
+		RECT GetAdjustedRect(int64_t x, int64_t y, uint64_t width,
+			uint64_t height);
 		void ReconstructStyle();
+
+		int64_t setX = 0;
+		int64_t setY = 0;
+		int64_t setWidth = 0;
+		int64_t setHeight = 0;
 		
 		bool decorated = true;
 		std::string className = "";
@@ -229,10 +235,6 @@ namespace Tether
 		std::vector<WindowHint> hints;
 
 		// Window stuff
-		int64_t x = 200;
-		int64_t y = 200;
-		uint64_t width = 800;
-		uint64_t height = 600;
 		bool visible = false;
 		bool fullscreen = false;
 		bool closable = true;
@@ -244,10 +246,10 @@ namespace Tether
 
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;
-		uint64_t mouseX = 0;
-		uint64_t mouseY = 0;
-		uint64_t relMouseX = 0;
-		uint64_t relMouseY = 0;
+		int64_t mouseX = -1;
+		int64_t mouseY = -1;
+		int64_t relMouseX = -1;
+		int64_t relMouseY = -1;
 
 		// Each event has a list of handlers to handle that specific event.
 		std::unordered_map<Events::EventType, 
