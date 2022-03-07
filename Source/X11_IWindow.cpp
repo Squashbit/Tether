@@ -1,5 +1,9 @@
 #ifdef __linux__
 
+#ifdef TETHER_XRAWINPUT
+#include <X11/extensions/XInput2.h>
+#endif // TETHER_XRAWINPUT
+
 #ifdef TETHER_MONITORS
 #include <X11/extensions/Xrandr.h>
 #endif // TETHER_MONITORS
@@ -50,15 +54,17 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     
     int screen = DefaultScreen(display);
 
-    int64_t x = 0, y = 0;
+    this->setWidth = width;
+    this->setHeight = height;
+
     bool shouldShow = true;
     for (uint64_t i = 0; i < hints.size(); i++)
     {
         int64_t value = hints[i].value;
         switch (hints[i].type)
         {
-            case HintType::X: this->x = value; break;
-            case HintType::Y: this->y = value; break;
+            case HintType::X: this->setX = value; break;
+            case HintType::Y: this->setY = value; break;
             case HintType::VISIBLE: shouldShow = (bool)value; break;
         }
     }
@@ -75,7 +81,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     window = XCreateWindow(
         display, 
         root,
-        x, y,
+        setX, setY,
         width, height,
         0, // Border width
         DefaultDepth(display, screen),
@@ -84,6 +90,11 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         CWEventMask,
         &swa
     );
+
+    XColor color = {};
+    hiddenCursorPixmap = XCreatePixmap(display, root, 1, 1, 1);
+    hiddenCursor = XCreatePixmapCursor(display, 
+        hiddenCursorPixmap, hiddenCursorPixmap, &color, &color, 0, 0);
     
     Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
     XSetWMProtocols(display, window, &wmDelete, 1);
@@ -94,10 +105,10 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         visible = true;
     }
     
-    XMoveWindow(display, window, x, y);
+    XMoveWindow(display, window, setX, setY);
     XStoreName(display, window, title);
 
-    XSync(display, false);
+    XFlush(display);
 
     initialized = true;
     OnInit();
@@ -189,11 +200,7 @@ void Tether::IWindow::SetVisible(bool visibility)
     TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
 
     if (visibility)
-    {
         XMapWindow(display, window);
-        XMoveWindow(display, window, x, y);
-        XResizeWindow(display, window, this->width, height);
-    }
     else
         XUnmapWindow(display, window);
     
@@ -205,28 +212,59 @@ bool Tether::IWindow::IsVisible()
     return visible && initialized;
 }
 
-void Tether::IWindow::SetCursorVisible(bool show)
+#ifdef TETHER_XRAWINPUT
+
+void Tether::IWindow::SetRawInputEnabled(bool enabled)
 {
-    if (!show)
+    unsigned int root = DefaultRootWindow(display);
+
+    if (enabled)
     {
-        unsigned int root = DefaultRootWindow(display);
-        XColor color = { .pixel = 0, .red = 0, .flags = 0 };
+        XIEventMask eventMask;
+        unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
 
-        Pixmap mask = XCreatePixmap(display, root, 1, 1, 1);
-        Cursor cursor = XCreatePixmapCursor(display, mask, mask, &color, 
-            &color, 0, 0);
+        eventMask.deviceid = XIAllMasterDevices;
+        eventMask.mask_len = sizeof(mask);
+        eventMask.mask = mask;
+        XISetMask(mask, XI_RawMotion);
 
-        XGrabPointer(
-            display, root, 0,
-            PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-            GrabModeAsync, GrabModeAsync, None, cursor, CurrentTime
-        );
+        XISelectEvents(display, root, &eventMask, 1);
 
-        XFreeCursor(display, cursor);
-        XFreePixmap(display, mask);
+        return;
     }
-    else
-        XUngrabPointer(display, CurrentTime);
+
+    XIEventMask eventMask;
+    unsigned char mask[] = { 0 };
+
+    eventMask.deviceid = XIAllMasterDevices;
+    eventMask.mask_len = sizeof(mask);
+    eventMask.mask = mask;
+
+    XISelectEvents(display, root, &eventMask, 1);
+}
+
+#endif // TETHER_XRAWINPUT
+
+void Tether::IWindow::SetCursorMode(CursorMode mode)
+{
+    switch (mode)
+    {
+        case CursorMode::NORMAL:
+        {
+            XUngrabPointer(display, CurrentTime);
+        }
+        break;
+
+        case CursorMode::HIDDEN:
+        {
+            XGrabPointer(
+                display, DefaultRootWindow(display), 0,
+                PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+                GrabModeAsync, GrabModeAsync, None, hiddenCursor, CurrentTime
+            );
+        }
+        break;
+    }
 }
 
 void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
@@ -268,7 +306,7 @@ void Tether::IWindow::SetWidth(uint64_t width)
     if (width == 0)
         return;
 
-    XResizeWindow(display, window, width, this->height);
+    XResizeWindow(display, window, width, GetHeight());
 }
 
 void Tether::IWindow::SetHeight(uint64_t height)
@@ -278,7 +316,7 @@ void Tether::IWindow::SetHeight(uint64_t height)
     if (height == 0)
         return;
 
-    XResizeWindow(display, window, this->width, height);
+    XResizeWindow(display, window, GetWidth(), height);
 }
 
 void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
@@ -384,6 +422,49 @@ void Tether::IWindow::SetMinimizeBox(bool enabled)
     ProcessMwmFunctions();
 }
 
+void Tether::IWindow::SetMaximized(bool maximized)
+{
+    TETHER_ASSERT_INITIALIZED("IWindow::SetMaximized");
+
+    Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
+    Atom maxHorzAtom = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", 
+            true);
+    Atom maxVertAtom = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", 
+            true);
+    if (maximized)
+    {
+        XEvent fullscreenEvent{};
+        fullscreenEvent.type = ClientMessage;
+        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.message_type = wmState;
+        fullscreenEvent.xclient.format = 32;
+        fullscreenEvent.xclient.data.l[0] = 1; // Add
+        fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
+        fullscreenEvent.xclient.data.l[2] = maxVertAtom;
+        
+        XSendEvent(display, DefaultRootWindow(display), false, 
+            SubstructureRedirectMask | SubstructureNotifyMask, 
+            &fullscreenEvent);
+    }
+    else
+    {
+        XEvent fullscreenEvent{};
+        fullscreenEvent.type = ClientMessage;
+        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.message_type = wmState;
+        fullscreenEvent.xclient.format = 32;
+        fullscreenEvent.xclient.data.l[0] = 0; // Remove
+        fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
+        fullscreenEvent.xclient.data.l[2] = maxVertAtom;
+        
+        XSendEvent(display, DefaultRootWindow(display), false, 
+            SubstructureRedirectMask | SubstructureNotifyMask, 
+            &fullscreenEvent);
+    }
+
+    XSync(display, false);
+}
+
 void Tether::IWindow::SetMaximizeBox(bool enabled)
 {
     if (this->maximizeBox == enabled)
@@ -472,10 +553,7 @@ int64_t Tether::IWindow::GetX()
     XTranslateCoordinates(display, window, 
         DefaultRootWindow(display), 0, 0, &x, &y, &child);
     
-    XWindowAttributes attribs;
-    XGetWindowAttributes(display, window, &attribs);
-    
-    return x - attribs.x;
+    return x;
 }
 
 int64_t Tether::IWindow::GetY()
@@ -488,10 +566,7 @@ int64_t Tether::IWindow::GetY()
     XTranslateCoordinates(display, window, 
         DefaultRootWindow(display), 0, 0, &x, &y, &child);
     
-    XWindowAttributes attribs;
-    XGetWindowAttributes(display, window, &attribs);
-    
-    return y - attribs.y;
+    return y;
 }
 
 uint64_t Tether::IWindow::GetWidth()
@@ -571,8 +646,27 @@ void Tether::IWindow::PollEvents()
             {
                 XConfigureEvent xce = event.xconfigure;
 
-                // Verify that the event was a resize event
-                if (xce.width == width && xce.height == height)
+                // Verify that the event was a move event
+                if (xce.width != prevWidth || xce.height != prevHeight)
+                {
+                    WindowResizeEvent linkEvent(
+                        xce.width,
+                        xce.height
+                    );
+
+                    SpawnEvent(Events::EventType::WINDOW_RESIZE, 
+                    [&](Events::EventHandler* pEventHandler)
+                    {
+                        pEventHandler->OnWindowResize(linkEvent);
+                    });
+
+                    prevWidth = xce.width;
+                    prevHeight = xce.height;
+
+                    return;
+                }
+
+                if (xce.x != prevX || xce.y != prevY)
                 {
                     WindowMoveEvent event(
                         xce.x,
@@ -585,25 +679,9 @@ void Tether::IWindow::PollEvents()
                         pEventHandler->OnWindowMove(event);
                     });
 
-                    this->x = xce.x;
-                    this->y = xce.y;
-
-                    break;
+                    prevX = xce.x;
+                    prevY = xce.y;
                 }
-                
-                WindowResizeEvent linkEvent(
-                    xce.width,
-                    xce.height
-                );
-
-                SpawnEvent(Events::EventType::WINDOW_RESIZE, 
-                [&](Events::EventHandler* pEventHandler)
-                {
-                    pEventHandler->OnWindowResize(linkEvent);
-                });
-
-                width = xce.width;
-                height = xce.height;
             }
             break;
 
@@ -646,6 +724,9 @@ uint64_t Tether::IWindow::GetHandle()
 
 void Tether::IWindow::OnDispose()
 {
+    XFreeCursor(display, hiddenCursor);
+    XFreePixmap(display, hiddenCursorPixmap);
+
     XLockDisplay(display);
         XUnmapWindow(display, window);
         XDestroyWindow(display, window);

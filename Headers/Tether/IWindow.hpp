@@ -117,9 +117,13 @@ namespace Tether
 		void SetVisible(bool visibility);
 		bool IsVisible();
 
-		void SetCursorVisible(bool show);
+	#pragma region Cursor functions
+		// TETHER_XRAWINPUT must be defined if compiled on linux to use this.
+		void SetRawInputEnabled(bool enabled);
+		void SetCursorMode(CursorMode mode);
 		void SetMousePos(uint64_t x, uint64_t y);
 		void SetMouseRootPos(uint64_t x, uint64_t y);
+	#pragma endregion Cursor functions
 
 		/**
 		 * @brief Sets the window's fullscreen state.
@@ -199,6 +203,9 @@ namespace Tether
 		int screen = 0;
 
 		XEvent event;
+
+		Pixmap hiddenCursorPixmap;
+        Cursor hiddenCursor;
 	#endif //__linux__
 	#ifdef _WIN32
 		LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -215,6 +222,9 @@ namespace Tether
 
 	#ifdef __linux__
 		void ProcessMwmFunctions();
+
+		uint64_t prevX = 0, prevY = 0;
+		uint64_t prevWidth = 0, prevHeight = 0;
 	#endif
 
 	#ifdef _WIN32
@@ -224,11 +234,6 @@ namespace Tether
 
 		DWORD CalculateStyle();
 		void ReconstructStyle();
-
-		int64_t setX = 0;
-		int64_t setY = 0;
-		int64_t setWidth = 0;
-		int64_t setHeight = 0;
 		
 		bool decorated = true;
 		std::string className = "";
@@ -237,6 +242,10 @@ namespace Tether
 		std::vector<WindowHint> hints;
 
 		// Window stuff
+		int64_t setX = 0;
+		int64_t setY = 0;
+		int64_t setWidth = 0;
+		int64_t setHeight = 0;
 		bool visible = false;
 		bool fullscreen = false;
 		bool closable = true;

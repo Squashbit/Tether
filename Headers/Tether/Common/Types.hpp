@@ -107,6 +107,7 @@ namespace Tether
 		FAILED_APP_INIT,
 		DOUBLE_INIT,
 		NOT_INITIALIZED,
+		NOT_DISPOSED,
 	};
 
 	enum class ErrorSeverity
@@ -127,6 +128,12 @@ namespace Tether
 	enum class WindowType
 	{
 		NORMAL
+	};
+
+	enum class CursorMode
+	{
+		NORMAL,
+		HIDDEN,
 	};
 }
 

@@ -91,7 +91,9 @@ int main()
 		return 1;
 	}
 
-	window.SetMaximizeBox(true);
+	// TODO: Raw input
+	window.SetRawInputEnabled(true);
+	window.SetCursorMode(CursorMode::HIDDEN);
 
 	while (!window.IsCloseRequested())
 	{

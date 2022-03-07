@@ -5,8 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/Headers"
             ],
-            "defines": [ "OPENGL_API", "TETHER_MONITORS", 
-                "TETHER_PREVIEW_FEATURES" ],
+            "defines": [ "TETHER_OPENGL_API", "TETHER_MONITORS", 
+                "TETHER_PREVIEW_FEATURES", "TETHER_XRAWINPUT" ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++14",

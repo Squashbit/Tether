@@ -29,6 +29,12 @@ Includes should also be sorted by name.
 **Function: CamelCase**
 **Enum value: SNAKE_CASE**
 
+# Definitions
+* TETHER_MONITORS : Defined if monitor support should be included with the build.
+* TETHER_XRAWINPUT : Defined if tether should be compiled with X11 raw input support.
+* TETHER_PREVIEW_FEATURES : Defined if tether should have preview features enabled.
+* TETHER_OPENGL_API : Defined if tether should have OpenGL abilities. 
+
 # Linux build instructions
 *Script instructions:*
 

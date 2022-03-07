@@ -110,8 +110,8 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 		className.c_str(),
 		title,
 		CalculateStyle(),
-		setX,
-		setY,
+		wr.left,
+		wr.top,
 		wr.right - wr.left, // Width
 		wr.bottom - wr.top, // Height
 		nullptr, //Handle to the parent of this window
