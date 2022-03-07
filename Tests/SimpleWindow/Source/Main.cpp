@@ -91,6 +91,8 @@ int main()
 		return 1;
 	}
 
+	window.SetMaximizeBox(true);
+
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();

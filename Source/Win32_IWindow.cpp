@@ -399,6 +399,33 @@ void Tether::IWindow::SetResizable(bool isResizable)
 	ReconstructStyle();
 }
 
+void Tether::IWindow::SetMinimizeBox(bool minimizeBox)
+{
+	if (minimizeBox == this->minimizeBox)
+		return;
+	this->minimizeBox = minimizeBox;
+
+	ReconstructStyle();
+}
+
+void Tether::IWindow::SetMaximizeBox(bool maximizeBox)
+{
+	if (maximizeBox == this->maximizeBox)
+		return;
+	this->maximizeBox = maximizeBox;
+
+	ReconstructStyle();
+}
+
+void Tether::IWindow::SetMaximized(bool maximize)
+{
+	if (visible)
+		if (maximize)
+			ShowWindow(window, SW_MAXIMIZE);
+		else
+			ShowWindow(window, SW_SHOW);
+}
+
 void Tether::IWindow::SetFullscreen(
 	bool fullscreen,
 	FullscreenSettings* settings,
@@ -557,6 +584,8 @@ DWORD Tether::IWindow::CalculateStyle()
 {
 	LONG style = WS_OVERLAPPEDWINDOW | WS_SYSMENU;
 
+	// TODO: Resize stuff
+
 	if (maximizeBox) style |= WS_MAXIMIZEBOX;
 	if (minimizeBox) style |= WS_MINIMIZEBOX;
 	if (!decorated)  style |= WS_POPUP;
@@ -566,7 +595,8 @@ DWORD Tether::IWindow::CalculateStyle()
 
 void Tether::IWindow::ReconstructStyle()
 {
-	SetWindowLong(window, GWL_STYLE, CalculateStyle());
+	SetWindowLongPtr(window, GWL_STYLE, CalculateStyle());
+	UpdateWindow(window);
 }
 
 LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, 
