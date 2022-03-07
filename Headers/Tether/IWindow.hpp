@@ -221,6 +221,8 @@ namespace Tether
 		std::shared_ptr<wchar_t> ToWide(const char* str);
 		RECT GetAdjustedRect(int64_t x, int64_t y, uint64_t width,
 			uint64_t height);
+
+		DWORD CalculateStyle();
 		void ReconstructStyle();
 
 		int64_t setX = 0;

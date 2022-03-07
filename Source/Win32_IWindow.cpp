@@ -9,8 +9,6 @@
 
 #include <string.h>
 
-#define TETHER_WINSTYLE() GetWindowLong(window, GWL_STYLE)
-
 LRESULT Tether::WindowProcCaller::HandleMessage(HWND hWnd, Tether::IWindow* pWnd,
 	UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -111,9 +109,9 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 		0, // Extended style
 		className.c_str(),
 		title,
-		WS_OVERLAPPEDWINDOW | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU,
-		wr.left,
-		wr.top,
+		CalculateStyle(),
+		setX,
+		setY,
 		wr.right - wr.left, // Width
 		wr.bottom - wr.top, // Height
 		nullptr, //Handle to the parent of this window
@@ -467,7 +465,7 @@ int64_t Tether::IWindow::GetY()
 uint64_t Tether::IWindow::GetWidth()
 {
 	RECT windowRect;
-	GetWindowRect(window, (LPRECT)&windowRect);
+	GetClientRect(window, (LPRECT)&windowRect);
 	
 	return windowRect.right - windowRect.left;
 }
@@ -475,7 +473,7 @@ uint64_t Tether::IWindow::GetWidth()
 uint64_t Tether::IWindow::GetHeight()
 {
 	RECT windowRect;
-	GetWindowRect(window, (LPRECT)&windowRect);
+	GetClientRect(window, (LPRECT)&windowRect);
 
 	return windowRect.bottom - windowRect.top;
 }
@@ -498,6 +496,9 @@ void Tether::IWindow::PollEvents()
 	if (msg.message == WM_NULL)
 		if (!IsWindow(window))
 		{
+			if (!closable)
+				return;
+			
 			closeRequested = true;
 
 			SpawnEvent(Events::EventType::WINDOW_CLOSING,
@@ -547,16 +548,25 @@ RECT Tether::IWindow::GetAdjustedRect(int64_t x, int64_t y, uint64_t width,
 	wr.right = wr.left + (LONG)width;
 	wr.bottom = wr.top + (LONG)height;
 
-	AdjustWindowRect(&wr, TETHER_WINSTYLE(), false);
+	AdjustWindowRect(&wr, CalculateStyle(), false);
 
 	return wr;
 }
 
+DWORD Tether::IWindow::CalculateStyle()
+{
+	LONG style = WS_OVERLAPPEDWINDOW | WS_SYSMENU;
+
+	if (maximizeBox) style |= WS_MAXIMIZEBOX;
+	if (minimizeBox) style |= WS_MINIMIZEBOX;
+	if (!decorated)  style |= WS_POPUP;
+	
+	return style;
+}
+
 void Tether::IWindow::ReconstructStyle()
 {
-	LONG style = WS_OVERLAPPEDWINDOW | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_SYSMENU;
-
-	SetWindowLong(window, GWL_STYLE, style);
+	SetWindowLong(window, GWL_STYLE, CalculateStyle());
 }
 
 LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, 
@@ -568,11 +578,14 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 	// the CreateWindow function sends events before it has finished execution;
 	// therefore, it is possible for the window variable to be null. 
 	// Use hWnd instead. Why does winapi do this? I have no idea.
-	
+
 	switch (msg)
 	{
 		case WM_CLOSE:
 		{
+			if (!closable)
+				break;
+
 			closeRequested = true;
 
 			SpawnEvent(Events::EventType::WINDOW_CLOSING,
@@ -648,13 +661,17 @@ LRESULT Tether::IWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 		}
 		break;
 
-		case WM_SIZING:
+		case WM_SIZE:
 		{
-			RECT bounds = *(RECT*)lParam;
+			if (wParam == SIZE_MINIMIZED)
+				break;
+
+			int width = LOWORD(lParam);
+			int height = HIWORD(lParam);
 
 			WindowResizeEvent event(
-				bounds.right - bounds.left,
-				bounds.bottom - bounds.top
+				width,
+				height
 			);
 
 			SpawnEvent(Events::EventType::WINDOW_RESIZE,
