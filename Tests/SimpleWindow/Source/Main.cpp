@@ -91,10 +91,6 @@ int main()
 		return 1;
 	}
 
-	// TODO: Raw input
-	window.SetRawInputEnabled(true);
-	window.SetCursorMode(CursorMode::HIDDEN);
-
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();

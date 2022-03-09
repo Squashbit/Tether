@@ -17,10 +17,6 @@
 #include <X11/Xatom.h>
 #endif //__linux__
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif //__linux__
-
 #define TETHER_ASSERT_INITIALIZED(funcName) \
 	if (!initialized) \
 	{ \
@@ -47,8 +43,8 @@ namespace Tether
 	class WindowProcCaller
 	{
 	public:
-		LRESULT HandleMessage(HWND hWnd, Tether::IWindow* pWnd,
-			UINT msg, WPARAM wParam, LPARAM lParam);
+		int64_t HandleMessage(void* hWnd, Tether::IWindow* pWnd,
+			uint32_t msg, uint64_t wParam, uint64_t lParam);
 	};
 #endif
 
@@ -76,7 +72,8 @@ namespace Tether
 	#endif
 		friend Tether::Controls::Control;
 	public:
-		IWindow() {}
+		IWindow();
+		~IWindow();
 		
 		IWindow(const IWindow&) = delete;
 		IWindow(IWindow&&) = delete;
@@ -183,8 +180,10 @@ namespace Tether
 	#endif
 
 	#ifdef _WIN32
-		HINSTANCE GetHIstance();
-		HWND GetHandle();
+		void* GetStorage();
+
+		unsigned long CalculateStyle();
+		void ReconstructStyle();
 	#endif
 
 		bool IsCloseRequested();
@@ -196,7 +195,7 @@ namespace Tether
 		);
 
 		void DispatchNoInit(std::string functionName);
-
+		
 	#ifdef __linux__
 		unsigned long window = 0;
 		Display* display = nullptr;
@@ -208,14 +207,10 @@ namespace Tether
         Cursor hiddenCursor;
 	#endif //__linux__
 	#ifdef _WIN32
-		LRESULT HandleMessage(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+		int64_t HandleMessage(void* hWnd, uint32_t msg, uint64_t wParam, 
+			uint64_t lParam);
 
-		HWND window = 0;
-		// There is only ever one hinstance but for simplicity it is stored in the
-		// window.
-		HINSTANCE hinst = nullptr;
-
-		WNDCLASSEX wndClass;
+		void* windowVarStorage = nullptr;
 	#endif // _WIN32
 	private:
 		void OnDispose();
@@ -229,11 +224,6 @@ namespace Tether
 
 	#ifdef _WIN32
 		std::shared_ptr<wchar_t> ToWide(const char* str);
-		RECT GetAdjustedRect(int64_t x, int64_t y, uint64_t width,
-			uint64_t height);
-
-		DWORD CalculateStyle();
-		void ReconstructStyle();
 		
 		bool decorated = true;
 		std::string className = "";
