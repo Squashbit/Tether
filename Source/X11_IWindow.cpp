@@ -38,6 +38,16 @@ enum
     MWM_FUNC_CLOSE = (1L << 5)
 };
 
+Tether::IWindow::IWindow()
+{
+	
+}
+
+Tether::IWindow::~IWindow()
+{
+	
+}
+
 bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
     // Check if initialized

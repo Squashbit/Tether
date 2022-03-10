@@ -90,11 +90,7 @@ int main()
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
-<<<<<<< Updated upstream
-
-=======
 	
->>>>>>> Stashed changes
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
