@@ -14,6 +14,8 @@
 
 using namespace Tether::Storage;
 
+#define storage ((WindowsVarStorage*)this->windowVarStorage)
+
 int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::IWindow* pWnd,
 	uint32_t msg, uint64_t wParam, uint64_t lParam)
 {
@@ -729,7 +731,7 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 
 		case WM_SIZE:
 		{
-			if (wParam != SIZE_RESTORED)
+			if (wParam != SIZE_RESTORED && wParam != SIZE_MAXIMIZED)
 				break;
 
 			int width = LOWORD(lParam);

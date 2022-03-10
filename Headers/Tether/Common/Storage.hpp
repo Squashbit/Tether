@@ -12,7 +12,6 @@
 namespace Tether::Storage
 {
 #ifdef _WIN32
-	#define storage ((WindowsVarStorage*)this->windowVarStorage)
 	struct WindowsVarStorage
 	{
 		HWND window = 0;
