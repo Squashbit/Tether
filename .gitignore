@@ -1,4 +1,6 @@
-vgcore.*
-Build
-build
 .vs
+.vscode
+
+vgcore.*
+
+Build
