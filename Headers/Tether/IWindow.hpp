@@ -101,6 +101,7 @@ namespace Tether
 		
 	#ifdef TETHER_MONITORS
         uint64_t GetMonitorCount();
+		// Not yet implemented on Windows
         bool GetMonitor(uint64_t index, Monitor* pMonitor);
 	#endif // TETHER_MONITORS
 		
@@ -118,8 +119,8 @@ namespace Tether
 		// TETHER_XRAWINPUT must be defined if compiled on linux to use this.
 		void SetRawInputEnabled(bool enabled);
 		void SetCursorMode(CursorMode mode);
-		void SetMousePos(uint64_t x, uint64_t y);
-		void SetMouseRootPos(uint64_t x, uint64_t y);
+		void SetMousePos(int x, int y);
+		void SetMouseRootPos(int x, int y);
 	#pragma endregion Cursor functions
 
 		/**

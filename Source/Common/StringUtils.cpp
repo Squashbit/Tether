@@ -13,7 +13,7 @@ std::string StringUtils::RandomString(uint64_t length)
 
 	std::random_device device;
 	std::mt19937 generator(device());
-	std::uniform_int_distribution<> dist(0, allChars.size() - 1);
+	std::uniform_int_distribution<uint64_t> dist(0, allChars.size() - 1);
 
 	std::string str;
 	for (uint64_t i = 0; i < length; ++i)

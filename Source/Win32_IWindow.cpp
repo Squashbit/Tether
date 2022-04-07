@@ -174,6 +174,8 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 	return true;
 }
 
+#ifdef TETHER_MONITORS
+
 uint64_t Tether::IWindow::GetMonitorCount()
 {
 	return GetSystemMetrics(SM_CMONITORS);
@@ -234,6 +236,8 @@ bool Tether::IWindow::GetMonitor(uint64_t index, Monitor* pMonitor)
 	// return true;
 }
 
+#endif
+
 void Tether::IWindow::SetVisible(bool visibility)
 {
 	TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
@@ -277,7 +281,7 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
 	}
 }
 
-void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
+void Tether::IWindow::SetMousePos(int x, int y)
 {
 	POINT pt;
 	pt.x = x;
@@ -287,7 +291,7 @@ void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
 	SetCursorPos(pt.x, pt.y);
 }
 
-void Tether::IWindow::SetMouseRootPos(uint64_t x, uint64_t y)
+void Tether::IWindow::SetMouseRootPos(int x, int y)
 {
 	SetCursorPos(x, y);
 }
@@ -301,7 +305,7 @@ void Tether::IWindow::SetX(int64_t x)
 
 	MoveWindow(
 		storage->window,
-		x, 
+		static_cast<int>(x), 
 		wr.top, 
 		wr.right - wr.left, 
 		wr.bottom - wr.top, 
@@ -321,7 +325,7 @@ void Tether::IWindow::SetY(int64_t y)
 	MoveWindow(
 		storage->window,
 		wr.left,
-		y,
+		static_cast<int>(y),
 		wr.right - wr.left,
 		wr.bottom - wr.top,
 		false
@@ -339,8 +343,8 @@ void Tether::IWindow::SetPosition(int64_t x, int64_t y)
 
 	MoveWindow(
 		storage->window,
-		x,
-		y,
+		static_cast<int>(x),
+		static_cast<int>(y),
 		wr.right - wr.left,
 		wr.bottom - wr.top,
 		false
@@ -361,7 +365,7 @@ void Tether::IWindow::SetWidth(uint64_t width)
 		storage->window,
 		wr.left,
 		wr.top,
-		width,
+		static_cast<int>(width),
 		wr.bottom - wr.top,
 		false
 	);
@@ -381,7 +385,7 @@ void Tether::IWindow::SetHeight(uint64_t height)
 		wr.left,
 		wr.top,
 		wr.right - wr.left,
-		height,
+		static_cast<int>(height),
 		false
 	);
 
@@ -399,8 +403,8 @@ void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
 		storage->window,
 		wr.left,
 		wr.top,
-		width,
-		height,
+		static_cast<int>(width),
+		static_cast<int>(height),
 		false
 	);
 
@@ -518,8 +522,13 @@ void Tether::IWindow::SetFullscreen(
 		ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
 
 		ReconstructStyle();
-		SetWindowPos(storage->window, HWND_TOP, setX, setY, setWidth, setHeight,
-			SWP_SHOWWINDOW);
+		SetWindowPos(storage->window, HWND_TOP, 
+			static_cast<int>(setX), 
+			static_cast<int>(setY), 
+			static_cast<int>(setWidth), 
+			static_cast<int>(setHeight),
+			SWP_SHOWWINDOW
+		);
 		ShowWindow(storage->window, SW_SHOW);
 	}
 	
