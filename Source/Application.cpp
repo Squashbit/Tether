@@ -20,6 +20,11 @@ bool Application::Init()
     return true;
 }
 
+Storage::AppVarStorage* Application::GetStorage()
+{
+    return storage;
+}
+
 Application& Application::Get()
 {
     return internal;
