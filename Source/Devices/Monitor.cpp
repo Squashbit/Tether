@@ -1,6 +1,6 @@
-#include <Tether/Monitor.hpp>
+#include <Tether/Devices/Monitor.hpp>
 
-using namespace Tether;
+using namespace Tether::Devices;
 
 Monitor::Monitor(const Monitor& ref)
 {

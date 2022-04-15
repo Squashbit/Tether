@@ -3,7 +3,7 @@
 #include <Tether/IWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 #include <Tether/Common/StringUtils.hpp>
-#include <Tether/Common/Storage.hpp>
+#include <Tether/Native.hpp>
 
 #include <algorithm>
 #include <cmath>
@@ -14,12 +14,10 @@
 
 using namespace Tether::Storage;
 
-#define storage ((WindowsVarStorage*)this->windowVarStorage)
-
 int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::IWindow* pWnd,
 	uint32_t msg, uint64_t wParam, uint64_t lParam)
 {
-	HWND* window = &((WindowsVarStorage*)pWnd->windowVarStorage)->window;
+	HWND* window = &((VarStorage*)pWnd->varStorage)->window;
 
 	if (*window == NULL)
 		*window = *(HWND*)hWnd;
@@ -74,20 +72,6 @@ static LRESULT CALLBACK Tether_WindowProc(HWND hWnd, UINT msg, WPARAM wParam,
 	}
 
 	return DefWindowProc(hWnd, msg, wParam, lParam);
-}
-
-Tether::IWindow::IWindow()
-{
-	windowVarStorage = malloc(sizeof(WindowsVarStorage));
-	if (!windowVarStorage)
-		return;
-
-	memset(windowVarStorage, 0, sizeof(WindowsVarStorage));
-}
-
-Tether::IWindow::~IWindow()
-{
-	free(windowVarStorage);
 }
 
 bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
@@ -173,70 +157,6 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 
 	return true;
 }
-
-#ifdef TETHER_MONITORS
-
-uint64_t Tether::IWindow::GetMonitorCount()
-{
-	return GetSystemMetrics(SM_CMONITORS);
-}
-
-static BOOL CALLBACK Tether_EnumerateMonitors(
-	HMONITOR hMonitor,
-	HDC hdcMonitor,
-	LPRECT lprcMonitor,
-	LPARAM dwData
-)
-{
-	std::vector<HMONITOR>* pMonitors = (std::vector<HMONITOR>*)dwData;
-	pMonitors->push_back(hMonitor);
-
-	return TRUE;
-}
-
-bool Tether::IWindow::GetMonitor(uint64_t index, Monitor* pMonitor)
-{
-	return false;
-
-	/*std::vector<HMONITOR> monitors;
-	EnumDisplayMonitors(NULL, NULL, Tether_EnumerateMonitors, (LPARAM)&monitors);
-
-	if (index >= monitors.size())
-		return false;
-
-	EnumDisplayDevices()
-
-	HMONITOR monitor = monitors[index];
-
-	MONITORINFOEX monitorInfo{};
-	GetMonitorInfo(monitor, &monitorInfo);
-
-	pMonitor->name = monitorInfo.szDevice;
-
-	RECT rect = monitorInfo.rcMonitor;
-	pMonitor->x = rect.left;
-	pMonitor->y = rect.top;
-	pMonitor->width = rect.right;
-	pMonitor->height = rect.bottom;
-
-	uint64_t i = 0;
-	DEVMODE devmode{};
-	while (EnumDisplaySettings(NULL, i, &devmode))
-	{
-		DisplayMode mode{};
-		mode.exactRefreshRate = devmode.dmDisplayFrequency;
-		mode.refreshRate = devmode.dmDisplayFrequency;
-		mode.name = (char*)devmode.dmDeviceName;
-
-		pMonitor->modes.push_back(mode);
-
-		i++;
-	}*/
-	
-	// return true;
-}
-
-#endif
 
 void Tether::IWindow::SetVisible(bool visibility)
 {
@@ -600,11 +520,6 @@ void Tether::IWindow::PollEvents()
 				pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
 			});
 		}
-}
-
-void* Tether::IWindow::GetStorage()
-{
-	return windowVarStorage;
 }
 
 void Tether::IWindow::OnDispose()

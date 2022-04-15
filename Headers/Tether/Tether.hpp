@@ -12,6 +12,7 @@
 #error Sorry! Linux and Windows are currently the only supported platforms!
 #endif
 
+#include <Tether/Application.hpp>
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/NativeWindow.hpp>
 #include <Tether/Window.hpp>

@@ -5,7 +5,6 @@ namespace Tether::Events
 {
     enum class EventType
     {
-        MOUSE_MOVE,
         WINDOW_CLOSING,
         WINDOW_REPAINT,
         WINDOW_RESIZE,

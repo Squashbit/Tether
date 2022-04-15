@@ -1,15 +1,15 @@
-#ifndef _TETHER_MOUSEMOVEEVENT_HPP
-#define _TETHER_MOUSEMOVEEVENT_HPP
+#ifndef _TETHER_INPUT_MOUSEMOVEINFO_HPP
+#define _TETHER_INPUT_MOUSEMOVEINFO_HPP
 
-#include <iostream>
+#include <stdint.h>
 
-namespace Tether::Events
+namespace Tether::Input
 {
-    class MouseMoveEvent
+    class MouseMoveInfo
     {
     public:
-        MouseMoveEvent() {}
-        MouseMoveEvent(
+        MouseMoveInfo() {}
+        MouseMoveInfo(
             uint64_t rootX,
             uint64_t rootY,
             uint64_t relativeX,
@@ -20,7 +20,7 @@ namespace Tether::Events
             uint64_t oldRootY
         );
         
-        MouseMoveEvent(const MouseMoveEvent& ref);
+        MouseMoveInfo(const MouseMoveInfo& ref);
 		
         uint64_t GetRootX();
         uint64_t GetRootY();
@@ -30,8 +30,6 @@ namespace Tether::Events
         uint64_t GetOldRelativeY();
         uint64_t GetOldRootX();
         uint64_t GetOldRootY();
-        int64_t GetRawX();
-        int64_t GetRawY();
     private:
         uint64_t rootX = 0;
         uint64_t rootY = 0;
@@ -44,4 +42,4 @@ namespace Tether::Events
     };
 }
 
-#endif //_TETHER_MOUSEMOVEEVENT_HPP
+#endif //_TETHER_INPUT_MOUSEMOVEINFO_HPP

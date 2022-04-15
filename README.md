@@ -1,47 +1,24 @@
 # Tether
 Tether is a app creation/GUI library created in C++. It is made with a Graphics API instead of native window controls to allow for more complex rendering and customization.
 
-Currently, Tether only works for Linux but a Windows version will be available eventually.
-
 # Goals
 * Have all basic controls (Panel, Button, Label, Progressbar, etc..)
-* Use no external window management libraries (like glfw)
-* Rendered using Vulkan
 * Linux and Windows versions
 
 # How to contribute
-Message SawtoothGabe#6139 on discord that you would like to work on Tether (and some prior experience in C++ and Xlib would help too).
-
-*Include order*
-
-* Project includes (Tether/ includes)
-* Standard library includes
-* X11
-* Vulkan
-* Misc
-
-Includes should also be sorted by name.
+Message SawtoothGabe#6139 on discord that you would like to work on Tether (and some prior experience in C++ would help too).
 
 *Naming conventions*
 
-**Class/Enums: CamelCase**
-**Variable: lowerCamelCase**
-**Function: CamelCase**
-**Enum value: SNAKE_CASE**
+* **Class/Enums: CamelCase**
+* **Variable: lowerCamelCase**
+* **Function: CamelCase**
+* **Enum value: SNAKE_CASE**
 
 # Definitions
-* TETHER_MONITORS : Defined if monitor support should be included with the build.
-* TETHER_XRAWINPUT : Defined if tether should be compiled with X11 raw input support.
 * TETHER_PREVIEW_FEATURES : Defined if tether should have preview features enabled.
-* TETHER_OPENGL_API : Defined if tether should have OpenGL abilities. 
 
 # Linux build instructions
-*Script instructions:*
-
-Run the Build.sh script like so: ```./Build.sh```
-
-*Manual build instructions:*
-
 Run CMake to generate the makefile like so: ```cmake -S . -B Build```
 
 -S Specifies the source directory, which in this case is the root project directory.

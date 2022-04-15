@@ -25,15 +25,7 @@ public:
 			pWindow->SetVisible(false);
 			std::cout << "Closed window" << std::endl;
 		}
-
-		void OnMouseMove(Events::MouseMoveEvent event)
-		{
-			std::cout << 
-				"X=" << event.GetRelativeX() <<
-				", Y=" << event.GetRelativeY() 
-			<< std::endl;
-		}
-
+		
 		void OnWindowError(Events::WindowErrorEvent event)
 		{
 			std::cout << "window error: " << std::endl;
@@ -63,8 +55,8 @@ public:
 		SetBounds(960, 540, 1366, 768);
 		
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
-		AddEventHandler(handler, Events::EventType::MOUSE_MOVE);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
+
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 	}
 private:

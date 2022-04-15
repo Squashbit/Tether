@@ -9,6 +9,12 @@
 #ifndef _TETHER_IDISPOSABLE_HPP
 #define _TETHER_IDISPOSABLE_HPP
 
+#define TETHER_DISPOSE_ON_DESTRUCT(className) \
+    ~className() \
+    { \
+        Dispose(); \
+    }
+
 namespace Tether
 {
     class IDisposable
@@ -16,6 +22,11 @@ namespace Tether
     public:
         // Calls the Dispose function
         ~IDisposable();
+
+        /**
+         * @returns True if the object is initialized; otherwise, false.
+         */
+        bool IsInitialized() const;
 
         /**
          * @brief Disposes the object

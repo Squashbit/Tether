@@ -22,7 +22,7 @@ target_link_directories(${PROJECT_NAME}
 
 if (UNIX)
 	target_link_libraries(${PROJECT_NAME} 
-		${CMAKE_DL_LIBS} pthread tether X11 Xrandr Xi
+		${CMAKE_DL_LIBS} pthread tether X11
 	)
 elseif(WIN32)
 	target_link_libraries(${PROJECT_NAME} 

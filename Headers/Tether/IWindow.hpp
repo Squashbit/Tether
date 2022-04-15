@@ -1,21 +1,20 @@
 #ifndef _TETHER_IWINDOW_HPP
 #define _TETHER_IWINDOW_HPP
 
+#include <Tether/Application.hpp>
 #include <Tether/Common/Color.hpp>
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/WindowHint.hpp>
+#include <Tether/Common/Types.hpp>
+#include <Tether/Common/Defs.hpp>
 #include <Tether/Events/EventHandler.hpp>
 #include <Tether/Events/EventType.hpp>
-#include <Tether/Monitor.hpp>
+#include <Tether/Input/InputListener.hpp>
+#include <Tether/Devices/DeviceManager.hpp>
+#include <Tether/Devices/Monitor.hpp>
 
 #include <vector>
 #include <functional>
-
-#ifdef __linux__
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#endif //__linux__
 
 #define TETHER_ASSERT_INITIALIZED(funcName) \
 	if (!initialized) \
@@ -36,6 +35,11 @@ namespace Tether
 	namespace Controls
 	{
 		class Control;
+	}
+
+	namespace Storage
+	{
+		class VarStorage;
 	}
 
 #ifdef _WIN32
@@ -71,14 +75,11 @@ namespace Tether
 		friend WindowProcCaller;
 	#endif
 		friend Tether::Controls::Control;
+		friend Tether::Devices::DeviceManager;
 	public:
 		IWindow();
 		~IWindow();
-		
-		IWindow(const IWindow&) = delete;
-		IWindow(IWindow&&) = delete;
-		IWindow& operator=(const IWindow&) = delete;
-		IWindow& operator=(IWindow&&) = delete;
+		TETHER_NO_COPY(IWindow);
 
 		void Hint(HintType type, int64_t pValue);
 
@@ -99,29 +100,21 @@ namespace Tether
 		 */
 		virtual void OnInit() {}
 		
-	#ifdef TETHER_MONITORS
-        uint64_t GetMonitorCount();
-		// Not yet implemented on Windows
-        bool GetMonitor(uint64_t index, Monitor* pMonitor);
-	#endif // TETHER_MONITORS
-		
 		void AddEventHandler(Events::EventHandler& handler, 
 			Events::EventType eventType);
 		void AddEventHandler(Events::EventHandler* handler, 
 			Events::EventType eventType);
 		void RemoveEventHandler(Events::EventHandler& handler);
 		void RemoveEventHandler(Events::EventHandler* handler);
+		void AddInputListener(Input::InputListener& listener, 
+			Input::InputType inputType);
+		void AddInputListener(Input::InputListener* listener, 
+			Input::InputType inputType);
+		void RemoveInputListener(Input::InputListener& listener);
+		void RemoveInputListener(Input::InputListener* listener);
 
 		void SetVisible(bool visibility);
 		bool IsVisible();
-
-	#pragma region Cursor functions
-		// TETHER_XRAWINPUT must be defined if compiled on linux to use this.
-		void SetRawInputEnabled(bool enabled);
-		void SetCursorMode(CursorMode mode);
-		void SetMousePos(int x, int y);
-		void SetMouseRootPos(int x, int y);
-	#pragma endregion Cursor functions
 
 		/**
 		 * @brief Sets the window's fullscreen state.
@@ -137,9 +130,17 @@ namespace Tether
 		void SetFullscreen(
 			bool fullscreen, 
 			FullscreenSettings* settings = nullptr,
-			Monitor* monitor = nullptr
+			Devices::Monitor* monitor = nullptr
 		);
 
+	#pragma region Cursor functions
+		void SetRawInputEnabled(bool enabled);
+		void SetCursorMode(CursorMode mode);
+		void SetCursorPos(int x, int y);
+		void SetCursorRootPos(int x, int y);
+	#pragma endregion Cursor functions
+		
+	#pragma region Window setters
 		void SetX(int64_t x);
 		void SetY(int64_t y);
 		void SetPosition(int64_t x, int64_t y);
@@ -156,6 +157,9 @@ namespace Tether
 		void SetBoundsEnabled(bool enabled);
 		void SetBounds(int64_t minWidth, int64_t minHeight, int64_t maxWidth,
 			int64_t maxHeight);
+	#pragma endregion Window Setters
+
+	#pragma region Window getters
 		// Window X
 		int64_t GetX();
 		// Window Y
@@ -166,6 +170,7 @@ namespace Tether
 		int64_t GetRelativeMouseY();
 		uint64_t GetWidth();
 		uint64_t GetHeight();
+	#pragma endregion Window getters
 		
 		/**
 		 * @brief Processes all pending events for the window.
@@ -174,46 +179,43 @@ namespace Tether
 		
 	#ifdef __linux__
 		void SetPreferredResizeInc(int width, int height);
-
-		Display* GetDisplay();
-		int GetScreen();
-		uint64_t GetHandle();
 	#endif
 
 	#ifdef _WIN32
-		void* GetStorage();
-
 		unsigned long CalculateStyle();
 		void ReconstructStyle();
 	#endif
 
+		Storage::VarStorage* GetStorage();
+
+		void SetCloseRequested(bool requested);
 		bool IsCloseRequested();
-		void IgnoreClose();
 	protected:
 		void SpawnEvent(
 			Events::EventType eventType,
 			std::function<void(Events::EventHandler*)> callEventFun
 		);
 
+		void SpawnInput(
+			Input::InputType inputType,
+			std::function<void(Input::InputListener*)> callInputFun
+		);
+
 		void DispatchNoInit(std::string functionName);
+		void DispatchError(ErrorCode code, ErrorSeverity severity, 
+			std::string functionName);
 		
 	#ifdef __linux__
-		unsigned long window = 0;
-		Display* display = nullptr;
-		int screen = 0;
-
-		XEvent event;
-
-		Pixmap hiddenCursorPixmap;
-        Cursor hiddenCursor;
 	#endif //__linux__
 	#ifdef _WIN32
 		int64_t HandleMessage(void* hWnd, uint32_t msg, uint64_t wParam, 
 			uint64_t lParam);
-
-		void* windowVarStorage = nullptr;
 	#endif // _WIN32
+
+		Storage::VarStorage* storage = nullptr;
 	private:
+		bool LoadLibraries();
+
 		void OnDispose();
 
 	#ifdef __linux__
@@ -248,6 +250,7 @@ namespace Tether
 
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;
+		bool rawInputEnabled = false;
 		int64_t mouseX = -1;
 		int64_t mouseY = -1;
 		int64_t relMouseX = -1;
@@ -256,6 +259,11 @@ namespace Tether
 		// Each event has a list of handlers to handle that specific event.
 		std::unordered_map<Events::EventType, 
 			std::vector<Events::EventHandler*>> handlers;
+
+		std::unordered_map<Input::InputType, 
+			std::vector<Input::InputListener*>> inputListeners;
+
+		Application* app;
 		
 		bool closeRequested = false;
 	};

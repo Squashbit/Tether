@@ -6,6 +6,11 @@
 
 namespace Tether
 {
+    class IWindow;
+}
+
+namespace Tether::Devices
+{
     struct DisplayMode
     {
         std::string name;
@@ -17,7 +22,8 @@ namespace Tether
 
     class Monitor
     {
-        friend class IWindow;
+        friend IWindow;
+        friend class DeviceManager;
     public:
         Monitor() {}
 		Monitor(const Monitor& ref);

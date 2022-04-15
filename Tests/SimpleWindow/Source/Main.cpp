@@ -20,12 +20,6 @@ public:
 			pWindow(pWindow)
 		{}
 
-		void OnMouseMove(Events::MouseMoveEvent event)
-		{
-			std::cout << "Moved mouse to X=" << event.GetRelativeX()
-				<< ", Y=" << event.GetRelativeY() << std::endl;
-		}
-
 		void OnWindowResize(Events::WindowResizeEvent event)
 		{
 			std::cout << "Resized window to W=" << event.GetNewWidth()
@@ -56,6 +50,53 @@ public:
 		TestWindow* pWindow = nullptr;
 	};
 
+	class TestListener : public Input::InputListener
+	{
+	public:
+		void OnMouseMove(Input::MouseMoveInfo& info)
+		{
+			std::cout << "Mouse move ("
+				<< "relX=" << info.GetRelativeX() << ", " 
+				<< "relY=" << info.GetRelativeY() 
+				<< ")" 
+			<< std::endl;
+		}
+
+		void OnRawMouseMove(Input::RawMouseMoveInfo& info)
+		{
+			std::cout << "Raw mouse move ("
+				<< "rawX=" << info.GetRawX() << ", " 
+				<< "rawY=" << info.GetRawY() 
+				<< ")" 
+			<< std::endl;
+		}
+
+		void OnKey(Input::KeyInfo& info)
+		{
+			std::string tru = "true";
+			std::string fals = "false";
+
+			std::cout << "Key (pressed=" 
+				<< (info.IsPressed() ? tru : fals)
+				<< ", scancode=" << info.GetScancode()
+				<< ", key=" << info.GetKey() 
+				<< ")"
+			<< std::endl;
+		}
+
+		void OnKeyChar(Input::KeyCharInfo& info)
+		{
+			std::string tru = "true";
+			std::string fals = "false";
+
+			std::cout << "Key char (repeat=" 
+				<< (info.IsAutoRepeat() ? tru : fals)
+				<< ", key=" << info.GetKey() 
+				<< ")"
+			<< std::endl;
+		}
+	};
+
 	TestWindow()
 		:
 		handler(this)
@@ -73,11 +114,20 @@ public:
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
 		AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
 		AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
-		AddEventHandler(handler, Events::EventType::MOUSE_MOVE);
+
+		AddInputListener(listener, Input::InputType::MOUSE_MOVE);
+		AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
+		AddInputListener(listener, Input::InputType::KEY);
+		AddInputListener(listener, Input::InputType::KEY_CHAR);
+
+		SetRawInputEnabled(true);
+		SetCursorMode(CursorMode::HIDDEN);
+		
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 	}
 private:
 	EventHandler handler;
+	TestListener listener;
 };
 
 int main()

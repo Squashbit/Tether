@@ -1,14 +1,8 @@
 #ifdef __linux__
 
-#ifdef TETHER_XRAWINPUT
-#include <X11/extensions/XInput2.h>
-#endif // TETHER_XRAWINPUT
-
-#ifdef TETHER_MONITORS
-#include <X11/extensions/Xrandr.h>
-#endif // TETHER_MONITORS
-
 #include <Tether/IWindow.hpp>
+#include <Tether/Native.hpp>
+#include <Tether/Common/Defs.hpp>
 #include <Tether/Controls/Control.hpp>
 
 #include <algorithm>
@@ -38,18 +32,13 @@ enum
     MWM_FUNC_CLOSE = (1L << 5)
 };
 
-Tether::IWindow::IWindow()
-{
-	
-}
-
-Tether::IWindow::~IWindow()
-{
-	
-}
+#define xdisplay app->storage->display
+#define xscreen app->storage->screen
 
 bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
+    app = &Application::Get();
+
     // Check if initialized
     // Not possible to use TETHER_ASSERT_INITIALIZED here
     if (initialized)
@@ -57,12 +46,9 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         DispatchNoInit("IWindow::Init");
         return false;
     }
-    
-    display = XOpenDisplay(NULL);
-    if (!display)
+
+    if (!app->IsInitialized() && !app->Init())
         return false;
-    
-    int screen = DefaultScreen(display);
 
     this->setWidth = width;
     this->setHeight = height;
@@ -79,46 +65,43 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
         }
     }
     
-    unsigned long root = RootWindow(display, screen);
-
+    unsigned long root = RootWindow(xdisplay, xscreen);
+    
     XSetWindowAttributes swa{};
     swa.event_mask = 
           PointerMotionMask 
         | ButtonPressMask
         | ButtonReleaseMask
-        | StructureNotifyMask;
+        | StructureNotifyMask
+        | KeyPressMask
+        | KeyReleaseMask;
 
-    window = XCreateWindow(
-        display, 
+    storage->window = XCreateWindow(
+        xdisplay, 
         root,
         setX, setY,
         width, height,
         0, // Border width
-        DefaultDepth(display, screen),
+        DefaultDepth(xdisplay, xscreen),
         InputOutput,
-        DefaultVisual(display, screen),
+        DefaultVisual(xdisplay, xscreen),
         CWEventMask,
         &swa
     );
-
-    XColor color = {};
-    hiddenCursorPixmap = XCreatePixmap(display, root, 1, 1, 1);
-    hiddenCursor = XCreatePixmapCursor(display, 
-        hiddenCursorPixmap, hiddenCursorPixmap, &color, &color, 0, 0);
     
-    Atom wmDelete = XInternAtom(display, "WM_DELETE_WINDOW", true);
-    XSetWMProtocols(display, window, &wmDelete, 1);
+    Atom wmDelete = XInternAtom(xdisplay, "WM_DELETE_WINDOW", true);
+    XSetWMProtocols(xdisplay, storage->window, &wmDelete, 1);
 
     if (shouldShow)
     {
-        XMapWindow(display, window);
+        XMapWindow(xdisplay, storage->window);
         visible = true;
     }
     
-    XMoveWindow(display, window, setX, setY);
-    XStoreName(display, window, title);
+    XMoveWindow(xdisplay, storage->window, setX, setY);
+    XStoreName(xdisplay, storage->window, title);
 
-    XFlush(display);
+    XFlush(xdisplay);
 
     initialized = true;
     OnInit();
@@ -126,93 +109,14 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     return true;
 }
 
-#ifdef TETHER_MONITORS
-
-uint64_t Tether::IWindow::GetMonitorCount()
-{
-    int numMonitors;
-    XRRGetMonitors(display, window, false, &numMonitors);
-
-    return numMonitors;
-}
-
-bool Tether::IWindow::GetMonitor(uint64_t index, Monitor* pMonitor)
-{
-    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetMonitor", false);
-
-    if (!pMonitor)
-        return false;
-
-    unsigned long root = RootWindow(display, screen);
-    XRRScreenResources* resources = XRRGetScreenResources(display, root);
-
-    int numMonitors;
-    XRRMonitorInfo* monitorInfos = XRRGetMonitors(display, window, false, 
-        &numMonitors);
-
-    if (index >= numMonitors)
-        return false;
-    
-    XRRMonitorInfo monitorInfo = monitorInfos[index];
-
-    pMonitor->modes.clear();
-    for (uint64_t i = 0; i < monitorInfo.noutput; i++)
-    {
-        XRROutputInfo* outputInfo = XRRGetOutputInfo(display, resources,
-            monitorInfo.outputs[i]);
-        XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
-            outputInfo->crtc);
-        
-        for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
-        {
-            XRRModeInfo mode;
-            for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
-                if (resources->modes[i3].id == outputInfo->modes[i2])
-                    mode = resources->modes[i3];
-            
-            DisplayMode displayMode;
-            displayMode.name = mode.name;
-            displayMode.exactRefreshRate = mode.dotClock 
-                    / ((double)mode.hTotal * mode.vTotal);
-            displayMode.refreshRate = round(displayMode.exactRefreshRate);
-            displayMode.width = mode.width;
-            displayMode.height = mode.height;
-
-            if (info->mode == mode.id)
-                pMonitor->currentMode = displayMode;
-            
-            pMonitor->modes.push_back(displayMode);
-        }
-
-        XRRFreeCrtcInfo(info);
-        XRRFreeOutputInfo(outputInfo);
-    }
-
-    char* name = XGetAtomName(display, monitorInfo.name);
-    
-    pMonitor->index = index;
-    pMonitor->width = monitorInfo.width;
-    pMonitor->height = monitorInfo.height;
-    pMonitor->name = name;
-    pMonitor->primary = monitorInfo.primary;
-
-    XFree(name);
-    XRRFreeMonitors(monitorInfos);
-    XRRFreeScreenResources(resources);
-    
-    return true;
-}
-
-#endif // TETHER_MONITORS
-
 void Tether::IWindow::SetVisible(bool visibility)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
 
     if (visibility)
-        XMapWindow(display, window);
+        XMapWindow(xdisplay, storage->window);
     else
-        XUnmapWindow(display, window);
+        XUnmapWindow(xdisplay, storage->window);
     
     visible = visibility;
 }
@@ -222,91 +126,25 @@ bool Tether::IWindow::IsVisible()
     return visible && initialized;
 }
 
-#ifdef TETHER_XRAWINPUT
-
-void Tether::IWindow::SetRawInputEnabled(bool enabled)
-{
-    unsigned int root = DefaultRootWindow(display);
-
-    if (enabled)
-    {
-        XIEventMask eventMask;
-        unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
-
-        eventMask.deviceid = XIAllMasterDevices;
-        eventMask.mask_len = sizeof(mask);
-        eventMask.mask = mask;
-        XISetMask(mask, XI_RawMotion);
-
-        XISelectEvents(display, root, &eventMask, 1);
-
-        return;
-    }
-
-    XIEventMask eventMask;
-    unsigned char mask[] = { 0 };
-
-    eventMask.deviceid = XIAllMasterDevices;
-    eventMask.mask_len = sizeof(mask);
-    eventMask.mask = mask;
-
-    XISelectEvents(display, root, &eventMask, 1);
-}
-
-#endif // TETHER_XRAWINPUT
-
-void Tether::IWindow::SetCursorMode(CursorMode mode)
-{
-    switch (mode)
-    {
-        case CursorMode::NORMAL:
-        {
-            XUngrabPointer(display, CurrentTime);
-        }
-        break;
-
-        case CursorMode::HIDDEN:
-        {
-            XGrabPointer(
-                display, DefaultRootWindow(display), 0,
-                PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
-                GrabModeAsync, GrabModeAsync, None, hiddenCursor, CurrentTime
-            );
-        }
-        break;
-    }
-}
-
-void Tether::IWindow::SetMousePos(uint64_t x, uint64_t y)
-{
-    XWarpPointer(display, window, window, 0, 0, 0, 0, x, y);
-}
-
-void Tether::IWindow::SetMouseRootPos(uint64_t x, uint64_t y)
-{
-    unsigned int root = DefaultRootWindow(display);
-    XWarpPointer(display, root, root, 0, 0, 0, 0, x, y);
-}
-
 void Tether::IWindow::SetX(int64_t x)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetX");
 
-    XMoveWindow(display, window, x, GetY());
+    XMoveWindow(xdisplay, storage->window, x, GetY());
 }
 
 void Tether::IWindow::SetY(int64_t y)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetY");
 
-    XMoveWindow(display, window, GetX(), y);
+    XMoveWindow(xdisplay, storage->window, GetX(), y);
 }
 
 void Tether::IWindow::SetPosition(int64_t x, int64_t y)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetPosition");
 
-    XMoveWindow(display, window, x, y);
+    XMoveWindow(xdisplay, storage->window, x, y);
 }
 
 void Tether::IWindow::SetWidth(uint64_t width)
@@ -316,7 +154,7 @@ void Tether::IWindow::SetWidth(uint64_t width)
     if (width == 0)
         return;
 
-    XResizeWindow(display, window, width, GetHeight());
+    XResizeWindow(xdisplay, storage->window, width, GetHeight());
 }
 
 void Tether::IWindow::SetHeight(uint64_t height)
@@ -326,7 +164,7 @@ void Tether::IWindow::SetHeight(uint64_t height)
     if (height == 0)
         return;
 
-    XResizeWindow(display, window, GetWidth(), height);
+    XResizeWindow(xdisplay, storage->window, GetWidth(), height);
 }
 
 void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
@@ -336,14 +174,14 @@ void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
     if (width == 0 || height == 0)
         return;
 
-    XResizeWindow(display, window, width, height);
+    XResizeWindow(xdisplay, storage->window, width, height);
 }
 
 void Tether::IWindow::SetTitle(const char* title)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetTitle");
 
-    XStoreName(display, window, title);
+    XStoreName(xdisplay, storage->window, title);
 }
 
 void Tether::IWindow::SetBoundsEnabled(bool enabled)
@@ -373,7 +211,8 @@ void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight,
 	this->maxWidth  = maxWidth;
 	this->maxHeight = maxHeight;
 
-    XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
+    XSetWMSizeHints(xdisplay, storage->window, &sizeHints, 
+        XA_WM_NORMAL_HINTS);
 }
 
 void Tether::IWindow::SetPreferredResizeInc(int width, int height)
@@ -383,19 +222,20 @@ void Tether::IWindow::SetPreferredResizeInc(int width, int height)
     sizeHints.height_inc = height;
     sizeHints.flags = PResizeInc;
 
-    XSetWMSizeHints(display, window, &sizeHints, XA_WM_NORMAL_HINTS);
+    XSetWMSizeHints(xdisplay, storage->window, &sizeHints, 
+        XA_WM_NORMAL_HINTS);
 }
 
 void Tether::IWindow::SetDecorated(bool decorated)
 {
-    Atom motifWmHints = XInternAtom(display, "_MOTIF_WM_HINTS", true);
+    Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
 
     MwmHints hints{};
     hints.flags = MWM_HINTS_DECORATIONS;
     hints.decorations = decorated;
 
     XChangeProperty(
-        display, window,
+        xdisplay, storage->window,
         motifWmHints,
         motifWmHints, 
         32,
@@ -436,23 +276,24 @@ void Tether::IWindow::SetMaximized(bool maximized)
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetMaximized");
 
-    Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
-    Atom maxHorzAtom = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_HORZ", 
-            true);
-    Atom maxVertAtom = XInternAtom(display, "_NET_WM_STATE_MAXIMIZED_VERT", 
-            true);
+    Atom wmState = XInternAtom(xdisplay, "_NET_WM_STATE", true);
+    Atom maxHorzAtom = XInternAtom(xdisplay, 
+        "_NET_WM_STATE_MAXIMIZED_HORZ", true);
+    Atom maxVertAtom = XInternAtom(xdisplay, 
+        "_NET_WM_STATE_MAXIMIZED_VERT", true);
     if (maximized)
     {
         XEvent fullscreenEvent{};
         fullscreenEvent.type = ClientMessage;
-        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.window = storage->window;
         fullscreenEvent.xclient.message_type = wmState;
         fullscreenEvent.xclient.format = 32;
         fullscreenEvent.xclient.data.l[0] = 1; // Add
         fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
         fullscreenEvent.xclient.data.l[2] = maxVertAtom;
         
-        XSendEvent(display, DefaultRootWindow(display), false, 
+        XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            false, 
             SubstructureRedirectMask | SubstructureNotifyMask, 
             &fullscreenEvent);
     }
@@ -460,19 +301,20 @@ void Tether::IWindow::SetMaximized(bool maximized)
     {
         XEvent fullscreenEvent{};
         fullscreenEvent.type = ClientMessage;
-        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.window = storage->window;
         fullscreenEvent.xclient.message_type = wmState;
         fullscreenEvent.xclient.format = 32;
         fullscreenEvent.xclient.data.l[0] = 0; // Remove
         fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
         fullscreenEvent.xclient.data.l[2] = maxVertAtom;
         
-        XSendEvent(display, DefaultRootWindow(display), false, 
+        XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            false, 
             SubstructureRedirectMask | SubstructureNotifyMask, 
             &fullscreenEvent);
     }
 
-    XSync(display, false);
+    XSync(xdisplay, false);
 }
 
 void Tether::IWindow::SetMaximizeBox(bool enabled)
@@ -487,7 +329,7 @@ void Tether::IWindow::SetMaximizeBox(bool enabled)
 void Tether::IWindow::SetFullscreen(
     bool fullscreen, 
 	FullscreenSettings* settings,
-	Monitor* monitor
+	Devices::Monitor* monitor
 )
 {
     TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
@@ -495,30 +337,31 @@ void Tether::IWindow::SetFullscreen(
     if (this->fullscreen == fullscreen)
         return;
 
-    Atom wmState = XInternAtom(display, "_NET_WM_STATE", true);
-    Atom fullscreenAtom = XInternAtom(display, "_NET_WM_STATE_FULLSCREEN", 
-            true);
+    Atom wmState = XInternAtom(xdisplay, "_NET_WM_STATE", true);
+    Atom fullscreenAtom = XInternAtom(xdisplay, 
+        "_NET_WM_STATE_FULLSCREEN", true);
     if (fullscreen)
     {
         XEvent fullscreenEvent{};
         fullscreenEvent.type = ClientMessage;
-        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.window = storage->window;
         fullscreenEvent.xclient.message_type = wmState;
         fullscreenEvent.xclient.format = 32;
         fullscreenEvent.xclient.data.l[0] = 2; // Replace
         fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
         
-        XSendEvent(display, DefaultRootWindow(display), false, 
+        XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            false, 
             SubstructureRedirectMask | SubstructureNotifyMask, 
             &fullscreenEvent);
         
-        XSync(display, false);
+        XSync(xdisplay, false);
         
         Atom wmFullscreenMonitors = 
-            XInternAtom(display, "_NET_WM_FULLSCREEN_MONITORS", true);
+            XInternAtom(xdisplay, "_NET_WM_FULLSCREEN_MONITORS", true);
         XEvent event{};
         event.type = ClientMessage;
-        event.xclient.window = window;
+        event.xclient.window = storage->window;
         event.xclient.message_type = wmFullscreenMonitors;
         event.xclient.format = 32;
 
@@ -530,27 +373,104 @@ void Tether::IWindow::SetFullscreen(
             event.xclient.data.l[3] = monitor->index;
         }
 
-        XSendEvent(display, DefaultRootWindow(display), false, 
+        XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            false, 
             SubstructureRedirectMask | SubstructureNotifyMask, &event);
     }
     else
     {
         XEvent fullscreenEvent{};
         fullscreenEvent.type = ClientMessage;
-        fullscreenEvent.xclient.window = window;
+        fullscreenEvent.xclient.window = storage->window;
         fullscreenEvent.xclient.message_type = wmState;
         fullscreenEvent.xclient.format = 32;
         fullscreenEvent.xclient.data.l[0] = 0; // Remove
         fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
         
-        XSendEvent(display, DefaultRootWindow(display), false, 
+        XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            false, 
             SubstructureRedirectMask | SubstructureNotifyMask, 
             &fullscreenEvent);
     }
 
-    XSync(display, false);
+    XSync(xdisplay, false);
     
     this->fullscreen = fullscreen;
+}
+
+void Tether::IWindow::SetRawInputEnabled(bool enabled)
+{
+    if (!app->storage->xi.handle || !app->storage->xi.available)
+    {
+        DispatchError(ErrorCode::LIBRARY_NOT_LOADED, ErrorSeverity::HIGH, 
+            "IWindow::SetRawInputEnabled");
+        return;
+    }
+
+    if (enabled == rawInputEnabled)
+        return;
+    
+    if (enabled)
+    {
+        XIEventMask eventMask;
+        unsigned char mask[XIMaskLen(XI_RawMotion)] = { 0 };
+
+        eventMask.deviceid = XIAllMasterDevices;
+        eventMask.mask_len = sizeof(mask);
+        eventMask.mask = mask;
+        XISetMask(mask, XI_RawMotion);
+
+        XISelectEvents(xdisplay, app->storage->root, &eventMask, 1);
+    }
+    else
+    {
+        XIEventMask eventMask;
+        unsigned char mask[] = { 0 };
+
+        eventMask.deviceid = XIAllMasterDevices;
+        eventMask.mask_len = sizeof(mask);
+        eventMask.mask = mask;
+
+        XISelectEvents(xdisplay, app->storage->root, &eventMask, 1);
+    }
+
+    rawInputEnabled = enabled;
+}
+
+void Tether::IWindow::SetCursorMode(CursorMode mode)
+{
+    switch (mode)
+    {
+        case CursorMode::NORMAL:
+        {
+            XUngrabPointer(xdisplay, CurrentTime);
+        }
+        break;
+
+        case CursorMode::HIDDEN:
+        {
+            XGrabPointer(
+                xdisplay, app->storage->root, true,
+                PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
+                GrabModeAsync, GrabModeAsync, 
+                app->storage->root, app->storage->hiddenCursor, 
+                CurrentTime
+            );
+        }
+        break;
+    }
+}
+
+void Tether::IWindow::SetCursorPos(int x, int y)
+{
+    XWarpPointer(xdisplay, storage->window, storage->window, 0, 0, 
+        0, 0, x, y);
+}
+
+void Tether::IWindow::SetCursorRootPos(int x, int y)
+{
+    unsigned int root = DefaultRootWindow(xdisplay);
+    XWarpPointer(xdisplay, root, root, 0, 0, 0, 0, x, y);
 }
 
 int64_t Tether::IWindow::GetX()
@@ -560,8 +480,8 @@ int64_t Tether::IWindow::GetX()
     long unsigned int child;
 
     int x, y;
-    XTranslateCoordinates(display, window, 
-        DefaultRootWindow(display), 0, 0, &x, &y, &child);
+    XTranslateCoordinates(xdisplay, storage->window, 
+        DefaultRootWindow(xdisplay), 0, 0, &x, &y, &child);
     
     return x;
 }
@@ -573,8 +493,8 @@ int64_t Tether::IWindow::GetY()
     long unsigned int child;
 
     int x, y;
-    XTranslateCoordinates(display, window, 
-        DefaultRootWindow(display), 0, 0, &x, &y, &child);
+    XTranslateCoordinates(xdisplay, storage->window, 
+        DefaultRootWindow(xdisplay), 0, 0, &x, &y, &child);
     
     return y;
 }
@@ -582,7 +502,7 @@ int64_t Tether::IWindow::GetY()
 uint64_t Tether::IWindow::GetWidth()
 {
     XWindowAttributes attribs;
-    XGetWindowAttributes(display, window, &attribs);
+    XGetWindowAttributes(xdisplay, storage->window, &attribs);
 
     return attribs.width;
 }
@@ -590,7 +510,7 @@ uint64_t Tether::IWindow::GetWidth()
 uint64_t Tether::IWindow::GetHeight()
 {
     XWindowAttributes attribs;
-    XGetWindowAttributes(display, window, &attribs);
+    XGetWindowAttributes(xdisplay, storage->window, &attribs);
 
     return attribs.height;
 }
@@ -598,6 +518,7 @@ uint64_t Tether::IWindow::GetHeight()
 void Tether::IWindow::PollEvents()
 {
     using namespace Events;
+    using namespace Input;
 
     if (!initialized)
     {
@@ -609,44 +530,151 @@ void Tether::IWindow::PollEvents()
         return;
 
     bool eventReceived = false;
-    while (XPending(display))
+    while (XPending(xdisplay))
     {
-        XNextEvent(display, &event);
+        XNextEvent(xdisplay, &storage->event);
         eventReceived = true;
         
-        switch (event.type)
+        switch (storage->event.type)
         {
+            case GenericEvent:
+            {
+                if (!rawInputEnabled)
+                    continue;
+
+                XGenericEventCookie* cookie = &storage->event.xcookie;
+                if (XGetEventData(xdisplay, cookie))
+                {
+                    if (cookie->extension != app->storage->xi.opcode
+                        || cookie->evtype != XI_RawMotion)
+                        continue;
+                    
+                    XIRawEvent* data = (XIRawEvent*)cookie->data;
+                    
+                    Input::RawMouseMoveInfo moveInfo(
+                        data->raw_values[0],
+                        data->raw_values[1]
+                    );
+
+                    SpawnInput(Input::InputType::RAW_MOUSE_MOVE, 
+                    [&](Input::InputListener* pInputListener)
+                    {
+                        pInputListener->OnRawMouseMove(moveInfo);
+                    });
+
+                    XFreeEventData(xdisplay, cookie);
+                    continue;
+                }
+            }
+            break;
+
+            case KeyPress:
+            {
+                Time eventTime = storage->event.xkey.time;
+                const uint32_t scancode = storage->event.xkey.keycode;
+
+                // Since Xlib doesn't have a built in way of telling if a 
+                // KeyPress event was a repeat or not, 
+                // this is the best I can manage.
+                
+                bool repeat = scancode == storage->lastPressed;
+                if (!repeat)
+                {
+                    Input::KeyInfo keyInfo(
+                        scancode,
+                        app->storage->keycodes[scancode],
+                        true
+                    );
+
+                    SpawnInput(Input::InputType::KEY, 
+                    [&](Input::InputListener* pInputListener)
+                    {
+                        pInputListener->OnKey(keyInfo);
+                    });
+
+                    storage->lastPressed = scancode;
+                }
+                storage->pressTimes[scancode] = eventTime;
+
+                Input::KeyCharInfo keyCharInfo(
+                    app->storage->keycodes[scancode],
+                    repeat
+                );
+
+                SpawnInput(Input::InputType::KEY_CHAR, 
+                [&](Input::InputListener* pInputListener)
+                {
+                    pInputListener->OnKeyChar(keyCharInfo);
+                });
+            }
+            break;
+
+            case KeyRelease:
+            {
+                const uint32_t scancode = storage->event.xkey.keycode;
+
+                if (XEventsQueued(xdisplay, QueuedAfterReading))
+                {
+                    XEvent nextEvent;
+                    XPeekEvent(xdisplay, &nextEvent);
+
+                    // The last check is if the time of the key pressed is 
+                    // within 20 milliseconds of each other (the interval that
+                    // XIM sends out key press repeats)
+                    if (nextEvent.type == KeyPress &&
+                        nextEvent.xkey.window == storage->event.xkey.window &&
+                        nextEvent.xkey.keycode == scancode &&
+                        (nextEvent.xkey.time - storage->event.xkey.time) < 20)
+                        return;
+                }
+
+                Input::KeyInfo keyInfo(
+                    scancode,
+                    scancode,
+                    false
+                );
+
+                SpawnInput(Input::InputType::KEY, 
+                [&](Input::InputListener* pInputListener)
+                {
+                    pInputListener->OnKey(keyInfo);
+                });
+
+                storage->lastPressed = UINT32_MAX;
+            }
+            break;
+            
             case MotionNotify:
             {
                 if (!prevReceivedMouseMove)
                 {
-                    mouseX = event.xmotion.x_root;
-                    mouseY = event.xmotion.y_root;
-                    relMouseX = event.xmotion.x;
-                    relMouseY = event.xmotion.y;
+                    mouseX = storage->event.xmotion.x_root;
+                    mouseY = storage->event.xmotion.y_root;
+                    relMouseX = storage->event.xmotion.x;
+                    relMouseY = storage->event.xmotion.y;
                 }
 
-                MouseMoveEvent linkEvent(
-                    event.xmotion.x_root,
-                    event.xmotion.y_root,
-                    event.xmotion.x,
-                    event.xmotion.y,
+                MouseMoveInfo mouseMove(
+                    storage->event.xmotion.x_root,
+                    storage->event.xmotion.y_root,
+                    storage->event.xmotion.x,
+                    storage->event.xmotion.y,
                     relMouseX,
                     relMouseY,
                     mouseX,
                     mouseY
                 );
                 
-                SpawnEvent(Events::EventType::MOUSE_MOVE, 
-                [&](Events::EventHandler* pEventHandler)
+                SpawnInput(Input::InputType::MOUSE_MOVE, 
+                [&](Input::InputListener* pInputListener)
                 {
-                    pEventHandler->OnMouseMove(linkEvent);
+                    pInputListener->OnMouseMove(mouseMove);
                 });
 
-                mouseX = event.xmotion.x_root;
-                mouseY = event.xmotion.y_root;
-                relMouseX = event.xmotion.x;
-                relMouseY = event.xmotion.y;
+                mouseX = storage->event.xmotion.x_root;
+                mouseY = storage->event.xmotion.y_root;
+                relMouseX = storage->event.xmotion.x;
+                relMouseY = storage->event.xmotion.y;
 
                 prevReceivedMouseMove = true;
             }
@@ -654,7 +682,7 @@ void Tether::IWindow::PollEvents()
 
             case ConfigureNotify:
             {
-                XConfigureEvent xce = event.xconfigure;
+                XConfigureEvent xce = storage->event.xconfigure;
 
                 // Verify that the event was a move event
                 if (xce.width != prevWidth || xce.height != prevHeight)
@@ -698,8 +726,8 @@ void Tether::IWindow::PollEvents()
             case ClientMessage:
             {
                 // Check for WM_PROTOCOLS
-                if (event.xclient.message_type != 
-                    XInternAtom(display, "WM_PROTOCOLS", false))
+                if (storage->event.xclient.message_type != 
+                    XInternAtom(xdisplay, "WM_PROTOCOLS", false))
                     break;
                 
                 closeRequested = true;
@@ -715,42 +743,20 @@ void Tether::IWindow::PollEvents()
     }
 }
 
-Display* Tether::IWindow::GetDisplay()
-{
-    return display;
-}
-
-int Tether::IWindow::GetScreen()
-{
-    return screen;
-}
-
-uint64_t Tether::IWindow::GetHandle()
-{
-    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetHandle", 0);
-
-    return window;
-}
-
 void Tether::IWindow::OnDispose()
 {
-    XFreeCursor(display, hiddenCursor);
-    XFreePixmap(display, hiddenCursorPixmap);
-
-    XLockDisplay(display);
-        XUnmapWindow(display, window);
-        XDestroyWindow(display, window);
-        XFlush(display);
-    XUnlockDisplay(display);
-
-    XCloseDisplay(display);
+    XLockDisplay(xdisplay);
+        XUnmapWindow(xdisplay, storage->window);
+        XDestroyWindow(xdisplay, storage->window);
+        XFlush(xdisplay);
+    XUnlockDisplay(xdisplay);
 
     hints.clear();
 }
 
 void Tether::IWindow::ProcessMwmFunctions()
 {
-    Atom motifWmHints = XInternAtom(display, "_MOTIF_WM_HINTS", true);
+    Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
 
     MwmHints hints{};
     hints.flags = MWM_HINTS_FUNCTIONS;
@@ -766,7 +772,7 @@ void Tether::IWindow::ProcessMwmFunctions()
         hints.functions |= MWM_FUNC_MAXIMIZE;
     
     XChangeProperty(
-        display, window,
+        xdisplay, storage->window,
         motifWmHints,
         motifWmHints, 
         32,

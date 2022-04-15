@@ -1,8 +1,8 @@
-#include <Tether/Events/MouseMoveEvent.hpp>
+#include <Tether/Input/MouseMoveInfo.hpp>
 
-using namespace Tether::Events;
+using namespace Tether::Input;
 
-MouseMoveEvent::MouseMoveEvent(
+MouseMoveInfo::MouseMoveInfo(
     uint64_t rootX,
     uint64_t rootY,
     uint64_t relativeX,
@@ -23,7 +23,7 @@ MouseMoveEvent::MouseMoveEvent(
     oldRootY(oldRootY)
 {}
 
-MouseMoveEvent::MouseMoveEvent(const MouseMoveEvent& ref)
+MouseMoveInfo::MouseMoveInfo(const MouseMoveInfo& ref)
 {
     rootX = ref.rootX;
     rootY = ref.rootY;
@@ -35,52 +35,42 @@ MouseMoveEvent::MouseMoveEvent(const MouseMoveEvent& ref)
     oldRootY = ref.oldRootY;
 }
 
-uint64_t MouseMoveEvent::GetRootX()
+uint64_t MouseMoveInfo::GetRootX()
 {
     return rootX;
 }
 
-uint64_t MouseMoveEvent::GetRootY()
+uint64_t MouseMoveInfo::GetRootY()
 {
     return rootY;
 }
 
-uint64_t MouseMoveEvent::GetRelativeX()
+uint64_t MouseMoveInfo::GetRelativeX()
 {
     return relativeX;
 }
 
-uint64_t MouseMoveEvent::GetRelativeY()
+uint64_t MouseMoveInfo::GetRelativeY()
 {
     return relativeY;
 }
 
-uint64_t MouseMoveEvent::GetOldRelativeX()
+uint64_t MouseMoveInfo::GetOldRelativeX()
 {
     return oldRelativeX;
 }
 
-uint64_t MouseMoveEvent::GetOldRelativeY()
+uint64_t MouseMoveInfo::GetOldRelativeY()
 {
     return oldRelativeY;
 }
 
-uint64_t MouseMoveEvent::GetOldRootX()
+uint64_t MouseMoveInfo::GetOldRootX()
 {
     return oldRootX;
 }
 
-uint64_t MouseMoveEvent::GetOldRootY()
+uint64_t MouseMoveInfo::GetOldRootY()
 {
     return oldRootY;
-}
-
-int64_t MouseMoveEvent::GetRawX()
-{
-    return rootX - oldRootX;
-}
-
-int64_t MouseMoveEvent::GetRawY()
-{
-    return rootY - oldRootY;
 }

@@ -10,6 +10,8 @@
 
 #ifndef _TETHER_NATIVEWINDOW_HPP
 #define _TETHER_NATIVEWINDOW_HPP
+
+#include <Tether/Common/Defs.hpp>
 #ifdef TETHER_PREVIEW_FEATURES
 
 #include <Tether/IWindow.hpp>
