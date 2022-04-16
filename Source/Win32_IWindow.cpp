@@ -17,7 +17,7 @@ using namespace Tether::Storage;
 int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::IWindow* pWnd,
 	uint32_t msg, uint64_t wParam, uint64_t lParam)
 {
-	HWND* window = &((VarStorage*)pWnd->varStorage)->window;
+	HWND* window = &((VarStorage*)pWnd->storage)->window;
 
 	if (*window == NULL)
 		*window = *(HWND*)hWnd;
@@ -201,7 +201,7 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
 	}
 }
 
-void Tether::IWindow::SetMousePos(int x, int y)
+void Tether::IWindow::SetCursorPos(int x, int y)
 {
 	POINT pt;
 	pt.x = x;
@@ -211,7 +211,7 @@ void Tether::IWindow::SetMousePos(int x, int y)
 	SetCursorPos(pt.x, pt.y);
 }
 
-void Tether::IWindow::SetMouseRootPos(int x, int y)
+void Tether::IWindow::SetCursorRootPos(int x, int y)
 {
 	SetCursorPos(x, y);
 }
@@ -410,7 +410,7 @@ void Tether::IWindow::SetMaximized(bool maximize)
 void Tether::IWindow::SetFullscreen(
 	bool fullscreen,
 	FullscreenSettings* settings,
-	Monitor* monitor
+	Devices::Monitor* monitor
 )
 {
 	TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
@@ -590,6 +590,60 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 		}
 		break;
 
+		case WM_KEYDOWN:
+		{
+			if ((HIWORD(lParam) & KF_REPEAT) == KF_REPEAT)
+				return 0;
+
+			Input::KeyInfo event(
+				wParam,
+				wParam,
+				true
+			);
+
+			SpawnInput(Input::InputType::KEY,
+			[&](Input::InputListener* pInputListener)
+			{
+				pInputListener->OnKey(event);
+			});
+
+			return 0;
+		}
+		break;
+
+		case WM_KEYUP:
+		{
+			Input::KeyInfo event(
+				wParam,
+				wParam,
+				false
+			);
+
+			SpawnInput(Input::InputType::KEY,
+				[&](Input::InputListener* pInputListener)
+			{
+				pInputListener->OnKey(event);
+			});
+
+			return 0;
+		}
+		break;
+
+		case WM_CHAR:
+		{
+			Input::KeyCharInfo event(
+				(char)wParam,
+				(HIWORD(lParam) & KF_REPEAT) == KF_REPEAT
+			);
+
+			SpawnInput(Input::InputType::KEY_CHAR,
+				[&](Input::InputListener* pInputListener)
+			{
+				pInputListener->OnKeyChar(event);
+			});
+		}
+		break;
+
 		case WM_MOUSEMOVE:
 		{
 			int x = (int)(short)LOWORD(lParam);
@@ -612,7 +666,7 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 				relMouseY = y;
 			}
 
-			MouseMoveEvent event(
+			Input::MouseMoveInfo event(
 				mouse.x,
 				mouse.y,
 				x,
@@ -623,10 +677,10 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 				mouseY
 			);
 
-			SpawnEvent(Events::EventType::MOUSE_MOVE,
-			[&](Events::EventHandler* pEventHandler)
+			SpawnInput(Input::InputType::MOUSE_MOVE,
+			[&](Input::InputListener* pInputListener)
 			{
-				pEventHandler->OnMouseMove(event);
+				pInputListener->OnMouseMove(event);
 			});
 
 			mouseX = mouse.x;

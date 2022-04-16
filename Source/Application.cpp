@@ -1,8 +1,6 @@
 #include <Tether/Application.hpp>
 #include <Tether/Native.hpp>
 
-#include <dlfcn.h>
-
 using namespace Tether;
 
 Application Application::internal = Application();
