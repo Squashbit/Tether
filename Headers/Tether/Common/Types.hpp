@@ -135,6 +135,7 @@ namespace Tether
 	{
 		NORMAL,
 		HIDDEN,
+		DISABLED,
 	};
 
 	// This comment right here (yes, this comment right here) is the start

@@ -248,6 +248,8 @@ namespace Tether
 		bool boundsEnabled = false;
 		int64_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
 
+		CursorMode cursorMode = CursorMode::NORMAL;
+
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;
 		bool rawInputEnabled = false;

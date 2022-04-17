@@ -194,11 +194,19 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
 		break;
 
 		case CursorMode::HIDDEN:
+		case CursorMode::DISABLED:
 		{
 			ShowCursor(false);
 		}
 		break;
 	}
+
+	cursorMode = mode;
+}
+
+static void SetCurPos(int x, int y)
+{
+	SetCursorPos(x, y);
 }
 
 void Tether::IWindow::SetCursorPos(int x, int y)
@@ -208,12 +216,12 @@ void Tether::IWindow::SetCursorPos(int x, int y)
 	pt.y = y;
 
 	ClientToScreen(storage->window, &pt);
-	SetCursorPos(pt.x, pt.y);
+	SetCurPos(pt.x, pt.y);
 }
 
 void Tether::IWindow::SetCursorRootPos(int x, int y)
 {
-	SetCursorPos(x, y);
+	SetCurPos(x, y);
 }
 
 void Tether::IWindow::SetX(int64_t x)
@@ -520,6 +528,14 @@ void Tether::IWindow::PollEvents()
 				pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
 			});
 		}
+
+	if (cursorMode == CursorMode::DISABLED && GetForegroundWindow() == storage->window)
+	{
+		SetCursorPos(
+			static_cast<int>(GetWidth() / 2),
+			static_cast<int>(GetHeight() / 2)
+		);
+	}
 }
 
 void Tether::IWindow::OnDispose()

@@ -444,10 +444,17 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
         case CursorMode::NORMAL:
         {
             XUngrabPointer(xdisplay, CurrentTime);
+            XUndefineCursor(xdisplay, storage->window);
         }
         break;
 
         case CursorMode::HIDDEN:
+        {
+            XDefineCursor(xdisplay, storage->window, storage->hiddenCursor);
+        }
+        break;
+
+        case CursorMode::DISABLED:
         {
             XGrabPointer(
                 xdisplay, app->storage->root, true,
@@ -459,6 +466,8 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
         }
         break;
     }
+
+    cursorMode = mode;
 }
 
 void Tether::IWindow::SetCursorPos(int x, int y)
