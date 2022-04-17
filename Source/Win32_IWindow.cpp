@@ -611,6 +611,39 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 			if ((HIWORD(lParam) & KF_REPEAT) == KF_REPEAT)
 				return 0;
 
+			// Windows does this thing where you can't distinguish between either 
+			// shift keys, so instead, just press both and hope for the best.
+			if (wParam == VK_SHIFT)
+			{
+				UINT scancode = MapVirtualKeyA(wParam, MAPVK_VK_TO_VSC);
+
+				Input::KeyInfo event1(
+					scancode,
+					Keycodes::KEY_LEFT_SHIFT,
+					true
+				);
+
+				SpawnInput(Input::InputType::KEY,
+					[&](Input::InputListener* pInputListener)
+				{
+					pInputListener->OnKey(event1);
+				});
+
+				Input::KeyInfo event2(
+					scancode,
+					Keycodes::KEY_RIGHT_SHIFT,
+					true
+				);
+
+				SpawnInput(Input::InputType::KEY,
+					[&](Input::InputListener* pInputListener)
+				{
+					pInputListener->OnKey(event2);
+				});
+
+				return 0;
+			}
+
 			Input::KeyInfo event(
 				wParam,
 				wParam,
