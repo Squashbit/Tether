@@ -6,8 +6,9 @@ using namespace Tether::Events;
 
 EventHandler::~EventHandler()
 {
-	for (uint64_t i = 0; i < windows.size(); i++)
-		windows[i]->RemoveEventHandler(this);
+	std::vector<IWindow*> pWindows(windows);
+	for (uint64_t i = 0; i < pWindows.size(); i++)
+		pWindows[i]->RemoveEventHandler(this);
 }
 
 void EventHandler::OnAdd(IWindow* pWindow)

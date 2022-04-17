@@ -8,8 +8,9 @@ using namespace Tether::Input;
 
 InputListener::~InputListener()
 {
-	for (uint64_t i = 0; i < windows.size(); i++)
-		windows[i]->RemoveInputListener(this);
+	std::vector<IWindow*> pWindows(windows);
+	for (uint64_t i = 0; i < pWindows.size(); i++)
+		pWindows[i]->RemoveInputListener(this);
 }
 
 void InputListener::OnAdd(IWindow* pWindow)
