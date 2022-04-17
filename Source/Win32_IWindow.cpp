@@ -575,6 +575,22 @@ void Tether::IWindow::ReconstructStyle()
 	UpdateWindow(storage->window);
 }
 
+void Tether::IWindow::SpawnKeyInput(uint32_t scancode, uint32_t keycode, 
+	bool pressed)
+{
+	Input::KeyInfo event(
+		scancode,
+		keycode,
+		pressed
+	);
+
+	SpawnInput(Input::InputType::KEY,
+		[&](Input::InputListener* pInputListener)
+	{
+		pInputListener->OnKey(event);
+	});
+}
+
 int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wParam,
 	uint64_t lParam)
 {
@@ -616,45 +632,13 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 			if (wParam == VK_SHIFT)
 			{
 				UINT scancode = MapVirtualKeyA(wParam, MAPVK_VK_TO_VSC);
-
-				Input::KeyInfo event1(
-					scancode,
-					Keycodes::KEY_LEFT_SHIFT,
-					true
-				);
-
-				SpawnInput(Input::InputType::KEY,
-					[&](Input::InputListener* pInputListener)
-				{
-					pInputListener->OnKey(event1);
-				});
-
-				Input::KeyInfo event2(
-					scancode,
-					Keycodes::KEY_RIGHT_SHIFT,
-					true
-				);
-
-				SpawnInput(Input::InputType::KEY,
-					[&](Input::InputListener* pInputListener)
-				{
-					pInputListener->OnKey(event2);
-				});
+				SpawnKeyInput(scancode, Keycodes::KEY_LEFT_SHIFT, true);
+				SpawnKeyInput(scancode, Keycodes::KEY_RIGHT_SHIFT, true);
 
 				return 0;
 			}
 
-			Input::KeyInfo event(
-				wParam,
-				wParam,
-				true
-			);
-
-			SpawnInput(Input::InputType::KEY,
-			[&](Input::InputListener* pInputListener)
-			{
-				pInputListener->OnKey(event);
-			});
+			SpawnKeyInput(MapVirtualKeyA(wParam, MAPVK_VK_TO_VSC), wParam, true);
 
 			return 0;
 		}
@@ -662,17 +646,16 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 
 		case WM_KEYUP:
 		{
-			Input::KeyInfo event(
-				wParam,
-				wParam,
-				false
-			);
-
-			SpawnInput(Input::InputType::KEY,
-				[&](Input::InputListener* pInputListener)
+			if (wParam == VK_SHIFT)
 			{
-				pInputListener->OnKey(event);
-			});
+				UINT scancode = MapVirtualKeyA(wParam, MAPVK_VK_TO_VSC);
+				SpawnKeyInput(scancode, Keycodes::KEY_LEFT_SHIFT, false);
+				SpawnKeyInput(scancode, Keycodes::KEY_RIGHT_SHIFT, false);
+
+				return 0;
+			}
+
+			SpawnKeyInput(MapVirtualKeyA(wParam, MAPVK_VK_TO_VSC), wParam, false);
 
 			return 0;
 		}

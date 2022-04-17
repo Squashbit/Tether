@@ -204,6 +204,7 @@ namespace Tether
 		void DispatchNoInit(std::string functionName);
 		void DispatchError(ErrorCode code, ErrorSeverity severity, 
 			std::string functionName);
+		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 		
 	#ifdef __linux__
 	#endif //__linux__
