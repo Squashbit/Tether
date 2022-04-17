@@ -7,19 +7,26 @@
 
 using namespace Tether;
 
-void* Application::LoadLibrary(const char* path)
+#undef LoadLibrary
+
+static void* LoadLib(const char* path)
 {
     return LoadLibraryA(path);
 }
 
+void* Application::LoadLibrary(const char* path)
+{
+    return LoadLib(path);
+}
+
 void* Application::LoadFunction(void* handle, const char* funcName)
 {
-    return GetProcAddress(handle, funcName);
+    return GetProcAddress((HMODULE)handle, funcName);
 }
 
 static void FreeLib(void* library)
 {
-    FreeLibrary(library);
+    FreeLibrary((HMODULE)library);
 }
 
 void Application::FreeLibrary(void* library)
