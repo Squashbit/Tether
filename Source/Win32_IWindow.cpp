@@ -180,7 +180,21 @@ bool Tether::IWindow::IsVisible()
 
 void Tether::IWindow::SetRawInputEnabled(bool enabled)
 {
-	// TODO
+	if (enabled && !rawInputInitialized)
+	{
+		RAWINPUTDEVICE rawInputDevice;
+		rawInputDevice.usUsagePage = 0x01; // Mouse
+		rawInputDevice.usUsage = 0x02;
+		rawInputDevice.dwFlags = 0;
+		rawInputDevice.hwndTarget = storage->window;
+
+		if (!RegisterRawInputDevices(&rawInputDevice, 1, sizeof(rawInputDevice)))
+			return;
+
+		rawInputInitialized = true;
+	}
+
+	rawInputEnabled = enabled;
 }
 
 void Tether::IWindow::SetCursorMode(CursorMode mode)
@@ -736,6 +750,38 @@ int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wPara
 			{
 				pEventHandler->OnWindowMove(event);
 			});
+		}
+		break;
+
+		case WM_INPUT:
+		{
+			UINT dataSize = 0;
+			GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT, NULL,
+				&dataSize, sizeof(RAWINPUTHEADER));
+
+			if (dataSize > 0)
+			{
+				std::unique_ptr<BYTE[]> rawdata = std::make_unique<BYTE[]>(dataSize);
+				RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(rawdata.get());
+
+				if (GetRawInputData(reinterpret_cast<HRAWINPUT>(lParam), RID_INPUT,
+					rawdata.get(), &dataSize, sizeof(RAWINPUTHEADER)) == dataSize
+					&& raw->header.dwType == RIM_TYPEMOUSE)
+				{
+					Input::RawMouseMoveInfo event(
+						raw->data.mouse.lLastX,
+						raw->data.mouse.lLastY
+					);
+
+					SpawnInput(Input::InputType::RAW_MOUSE_MOVE,
+						[&](Input::InputListener* pInputListener)
+					{
+						pInputListener->OnRawMouseMove(event);
+					});
+				}
+			}
+
+			return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 		break;
 

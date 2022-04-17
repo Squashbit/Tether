@@ -65,10 +65,10 @@ public:
 		void OnRawMouseMove(Input::RawMouseMoveInfo& info)
 		{
 			std::cout << "Raw mouse move ("
-				<< "rawX=" << info.GetRawX() << ", " 
-				<< "rawY=" << info.GetRawY() 
-				<< ")" 
-			<< std::endl;
+				<< "rawX=" << info.GetRawX() << ", "
+				<< "rawY=" << info.GetRawY()
+				<< ")"
+				<< std::endl;
 		}
 
 		void OnKey(Input::KeyInfo& info)

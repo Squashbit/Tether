@@ -254,6 +254,7 @@ namespace Tether
 		// Mouse stuff
 		bool prevReceivedMouseMove = false;
 		bool rawInputEnabled = false;
+		bool rawInputInitialized = false;
 		int64_t mouseX = -1;
 		int64_t mouseY = -1;
 		int64_t relMouseX = -1;

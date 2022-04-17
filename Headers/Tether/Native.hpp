@@ -41,7 +41,7 @@ namespace Tether::Storage
 
 	struct AppVarStorage
 	{
-
+		
 	};
 #elif __linux__
 	struct VarStorage
