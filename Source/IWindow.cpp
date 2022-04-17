@@ -58,6 +58,7 @@ void Tether::IWindow::AddEventHandler(Events::EventHandler* handler,
     // At this point, we know the vector of events exists and that this
     // handler isn't in that vector, so we are safe to add it.
     handlers[eventType].push_back(handler);
+    handler->OnAdd(this);
 }
 
 void Tether::IWindow::RemoveEventHandler(Events::EventHandler& handler)
@@ -67,6 +68,8 @@ void Tether::IWindow::RemoveEventHandler(Events::EventHandler& handler)
 
 void Tether::IWindow::RemoveEventHandler(Events::EventHandler* handler)
 {
+    handler->OnRemove(this);
+
     std::vector<Events::EventType> toErase;
 
     for (auto iter = handlers.begin(); iter != handlers.end(); iter++)
@@ -110,6 +113,7 @@ void Tether::IWindow::AddInputListener(Input::InputListener* listener,
     // At this point, we know the vector of events exists and that this
     // handler isn't in that vector, so we are safe to add it.
     inputListeners[inputType].push_back(listener);
+    listener->OnAdd(this);
 }
 
 void Tether::IWindow::RemoveInputListener(Input::InputListener& listener)
@@ -119,6 +123,8 @@ void Tether::IWindow::RemoveInputListener(Input::InputListener& listener)
 
 void Tether::IWindow::RemoveInputListener(Input::InputListener* listener)
 {
+    listener->OnRemove(this);
+
     std::vector<Input::InputType> toErase;
 
     for (auto iter = inputListeners.begin(); iter != inputListeners.end(); iter++)

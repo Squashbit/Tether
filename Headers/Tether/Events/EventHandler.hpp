@@ -7,16 +7,31 @@
 #include <Tether/Events/WindowErrorEvent.hpp>
 #include <Tether/Events/WindowMoveEvent.hpp>
 
+#include <vector>
+
+namespace Tether
+{
+	class IWindow;
+}
+
 namespace Tether::Events
 {
 	class EventHandler
 	{
+		friend IWindow;
 	public:
+		~EventHandler();
+
 		virtual void OnWindowClosing(WindowClosingEvent event) {}
 		virtual void OnWindowRepaint(WindowRepaintEvent event) {}
 		virtual void OnWindowResize(WindowResizeEvent event) {}
 		virtual void OnWindowMove(WindowMoveEvent event) {}
 		virtual void OnWindowError(WindowErrorEvent event) {}
+	protected:
+		void OnAdd(IWindow* pWindow);
+		void OnRemove(IWindow* pWindow);
+	private:
+		std::vector<IWindow*> windows;
 	};
 }
 

@@ -139,7 +139,7 @@ namespace Tether
 
 	// This comment right here (yes, this comment right here) is the start
 	// of a fuck ton of keys. heeeeeeeeeeeeeeere we go.
-	enum class Keycodes
+	enum Keycodes
 	{
 		KEY_SPACE              = 32,
 		KEY_APOSTROPHE         = 39,
