@@ -560,10 +560,26 @@ void Tether::IWindow::PollEvents()
                         continue;
                     
                     XIRawEvent* data = (XIRawEvent*)cookie->data;
+                    const double* values = data->raw_values;
+
+                    uint64_t x = 0;
+                    uint64_t y = 0;
+
+                    if (XIMaskIsSet(data->valuators.mask, 0))
+                    {
+                        x = *values;
+                        values++;
+                    }
+
+                    if (XIMaskIsSet(data->valuators.mask, 1))
+                        y = *values;
                     
+                    if (x == 0 && y == 0)
+                        continue;
+
                     Input::RawMouseMoveInfo moveInfo(
-                        data->raw_values[0],
-                        data->raw_values[1]
+                        x,
+                        y
                     );
 
                     SpawnInput(Input::InputType::RAW_MOUSE_MOVE, 
