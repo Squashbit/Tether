@@ -640,7 +640,7 @@ void Tether::IWindow::PollEvents()
 
                 Input::KeyInfo keyInfo(
                     scancode,
-                    scancode,
+                    app->storage->keycodes[scancode],
                     false
                 );
 
