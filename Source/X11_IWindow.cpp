@@ -450,7 +450,8 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
 
         case CursorMode::HIDDEN:
         {
-            XDefineCursor(xdisplay, storage->window, storage->hiddenCursor);
+            XDefineCursor(xdisplay, storage->window, 
+                app->storage->hiddenCursor);
         }
         break;
 

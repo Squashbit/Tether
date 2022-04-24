@@ -121,7 +121,6 @@ public:
 		AddInputListener(listener, Input::InputType::KEY_CHAR);
 
 		SetRawInputEnabled(true);
-		SetCursorMode(CursorMode::DISABLED);
 		
 		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
 	}
