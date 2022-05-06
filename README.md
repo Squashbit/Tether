@@ -1,9 +1,5 @@
 # Tether
-Tether is a app creation/GUI library created in C++. It is made with a Graphics API instead of native window controls to allow for more complex rendering and customization.
-
-# Goals
-* Have all basic controls (Panel, Button, Label, Progressbar, etc..)
-* Linux and Windows versions
+Tether is a app creation/GUI library created in C++. 
 
 # How to contribute
 Message SawtoothGabe#6139 on discord that you would like to work on Tether (and some prior experience in C++ would help too).
@@ -15,8 +11,10 @@ Message SawtoothGabe#6139 on discord that you would like to work on Tether (and 
 * **Function: CamelCase**
 * **Enum value: SNAKE_CASE**
 
-# Definitions
+# CMake options
 * TETHER_PREVIEW_FEATURES : Defined if tether should have preview features enabled.
+* TETHER_OPENGL_API : Defined if tether should have OpenGL support.
+* TETHER_VULKAN_API : Defined if tether should have Vulkan support.
 
 # Linux build instructions
 Run CMake to generate the makefile like so: ```cmake -S . -B Build```

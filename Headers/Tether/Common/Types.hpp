@@ -263,6 +263,11 @@ namespace Tether
 		KEY_RIGHT_SUPER        = 347,
 		KEY_MENU               = 348
 	};
+
+	enum class RenderingAPI
+	{
+		VULKAN
+	};
 }
 
 #endif //_TETHER_TYPES_HPP

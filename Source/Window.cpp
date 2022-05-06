@@ -1,36 +1,7 @@
-#ifdef TETHER_PREVIEW_FEATURES
-
 #include <Tether/Window.hpp>
 #include <Tether/Controls/Control.hpp>
 
 using namespace Tether;
-
-// static std::string defaultVertexSource = R"(
-// #version 450
-
-// layout (location = 0) in vec2 pos;
-
-// uniform vec2 windowSize;
-
-// void main()
-// {
-//     vec2 finalPos = pos;
-//     finalPos.x /= windowSize.x;
-
-//     gl_Position = vec4(finalPos.xy, 0, 0);
-// }
-// )";
-
-// static std::string defaultFragmentSource = R"(
-// #version 450
-
-// out vec4 fragColor;
-
-// void main()
-// {
-//     fragColor = vec4(1, 1, 1, 1);
-// }
-// )";
 
 void Tether::Window::AddControl(Controls::Control* pControl)
 {
@@ -166,5 +137,3 @@ void Tether::Window::DisposeGraphics()
         return;
     }
 }
-
-#endif // TETHER_PREVIEW_FEATURES
