@@ -10,6 +10,7 @@ namespace Tether
     namespace Storage
     {
         struct AppVarStorage;
+        struct VulkanNative;
     }
 
     namespace Devices
@@ -33,9 +34,13 @@ namespace Tether
         static Application& Get();
     protected:
         Storage::AppVarStorage* storage = nullptr;
+        Storage::VulkanNative* vulkan = nullptr;
     private:
         bool OnInit();
         void OnAppDispose();
+
+        void InitVulkan();
+        void FreeVulkan();
 
         void* LoadLibrary(const char* path);
         void* LoadFunction(void* handle, const char* funcName);

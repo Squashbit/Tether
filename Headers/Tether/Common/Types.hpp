@@ -2,6 +2,7 @@
 #define _TETHER_TYPES_HPP
 
 #include <iostream>
+#include <memory>
 
 namespace Tether
 {
@@ -268,6 +269,9 @@ namespace Tether
 	{
 		VULKAN
 	};
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
 }
 
 #endif //_TETHER_TYPES_HPP

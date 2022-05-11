@@ -17,4 +17,6 @@
 #include <Tether/NativeWindow.hpp>
 #include <Tether/Window.hpp>
 
+#include <Tether/Renderer/RenderContext.hpp>
+
 #endif //_TETHER_TETHER_HPP

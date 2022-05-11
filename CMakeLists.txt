@@ -18,7 +18,9 @@ file(GLOB_RECURSE HEADERS
 
 set(DEPENDENT_SOURCES)
 if (TETHER_VULKAN_API)
-    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} )
+    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
+        ${SDIR}/Renderer/Vulkan_RenderContext.cpp
+    )
 elseif (TETHER_PREVIEW_FEATURES)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
         ${SDIR}/Window.cpp
@@ -38,7 +40,8 @@ add_library(${PROJECT_NAME} STATIC
     ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp ${SDIR}/IWindow.cpp 
     ${SDIR}/Renderer/RenderContext.cpp
 
-    ${DEPENDENT_SOURCES})
+    ${DEPENDENT_SOURCES}
+)
 
 if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
@@ -54,6 +57,15 @@ elseif (UNIX)
     )
 endif()
 
+set(DEPENDENT_HEADERS)
+if (TETHER_VULKAN_API)
+    find_package(Vulkan REQUIRED)
+    set(DEPENDENT_HEADERS ${DEPENDENT_HEADERS} ${Vulkan_INCLUDE_DIR})
+endif()
+
 target_include_directories(${PROJECT_NAME} 
-    PUBLIC "Headers"
+PUBLIC 
+    "Headers"
+PRIVATE
+    ${DEPENDENT_HEADERS}
 )

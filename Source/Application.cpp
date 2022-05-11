@@ -14,6 +14,8 @@ bool Application::Init()
     if (!OnInit())
         return false;
 
+    InitVulkan();
+
     initialized = true;
     return true;
 }
@@ -30,6 +32,7 @@ Application& Application::Get()
 
 void Application::OnDispose()
 {
+    FreeVulkan();
     OnAppDispose();
     
     delete storage;

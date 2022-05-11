@@ -3,13 +3,12 @@
  * draw far more complicated graphics then the NativeWindow class.
  * 
  * NOTICE:
- * This file is still in preview. If you want to use it, you have to declare
- * the TETHER_PREVIEW_FEATURES preprocessor definition.
+ * This file is still in preview. If you want to use it, you have to compile tether
+ * with the TETHER_PREVIEW_FEATURES option enabled.
  */
 
 #ifndef _TETHER_WINDOW_HPP
 #define _TETHER_WINDOW_HPP
-#ifdef TETHER_PREVIEW_FEATURES
 
 #include <Tether/IWindow.hpp>
 
@@ -83,5 +82,4 @@ namespace Tether
     };
 }
 
-#endif // TETHER_PREVIEW_FEATURES
 #endif //_TETHER_WINDOW_HPP

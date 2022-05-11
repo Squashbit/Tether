@@ -17,6 +17,8 @@ int main()
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
 	}
+
+	Renderer::RenderContext ctx;
 	
 	while (!window.IsCloseRequested())
 	{
