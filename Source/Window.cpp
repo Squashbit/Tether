@@ -3,137 +3,95 @@
 
 using namespace Tether;
 
-void Tether::Window::AddControl(Controls::Control* pControl)
+void Tether::Window::AddElement(Elements::Element* pElement, bool repaint)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::AddControl");
-        return;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::AddElement");
+		return;
+	}
 
-    AddControlNoRepaint(pControl);
-    Repaint();
+	elements.push_back(pElement);
+
+	if (repaint)
+		Repaint();
 }
 
-bool Tether::Window::RemoveControl(Controls::Control* pControl)
+bool Tether::Window::RemoveElement(Elements::Element* pElement, bool repaint)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::RemoveControl");
-        return false;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::RemoveElement");
+		return false;
+	}
 
-    if (RemoveControlNoRepaint(pControl))
-    {
-        Repaint();
-        return true;
-    }
+	for (uint64_t i = 0; i < elements.size(); i++)
+		if (elements[i] == pElement)
+		{
+			elements.erase(elements.begin() + i);
 
-    return false;
-}
+			if (repaint)
+				Repaint();
 
-void Tether::Window::AddControlNoRepaint(Controls::Control* pControl)
-{
-    if (!initialized)
-    {
-        DispatchNoInit("Window::AddControl or Window::AddControlNoRepaint");
-        return;
-    }
+			return true;
+		}
 
-    controls.push_back(pControl);
-}
-
-bool Tether::Window::RemoveControlNoRepaint(Controls::Control* pControl)
-{
-    if (!initialized)
-    {
-        DispatchNoInit("Window::RemoveControl or Window::RemoveControlNoRepaint");
-        return false;
-    }
-
-    for (uint64_t i = 0; i < controls.size(); i++)
-        if (controls[i] == pControl)
-        {
-            controls.erase(controls.begin() + i);
-            return true;
-        }
-    
-    return false;
+	return false;
 }
 
 void Tether::Window::SetBackgroundColor(Color backgroundColor)
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::SetBackgroundColor");
-        return;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::SetBackgroundColor");
+		return;
+	}
 
-    this->backgroundColor = backgroundColor;
+	this->backgroundColor = backgroundColor;
 }
 
-void Tether::Window::ClearWindow()
+void Tether::Window::ClearElements()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::SetBackgroundColor");
-        return;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::ClearElements");
+		return;
+	}
 }
 
 void Tether::Window::Repaint()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::SetBackgroundColor");
-        return;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::Repaint");
+		return;
+	}
 
-    SpawnEvent(Events::EventType::WINDOW_REPAINT, 
-    [this](Events::EventHandler* pEventHandler)
-    {
-        pEventHandler->OnWindowRepaint(Events::WindowRepaintEvent());
-    });
-    
-    ClearWindow();
-    
-    for (uint64_t i = 0; i < controls.size(); i++)
-        controls[i]->Render(this);
-    
-    SwapBuffers();
+	SpawnEvent(Events::EventType::WINDOW_REPAINT, 
+	[this](Events::EventHandler* pEventHandler)
+	{
+		pEventHandler->OnWindowRepaint(Events::WindowRepaintEvent());
+	});
+	
+	// TODO: Element rendering
 }
 
 bool Tether::Window::InitGraphics()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::InitGraphics");
-        return false;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::InitGraphics");
+		return false;
+	}
 
-#ifdef OPENGL_API
-
-#else
-    throw "This version of Tether was compiled without OpenGL support";
-#endif
-
-    return true;
-}
-
-void Tether::Window::SwapBuffers()
-{
-    if (!initialized)
-    {
-        DispatchNoInit("Window::SwapBuffers");
-        return;
-    }
+	return true;
 }
 
 void Tether::Window::DisposeGraphics()
 {
-    if (!initialized)
-    {
-        DispatchNoInit("Window::DisposeGraphics");
-        return;
-    }
+	if (!initialized)
+	{
+		DispatchNoInit("Window::DisposeGraphics");
+		return;
+	}
 }

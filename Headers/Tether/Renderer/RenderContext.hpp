@@ -1,3 +1,10 @@
+// WARNING: 
+// THIS IS CURRENTLY A PREVIEW FEATURE.
+// IN ORDER TO USE THIS PROPERLY, TETHER MUST BE COMPILED WITH THE 
+// TETHER_PREVIEW_FEATURES CMAKE OPTION ENABLED.
+//
+// THIS IS SUBJECT TO CHANGE, AND MAY NOT RESEMBLE THE FINAL VERSION.
+
 #ifndef _TETHER_RENDERER_RENDERCONTEXT_HPP
 #define _TETHER_RENDERER_RENDERCONTEXT_HPP
 
@@ -11,10 +18,12 @@
 
 namespace Tether::Renderer
 {
-	class IRenderContextNative
+	class IRenderContextNative : public IDisposable
 	{
 	public:
+		IRenderContextNative() = default;
 		virtual ~IRenderContextNative() {}
+		TETHER_NO_COPY(IRenderContextNative);
 	};
 
 	class RenderContext : public IDisposable
@@ -24,11 +33,17 @@ namespace Tether::Renderer
 		TETHER_DISPOSE_ON_DESTRUCT(RenderContext);
 		TETHER_NO_COPY(RenderContext);
 
-#ifdef TETHER_INCLUDE_VULKAN
-		bool CreateVulkanRenderer(VkInstance* pInstance, VkDevice* pDevice);
-#endif //TETHER_INCLUDE_VULKAN
-
-		// bool CreateOpenGLRenderer();
+		/**
+		* @brief
+		 * Sets the native for the Render Context (wow really).
+		 * A native must be set for the Render Context to function properly.
+		 * The native needed is at Renderer/~api name~/RenderContextNative.hpp.
+		 * For example, Vulkan would be located at: 
+		 * Renderer/Vulkan/RenderContextNative.hpp
+		 * 
+		 * @param pNative A pointer to the native.
+		 */
+		bool Init(IRenderContextNative* pNative);
 
 		IRenderContextNative *const GetNative() const;
 	private:

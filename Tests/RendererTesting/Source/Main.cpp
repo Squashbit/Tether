@@ -1,4 +1,5 @@
 #include <Tether/Tether.hpp>
+#include <Tether/Renderer/Vulkan/RenderContextNative.hpp>
 
 #include <iostream>
 #include <thread>
@@ -19,6 +20,10 @@ int main()
 	}
 
 	Renderer::RenderContext ctx;
+	Renderer::Vulkan::RenderContextNative vkNative;
+
+	vkNative.Init();
+	ctx.Init(&vkNative);
 	
 	while (!window.IsCloseRequested())
 	{

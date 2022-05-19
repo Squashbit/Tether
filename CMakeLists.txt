@@ -4,28 +4,25 @@ project ("tether")
 set(SDIR Source)
 set(CMAKE_CXX_STANDARD 17)
 
-option(TETHER_VULKAN_API "Build tether with Vulkan capabilities" ON)
+option(TETHER_VULKAN_API "Build tether with Vulkan capabilities" OFF)
 option(TETHER_OPENGL_API "Build tether with OpenGL capabilities" OFF)
 option(TETHER_PREVIEW_FEATURES "Build tether with preview features" OFF)
+option(TETHER_BUILD_TESTS "Build tether with tests" OFF)
 
-add_subdirectory(Tests/SimpleWindow)
-add_subdirectory(Tests/RendererTesting)
-add_subdirectory(Tests/MultipleWindows)
+message(STATUS "TETHER_VULKAN_API = ${TETHER_VULKAN_API}")
+message(STATUS "TETHER_OPENGL_API = ${TETHER_OPENGL_API}")
+message(STATUS "TETHER_PREVIEW_FEATURES = ${TETHER_PREVIEW_FEATURES}")
+message(STATUS "TETHER_BUILD_TESTS = ${TETHER_BUILD_TESTS}")
+
+if (TETHER_BUILD_TESTS)
+    add_subdirectory(Tests/SimpleWindow)
+    add_subdirectory(Tests/RendererTesting)
+    add_subdirectory(Tests/MultipleWindows)
+endif()
 
 file(GLOB_RECURSE HEADERS 
     "Headers/*.hpp" "Headers/*.h" 
 )
-
-set(DEPENDENT_SOURCES)
-if (TETHER_VULKAN_API)
-    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
-        ${SDIR}/Renderer/Vulkan_RenderContext.cpp
-    )
-elseif (TETHER_PREVIEW_FEATURES)
-    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
-        ${SDIR}/Window.cpp
-    )
-endif()
 
 add_library(${PROJECT_NAME} STATIC 
     ${HEADERS}
@@ -38,22 +35,36 @@ add_library(${PROJECT_NAME} STATIC
     ${SDIR}/Input/InputListener.cpp ${SDIR}/Input/KeyCharInfo.cpp 
     ${SDIR}/Input/KeyInfo.cpp ${SDIR}/Input/MouseMoveInfo.cpp 
     ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp ${SDIR}/IWindow.cpp 
-    ${SDIR}/Renderer/RenderContext.cpp
-
-    ${DEPENDENT_SOURCES}
 )
+
+set(DEPENDENT_SOURCES)
+if (TETHER_VULKAN_API)
+    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
+        ${SDIR}/Vulkan_Application.cpp
+        ${SDIR}/Renderer/Vulkan/RenderContextNative.cpp
+    )
+endif()
+if (TETHER_PREVIEW_FEATURES)
+    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
+        ${SDIR}/Window.cpp ${SDIR}/Renderer/RenderContext.cpp
+    )
+endif()
 
 if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/Win32_DeviceManager.cpp
         ${SDIR}/Win32_Application.cpp
         ${SDIR}/Win32_IWindow.cpp
+
+        ${DEPENDENT_SOURCES}
     )
 elseif (UNIX)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/linux_DeviceManager.cpp
         ${SDIR}/X11_Application.cpp
         ${SDIR}/X11_IWindow.cpp
+
+        ${DEPENDENT_SOURCES}
     )
 endif()
 

@@ -8,17 +8,15 @@ file(GLOB_RECURSE SOURCES
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_definitions(-DTETHER_PREVIEW_FEATURES -DTETHER_VULKAN_SUPPORT)
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 set(VK_LIBS)
 set(VK_INCLUDES)
-
-if (COMPDEFS MATCHES "^VULKAN_API")
+if (TETHER_VULKAN_API)
     add_dependencies(${PROJECT_NAME} vkshaders VulkanMemoryAllocator)
 
-    set(VK_LIBS ${VK_LIBS} ${Vulkan_LIBRARIES})
-    set(VK_INCLUDES ${VK_INCLUDES} ${Vulkan_INCLUDE_DIR})
+    set(VK_LIBS ${Vulkan_LIBRARIES})
+    set(VK_INCLUDES ${Vulkan_INCLUDE_DIR})
 endif()
 
 target_include_directories(${PROJECT_NAME} 

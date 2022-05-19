@@ -84,6 +84,10 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 		return false;
 	}
 
+	app = &Application::Get();
+	if (!app->IsInitialized() && !app->Init())
+		return false;
+
 	// Grab the hinstance
 	storage->hinst = GetModuleHandle(NULL);
 	if (!storage->hinst)

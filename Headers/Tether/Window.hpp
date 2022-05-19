@@ -11,75 +11,57 @@
 #define _TETHER_WINDOW_HPP
 
 #include <Tether/IWindow.hpp>
+#include <Tether/Elements/Element.hpp>
 
 namespace Tether
 {
-    namespace Controls
-    {
-        class Control;
-    }
+	class Window : public IWindow
+	{
+	public:
+		Window() {}
+		TETHER_NO_COPY(Window);
 
-    class Window : public IWindow
-    {
-        friend Tether::Controls::Control;
-    public:
-        Window() {}
-        
-        Window(const Window&) = delete;
-		Window(Window&&) = delete;
-		Window& operator=(const Window&) = delete;
-		Window& operator=(Window&&) = delete;
+		/**
+		 * @brief 
+		 * Adds an element to the window.
+		 * 
+		 * @param pElement A pointer to the element to add.
+		 * @param repaint Optional. If true, will repaint the Window when the element
+		 *  is added. If false, the element will be added but until repaint is called,
+		 *  the element won't be visible.
+		 */
+		void AddElement(Elements::Element* pElement, bool repaint = true);
+		/**
+		 * @brief 
+		 * Removes an element from the window.
+		 *
+		 * @param pElement A pointer to the element to add.
+		 * @param repaint Optional. If true, will repaint the Window when the element
+		 *  is removed. If false, the element will be removed but until repaint is 
+		 *  called, the element will still be visible.
+		 */
+		bool RemoveElement(Elements::Element* pElement, bool repaint = true);
 
-        /**
-         * @brief Adds a control to the window.
-         * 
-         * @param pControl A pointer to the control to add.
-         */
-        void AddControl(Controls::Control* pControl);
-        /**
-         * @brief Removes a control from the window.
-         * 
-         * @param pControl A pointer to the control to remove.
-         * 
-         * @returns True, if the control was successfully removed;
-         *      Otherwise, false.
-         */
-        bool RemoveControl(Controls::Control* pControl);
-
-        /**
-         * @brief Adds a control to the window without repainting.
-         * 
-         * @param pControl A pointer to the control to add.
-         */
-        void AddControlNoRepaint(Controls::Control* pControl);
-        /**
-         * @brief Removes a control from the window without repainting.
-         * 
-         * @param pControl A pointer to the control to remove.
-         * 
-         * @returns True, if the control was successfully removed;
-         *      Otherwise, false.
-         */
-        bool RemoveControlNoRepaint(Controls::Control* pControl);
-
-        void ClearWindow();
-        
-        /**
-         * @brief Sets the background color of the window.
-         */
-        void SetBackgroundColor(Color backgroundColor);
-        
-        void Repaint();
-    private:
-        bool InitGraphics();
-        void SwapBuffers();
-        
-        void DisposeGraphics();
-        
-        std::vector<Controls::Control*> controls;
-        
-        Color backgroundColor;
-    };
+		/**
+		 * @brief 
+		 * Removes all elements from the Window.
+		 */
+		void ClearElements();
+		
+		/**
+		 * @brief Sets the background color of the window.
+		 */
+		void SetBackgroundColor(Color backgroundColor);
+		
+		void Repaint();
+	private:
+		bool InitGraphics();
+		void DisposeGraphics();
+		
+		std::vector<Elements::Element*> elements;
+		
+		Color backgroundColor;
+	};
 }
 
 #endif //_TETHER_WINDOW_HPP

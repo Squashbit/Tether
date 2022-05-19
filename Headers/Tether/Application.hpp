@@ -29,7 +29,12 @@ namespace Tether
 
         bool Init();
 
+        // Vulkan functions
+        bool LoadVulkan();
+        bool InitVulkan();
+
         Storage::AppVarStorage* GetStorage();
+        Storage::VulkanNative* GetVulkanNative();
 
         static Application& Get();
     protected:
@@ -38,9 +43,8 @@ namespace Tether
     private:
         bool OnInit();
         void OnAppDispose();
-
-        void InitVulkan();
-        void FreeVulkan();
+        
+        void DisposeVulkan();
 
         void* LoadLibrary(const char* path);
         void* LoadFunction(void* handle, const char* funcName);

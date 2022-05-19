@@ -1,3 +1,10 @@
+// WARNING: 
+// THIS IS CURRENTLY A PREVIEW FEATURE.
+// IN ORDER TO USE THIS PROPERLY, TETHER MUST BE COMPILED WITH THE 
+// TETHER_PREVIEW_FEATURES CMAKE OPTION ENABLED.
+//
+// THIS IS SUBJECT TO CHANGE, AND MAY NOT RESEMBLE THE FINAL VERSION.
+
 #ifndef _TETHER_IWINDOW_HPP
 #define _TETHER_IWINDOW_HPP
 
@@ -122,7 +129,7 @@ namespace Tether
 		 * @param fullscreen True if the window should be fullscreen;
 		 *  otherwise, false.
 		 * @param settings The settings to change the monitor to. 
-		 * 	Note: Only works on Windows. On linux, this parameter is ignored.
+		 * 	Note: Only works on Windows. On Linux, this parameter is ignored.
 		 * @param monitor The monitor to go fullscreen on. 
 		 * 	If this value is nullptr, fullscreen is on the first monitor.
 		 * 	Tether must be compiled with TETHER_MONITORS to use this parameter.
