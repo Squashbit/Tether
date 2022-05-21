@@ -34,22 +34,20 @@ namespace Tether::Renderer
 		TETHER_NO_COPY(RenderContext);
 
 		/**
-		* @brief
-		 * Sets the native for the Render Context (wow really).
-		 * A native must be set for the Render Context to function properly.
-		 * The native needed is at Renderer/~api name~/RenderContextNative.hpp.
-		 * For example, Vulkan would be located at: 
-		 * Renderer/Vulkan/RenderContextNative.hpp
+		 * @brief
+		 * Initializes the RenderContext (wow really).
 		 * 
-		 * @param pNative A pointer to the native.
+		 * @param pNative A pointer to the native. 
+		 * The native needed is at Renderer/~api name~/RenderContextNative.hpp.
+		 * For example, Vulkan would be located at:
+		 * Renderer/Vulkan/RenderContextNative.hpp
 		 */
 		bool Init(IRenderContextNative* pNative);
 
 		IRenderContextNative *const GetNative() const;
 	private:
 		void DisposeVulkan();
-		// void DisposeOpenGL();
-
+		
 		void OnDispose();
 
 		IRenderContextNative* native = nullptr;

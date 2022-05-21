@@ -7,7 +7,7 @@
 
 namespace Tether
 {
-    class IWindow;
+    class SimpleWindow;
 }
 
 namespace Tether::Devices
@@ -19,21 +19,21 @@ namespace Tether::Devices
 
     class DeviceManager
     {
-        friend IWindow;
+        friend SimpleWindow;
     public:
         TETHER_NO_COPY(DeviceManager);
 
         DeviceManager();
         ~DeviceManager();
 
-        bool Init(IWindow* pWindow);
+        bool Init(SimpleWindow* pWindow);
 
         uint64_t GetMonitorCount();
 		// Not yet implemented on Windows
         bool GetMonitor(uint64_t index, Monitor* pMonitor);
     protected:
     private:
-        IWindow* pWindow;
+        SimpleWindow* pWindow;
         Application* app;
 
         // Storage::DeviceVarStorage* storage;

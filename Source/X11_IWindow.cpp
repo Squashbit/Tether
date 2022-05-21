@@ -1,6 +1,6 @@
 #ifdef __linux__
 
-#include <Tether/IWindow.hpp>
+#include <Tether/SimpleWindow.hpp>
 #include <Tether/Native.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Controls/Control.hpp>
@@ -35,7 +35,7 @@ enum
 #define xdisplay app->storage->display
 #define xscreen app->storage->screen
 
-bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
+bool Tether::SimpleWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
     app = &Application::Get();
 
@@ -43,7 +43,7 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     // Not possible to use TETHER_ASSERT_INITIALIZED here
     if (initialized)
     {
-        DispatchNoInit("IWindow::Init");
+        DispatchNoInit("SimpleWindow::Init");
         return false;
     }
 
@@ -109,9 +109,9 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
     return true;
 }
 
-void Tether::IWindow::SetVisible(bool visibility)
+void Tether::SimpleWindow::SetVisible(bool visibility)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetVisible");
 
     if (visibility)
         XMapWindow(xdisplay, storage->window);
@@ -121,35 +121,35 @@ void Tether::IWindow::SetVisible(bool visibility)
     visible = visibility;
 }
 
-bool Tether::IWindow::IsVisible()
+bool Tether::SimpleWindow::IsVisible()
 {
     return visible && initialized;
 }
 
-void Tether::IWindow::SetX(int64_t x)
+void Tether::SimpleWindow::SetX(int64_t x)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetX");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetX");
 
     XMoveWindow(xdisplay, storage->window, x, GetY());
 }
 
-void Tether::IWindow::SetY(int64_t y)
+void Tether::SimpleWindow::SetY(int64_t y)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetY");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetY");
 
     XMoveWindow(xdisplay, storage->window, GetX(), y);
 }
 
-void Tether::IWindow::SetPosition(int64_t x, int64_t y)
+void Tether::SimpleWindow::SetPosition(int64_t x, int64_t y)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetPosition");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetPosition");
 
     XMoveWindow(xdisplay, storage->window, x, y);
 }
 
-void Tether::IWindow::SetWidth(uint64_t width)
+void Tether::SimpleWindow::SetWidth(uint64_t width)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetWidth");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetWidth");
 
     if (width == 0)
         return;
@@ -157,9 +157,9 @@ void Tether::IWindow::SetWidth(uint64_t width)
     XResizeWindow(xdisplay, storage->window, width, GetHeight());
 }
 
-void Tether::IWindow::SetHeight(uint64_t height)
+void Tether::SimpleWindow::SetHeight(uint64_t height)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetHeight");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetHeight");
 
     if (height == 0)
         return;
@@ -167,9 +167,9 @@ void Tether::IWindow::SetHeight(uint64_t height)
     XResizeWindow(xdisplay, storage->window, GetWidth(), height);
 }
 
-void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
+void Tether::SimpleWindow::SetSize(uint64_t width, uint64_t height)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetSize");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetSize");
 
     if (width == 0 || height == 0)
         return;
@@ -177,14 +177,14 @@ void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
     XResizeWindow(xdisplay, storage->window, width, height);
 }
 
-void Tether::IWindow::SetTitle(const char* title)
+void Tether::SimpleWindow::SetTitle(const char* title)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetTitle");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetTitle");
 
     XStoreName(xdisplay, storage->window, title);
 }
 
-void Tether::IWindow::SetBoundsEnabled(bool enabled)
+void Tether::SimpleWindow::SetBoundsEnabled(bool enabled)
 {
     if (this->boundsEnabled == enabled)
         return;
@@ -196,7 +196,7 @@ void Tether::IWindow::SetBoundsEnabled(bool enabled)
         SetBounds(INT32_MIN, INT32_MIN, INT32_MAX, INT32_MAX);
 }
 
-void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
+void Tether::SimpleWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
     int64_t maxWidth, int64_t maxHeight)
 {
     XSizeHints sizeHints{};
@@ -215,7 +215,7 @@ void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight,
         XA_WM_NORMAL_HINTS);
 }
 
-void Tether::IWindow::SetPreferredResizeInc(int width, int height)
+void Tether::SimpleWindow::SetPreferredResizeInc(int width, int height)
 {
     XSizeHints sizeHints{};
     sizeHints.width_inc = width;
@@ -226,7 +226,7 @@ void Tether::IWindow::SetPreferredResizeInc(int width, int height)
         XA_WM_NORMAL_HINTS);
 }
 
-void Tether::IWindow::SetDecorated(bool decorated)
+void Tether::SimpleWindow::SetDecorated(bool decorated)
 {
     Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
 
@@ -245,7 +245,7 @@ void Tether::IWindow::SetDecorated(bool decorated)
     );
 }
 
-void Tether::IWindow::SetClosable(bool closable)
+void Tether::SimpleWindow::SetClosable(bool closable)
 {
     if (this->closable == closable)
         return;
@@ -254,7 +254,7 @@ void Tether::IWindow::SetClosable(bool closable)
     ProcessMwmFunctions();
 }
 
-void Tether::IWindow::SetResizable(bool isResizable)
+void Tether::SimpleWindow::SetResizable(bool isResizable)
 {
     if (isResizable == resizable)
         return;
@@ -263,7 +263,7 @@ void Tether::IWindow::SetResizable(bool isResizable)
     ProcessMwmFunctions();
 }
 
-void Tether::IWindow::SetMinimizeBox(bool enabled)
+void Tether::SimpleWindow::SetMinimizeBox(bool enabled)
 {
     if (this->minimizeBox == enabled)
         return;
@@ -272,9 +272,9 @@ void Tether::IWindow::SetMinimizeBox(bool enabled)
     ProcessMwmFunctions();
 }
 
-void Tether::IWindow::SetMaximized(bool maximized)
+void Tether::SimpleWindow::SetMaximized(bool maximized)
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetMaximized");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetMaximized");
 
     Atom wmState = XInternAtom(xdisplay, "_NET_WM_STATE", true);
     Atom maxHorzAtom = XInternAtom(xdisplay, 
@@ -317,7 +317,7 @@ void Tether::IWindow::SetMaximized(bool maximized)
     XSync(xdisplay, false);
 }
 
-void Tether::IWindow::SetMaximizeBox(bool enabled)
+void Tether::SimpleWindow::SetMaximizeBox(bool enabled)
 {
     if (this->maximizeBox == enabled)
         return;
@@ -326,13 +326,13 @@ void Tether::IWindow::SetMaximizeBox(bool enabled)
     ProcessMwmFunctions();
 }
 
-void Tether::IWindow::SetFullscreen(
+void Tether::SimpleWindow::SetFullscreen(
     bool fullscreen, 
 	FullscreenSettings* settings,
 	Devices::Monitor* monitor
 )
 {
-    TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
+    TETHER_ASSERT_INITIALIZED("SimpleWindow::SetFullscreen");
 
     if (this->fullscreen == fullscreen)
         return;
@@ -398,12 +398,12 @@ void Tether::IWindow::SetFullscreen(
     this->fullscreen = fullscreen;
 }
 
-void Tether::IWindow::SetRawInputEnabled(bool enabled)
+void Tether::SimpleWindow::SetRawInputEnabled(bool enabled)
 {
     if (!app->storage->xi.handle || !app->storage->xi.available)
     {
         DispatchError(ErrorCode::LIBRARY_NOT_LOADED, ErrorSeverity::HIGH, 
-            "IWindow::SetRawInputEnabled");
+            "SimpleWindow::SetRawInputEnabled");
         return;
     }
 
@@ -437,7 +437,7 @@ void Tether::IWindow::SetRawInputEnabled(bool enabled)
     rawInputEnabled = enabled;
 }
 
-void Tether::IWindow::SetCursorMode(CursorMode mode)
+void Tether::SimpleWindow::SetCursorMode(CursorMode mode)
 {
     switch (mode)
     {
@@ -471,21 +471,21 @@ void Tether::IWindow::SetCursorMode(CursorMode mode)
     cursorMode = mode;
 }
 
-void Tether::IWindow::SetCursorPos(int x, int y)
+void Tether::SimpleWindow::SetCursorPos(int x, int y)
 {
     XWarpPointer(xdisplay, storage->window, storage->window, 0, 0, 
         0, 0, x, y);
 }
 
-void Tether::IWindow::SetCursorRootPos(int x, int y)
+void Tether::SimpleWindow::SetCursorRootPos(int x, int y)
 {
     unsigned int root = DefaultRootWindow(xdisplay);
     XWarpPointer(xdisplay, root, root, 0, 0, 0, 0, x, y);
 }
 
-int64_t Tether::IWindow::GetX()
+int64_t Tether::SimpleWindow::GetX()
 {
-    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetX", 0);
+    TETHER_ASSERT_INITIALIZED_RET("SimpleWindow::GetX", 0);
 
     long unsigned int child;
 
@@ -496,9 +496,9 @@ int64_t Tether::IWindow::GetX()
     return x;
 }
 
-int64_t Tether::IWindow::GetY()
+int64_t Tether::SimpleWindow::GetY()
 {
-    TETHER_ASSERT_INITIALIZED_RET("IWindow::GetY", 0);
+    TETHER_ASSERT_INITIALIZED_RET("SimpleWindow::GetY", 0);
 
     long unsigned int child;
 
@@ -509,7 +509,7 @@ int64_t Tether::IWindow::GetY()
     return y;
 }
 
-uint64_t Tether::IWindow::GetWidth()
+uint64_t Tether::SimpleWindow::GetWidth()
 {
     XWindowAttributes attribs;
     XGetWindowAttributes(xdisplay, storage->window, &attribs);
@@ -517,7 +517,7 @@ uint64_t Tether::IWindow::GetWidth()
     return attribs.width;
 }
 
-uint64_t Tether::IWindow::GetHeight()
+uint64_t Tether::SimpleWindow::GetHeight()
 {
     XWindowAttributes attribs;
     XGetWindowAttributes(xdisplay, storage->window, &attribs);
@@ -525,14 +525,14 @@ uint64_t Tether::IWindow::GetHeight()
     return attribs.height;
 }
 
-void Tether::IWindow::PollEvents()
+void Tether::SimpleWindow::PollEvents()
 {
     using namespace Events;
     using namespace Input;
 
     if (!initialized)
     {
-        DispatchNoInit("IWindow::PollEvents");
+        DispatchNoInit("SimpleWindow::PollEvents");
         return;
     }
     
@@ -769,7 +769,7 @@ void Tether::IWindow::PollEvents()
     }
 }
 
-void Tether::IWindow::OnDispose()
+void Tether::SimpleWindow::OnDispose()
 {
     XLockDisplay(xdisplay);
         XUnmapWindow(xdisplay, storage->window);
@@ -780,7 +780,7 @@ void Tether::IWindow::OnDispose()
     hints.clear();
 }
 
-void Tether::IWindow::ProcessMwmFunctions()
+void Tether::SimpleWindow::ProcessMwmFunctions()
 {
     Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
 

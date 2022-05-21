@@ -20,7 +20,7 @@ namespace Tether
 
     class Application : public IDisposable
     {
-        friend class IWindow;
+        friend class SimpleWindow;
         friend Devices::DeviceManager;
     public:
         TETHER_NO_COPY(Application);

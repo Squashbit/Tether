@@ -15,7 +15,7 @@
 #include <Tether/Application.hpp>
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/NativeWindow.hpp>
-#include <Tether/Window.hpp>
+#include <Tether/GraphicalWindow.hpp>
 
 #include <Tether/Renderer/RenderContext.hpp>
 

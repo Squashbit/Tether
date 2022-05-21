@@ -9,7 +9,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Tether::Window
+class TestWindow : public Tether::GraphicalWindow
 {
 public:
 	class EventHandler : public Events::EventHandler

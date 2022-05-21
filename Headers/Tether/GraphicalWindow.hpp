@@ -1,5 +1,5 @@
 /*
- * The Window class uses OpenGL to draw graphics. As a result, it can
+ * The GraphicalWindow class uses OpenGL to draw graphics. As a result, it can
  * draw far more complicated graphics then the NativeWindow class.
  * 
  * NOTICE:
@@ -7,26 +7,27 @@
  * with the TETHER_PREVIEW_FEATURES option enabled.
  */
 
-#ifndef _TETHER_WINDOW_HPP
-#define _TETHER_WINDOW_HPP
+#ifndef _TETHER_GRAPHICALWINDOW_HPP
+#define _TETHER_GRAPHICALWINDOW_HPP
 
-#include <Tether/IWindow.hpp>
+#include <Tether/Common/Color.hpp>
 #include <Tether/Elements/Element.hpp>
+#include <Tether/SimpleWindow.hpp>
 
 namespace Tether
 {
-	class Window : public IWindow
+	class GraphicalWindow : public SimpleWindow
 	{
 	public:
-		Window() {}
-		TETHER_NO_COPY(Window);
+		GraphicalWindow() {}
+		TETHER_NO_COPY(GraphicalWindow);
 
 		/**
 		 * @brief 
 		 * Adds an element to the window.
 		 * 
 		 * @param pElement A pointer to the element to add.
-		 * @param repaint Optional. If true, will repaint the Window when the element
+		 * @param repaint Optional. If true, will repaint the GraphicalWindow when the element
 		 *  is added. If false, the element will be added but until repaint is called,
 		 *  the element won't be visible.
 		 */
@@ -36,7 +37,7 @@ namespace Tether
 		 * Removes an element from the window.
 		 *
 		 * @param pElement A pointer to the element to add.
-		 * @param repaint Optional. If true, will repaint the Window when the element
+		 * @param repaint Optional. If true, will repaint the GraphicalWindow when the element
 		 *  is removed. If false, the element will be removed but until repaint is 
 		 *  called, the element will still be visible.
 		 */
@@ -44,7 +45,7 @@ namespace Tether
 
 		/**
 		 * @brief 
-		 * Removes all elements from the Window.
+		 * Removes all elements from the GraphicalWindow.
 		 */
 		void ClearElements();
 		
@@ -64,4 +65,4 @@ namespace Tether
 	};
 }
 
-#endif //_TETHER_WINDOW_HPP
+#endif //_TETHER_GRAPHICALWINDOW_HPP

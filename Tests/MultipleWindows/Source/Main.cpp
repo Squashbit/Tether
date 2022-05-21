@@ -9,7 +9,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Tether::Window
+class TestWindow : public Tether::GraphicalWindow
 {
 public:
 	class EventHandler : public Events::EventHandler
@@ -68,7 +68,7 @@ int main()
 	TestWindow window;
 	window.Hint(HintType::X, 120);
 	window.Hint(HintType::Y, 120);
-	if (!window.Init(1280, 720, "Window 1"))
+	if (!window.Init(1280, 720, "GraphicalWindow 1"))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;
@@ -77,7 +77,7 @@ int main()
 	TestWindow window2;
 	window2.Hint(HintType::X, 240);
 	window2.Hint(HintType::Y, 240);
-	if (!window2.Init(1280, 720, "Window 2"))
+	if (!window2.Init(1280, 720, "GraphicalWindow 2"))
 	{
 		std::cout << "Failed to initialize window" << std::endl;
 		return 1;

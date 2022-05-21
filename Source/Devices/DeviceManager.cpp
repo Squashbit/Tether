@@ -12,7 +12,7 @@ DeviceManager::DeviceManager()
 
 }
 
-bool DeviceManager::Init(IWindow* pWindow)
+bool DeviceManager::Init(SimpleWindow* pWindow)
 {
     this->pWindow = pWindow;
     return true;

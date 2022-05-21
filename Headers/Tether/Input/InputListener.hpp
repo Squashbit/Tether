@@ -11,14 +11,14 @@
 
 namespace Tether
 {
-    class IWindow;
+    class SimpleWindow;
 }
 
 namespace Tether::Input
 {
     class InputListener
     {
-        friend IWindow;
+        friend SimpleWindow;
     public:
         ~InputListener();
 
@@ -27,10 +27,10 @@ namespace Tether::Input
         virtual void OnKey(KeyInfo& info) {}
         virtual void OnKeyChar(KeyCharInfo& info) {}
 	protected:
-		void OnAdd(IWindow* pWindow);
-		void OnRemove(IWindow* pWindow);
+		void OnAdd(SimpleWindow* pWindow);
+		void OnRemove(SimpleWindow* pWindow);
 	private:
-		std::vector<IWindow*> windows;
+		std::vector<SimpleWindow*> windows;
     };
 }
 

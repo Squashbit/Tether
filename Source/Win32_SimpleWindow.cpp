@@ -1,6 +1,6 @@
 #ifdef _WIN32
 
-#include <Tether/IWindow.hpp>
+#include <Tether/SimpleWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 #include <Tether/Common/StringUtils.hpp>
 #include <Tether/Native.hpp>
@@ -14,7 +14,7 @@
 
 using namespace Tether::Storage;
 
-int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::IWindow* pWnd,
+int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::SimpleWindow* pWnd,
 	uint32_t msg, uint64_t wParam, uint64_t lParam)
 {
 	HWND* window = &((VarStorage*)pWnd->storage)->window;
@@ -22,10 +22,10 @@ int64_t Tether::WindowProcCaller::HandleMessage(void* hWnd, Tether::IWindow* pWn
 	if (*window == NULL)
 		*window = *(HWND*)hWnd;
 
-	return pWnd->HandleMessage(hWnd, msg, wParam, lParam);
+	return pWnd->HandleMessage(hWnd, msg, static_cast<uint32_t>(wParam), lParam);
 }
 
-static RECT Tether_GetAdjustedRect(Tether::IWindow* pWnd, 
+static RECT Tether_GetAdjustedRect(Tether::SimpleWindow* pWnd, 
 	int64_t x, int64_t y, uint64_t width, uint64_t height)
 {
 	RECT wr;
@@ -44,7 +44,7 @@ static Tether::WindowProcCaller caller;
 static LRESULT CALLBACK Tether_WndProcRedir(HWND hWnd, UINT msg, WPARAM wParam, 
 	LPARAM lParam)
 {
-	Tether::IWindow* pWindow = reinterpret_cast<Tether::IWindow*>(
+	Tether::SimpleWindow* pWindow = reinterpret_cast<Tether::SimpleWindow*>(
 		GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	return caller.HandleMessage(&hWnd, pWindow, msg, wParam, lParam);
 }
@@ -58,7 +58,7 @@ static LRESULT CALLBACK Tether_WindowProc(HWND hWnd, UINT msg, WPARAM wParam,
 	if (msg == WM_NCCREATE)
 	{
 		CREATESTRUCTW* pCreate = reinterpret_cast<CREATESTRUCTW*>(lParam);
-		Tether::IWindow* pWindow = reinterpret_cast<Tether::IWindow*>(
+		Tether::SimpleWindow* pWindow = reinterpret_cast<Tether::SimpleWindow*>(
 			pCreate->lpCreateParams);
 
 		// Sanity check
@@ -74,13 +74,13 @@ static LRESULT CALLBACK Tether_WindowProc(HWND hWnd, UINT msg, WPARAM wParam,
 	return DefWindowProc(hWnd, msg, wParam, lParam);
 }
 
-bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
+bool Tether::SimpleWindow::Init(uint64_t width, uint64_t height, const char* title)
 {
 	// Check if initialized
 	// Not possible to use TETHER_ASSERT_INITIALIZED here
 	if (initialized)
 	{
-		DispatchNoInit("IWindow::Init");
+		DispatchNoInit("SimpleWindow::Init");
 		return false;
 	}
 
@@ -162,9 +162,9 @@ bool Tether::IWindow::Init(uint64_t width, uint64_t height, const char* title)
 	return true;
 }
 
-void Tether::IWindow::SetVisible(bool visibility)
+void Tether::SimpleWindow::SetVisible(bool visibility)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetVisible");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetVisible");
 
 	if (visibility)
 	{
@@ -177,12 +177,12 @@ void Tether::IWindow::SetVisible(bool visibility)
 	visible = visibility;
 }
 
-bool Tether::IWindow::IsVisible()
+bool Tether::SimpleWindow::IsVisible()
 {
 	return visible && initialized;
 }
 
-void Tether::IWindow::SetRawInputEnabled(bool enabled)
+void Tether::SimpleWindow::SetRawInputEnabled(bool enabled)
 {
 	if (enabled && !rawInputInitialized)
 	{
@@ -201,7 +201,7 @@ void Tether::IWindow::SetRawInputEnabled(bool enabled)
 	rawInputEnabled = enabled;
 }
 
-void Tether::IWindow::SetCursorMode(CursorMode mode)
+void Tether::SimpleWindow::SetCursorMode(CursorMode mode)
 {
 	switch (mode)
 	{
@@ -227,7 +227,7 @@ static void SetCurPos(int x, int y)
 	SetCursorPos(x, y);
 }
 
-void Tether::IWindow::SetCursorPos(int x, int y)
+void Tether::SimpleWindow::SetCursorPos(int x, int y)
 {
 	POINT pt;
 	pt.x = x;
@@ -237,14 +237,14 @@ void Tether::IWindow::SetCursorPos(int x, int y)
 	SetCurPos(pt.x, pt.y);
 }
 
-void Tether::IWindow::SetCursorRootPos(int x, int y)
+void Tether::SimpleWindow::SetCursorRootPos(int x, int y)
 {
 	SetCurPos(x, y);
 }
 
-void Tether::IWindow::SetX(int64_t x)
+void Tether::SimpleWindow::SetX(int64_t x)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetX");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetX");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -261,9 +261,9 @@ void Tether::IWindow::SetX(int64_t x)
 	this->setX = x;
 }
 
-void Tether::IWindow::SetY(int64_t y)
+void Tether::SimpleWindow::SetY(int64_t y)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetY");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetY");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -280,9 +280,9 @@ void Tether::IWindow::SetY(int64_t y)
 	this->setY = y;
 }
 
-void Tether::IWindow::SetPosition(int64_t x, int64_t y)
+void Tether::SimpleWindow::SetPosition(int64_t x, int64_t y)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetPosition");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetPosition");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -300,9 +300,9 @@ void Tether::IWindow::SetPosition(int64_t x, int64_t y)
 	this->setY = y;
 }
 
-void Tether::IWindow::SetWidth(uint64_t width)
+void Tether::SimpleWindow::SetWidth(uint64_t width)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetWidth");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetWidth");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -319,9 +319,9 @@ void Tether::IWindow::SetWidth(uint64_t width)
 	this->setWidth = width;
 }
 
-void Tether::IWindow::SetHeight(uint64_t height)
+void Tether::SimpleWindow::SetHeight(uint64_t height)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetHeight");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetHeight");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -338,9 +338,9 @@ void Tether::IWindow::SetHeight(uint64_t height)
 	this->setHeight = height;
 }
 
-void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
+void Tether::SimpleWindow::SetSize(uint64_t width, uint64_t height)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetSize");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetSize");
 
 	RECT wr;
 	GetWindowRect(storage->window, &wr);
@@ -358,19 +358,19 @@ void Tether::IWindow::SetSize(uint64_t width, uint64_t height)
 	this->setHeight = height;
 }
 
-void Tether::IWindow::SetTitle(const char* title)
+void Tether::SimpleWindow::SetTitle(const char* title)
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetTitle");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetTitle");
 
 	SetWindowTextA(storage->window, title);
 }
 
-void Tether::IWindow::SetBoundsEnabled(bool enabled)
+void Tether::SimpleWindow::SetBoundsEnabled(bool enabled)
 {
 	boundsEnabled = enabled;
 }
 
-void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
+void Tether::SimpleWindow::SetBounds(int64_t minWidth, int64_t minHeight, 
 	int64_t maxWidth, int64_t maxHeight)
 {
 	this->minWidth  = minWidth;
@@ -379,7 +379,7 @@ void Tether::IWindow::SetBounds(int64_t minWidth, int64_t minHeight,
 	this->maxHeight = maxHeight;
 }
 
-void Tether::IWindow::SetDecorated(bool decorated)
+void Tether::SimpleWindow::SetDecorated(bool decorated)
 {
 	if (this->decorated == decorated)
 		return;
@@ -388,7 +388,7 @@ void Tether::IWindow::SetDecorated(bool decorated)
 	ReconstructStyle();
 }
 
-void Tether::IWindow::SetClosable(bool closable)
+void Tether::SimpleWindow::SetClosable(bool closable)
 {
 	if (this->closable == closable)
 		return;
@@ -397,7 +397,7 @@ void Tether::IWindow::SetClosable(bool closable)
 	ReconstructStyle();
 }
 
-void Tether::IWindow::SetResizable(bool isResizable)
+void Tether::SimpleWindow::SetResizable(bool isResizable)
 {
 	if (isResizable == this->resizable)
 		return;
@@ -406,7 +406,7 @@ void Tether::IWindow::SetResizable(bool isResizable)
 	ReconstructStyle();
 }
 
-void Tether::IWindow::SetMinimizeBox(bool minimizeBox)
+void Tether::SimpleWindow::SetMinimizeBox(bool minimizeBox)
 {
 	if (minimizeBox == this->minimizeBox)
 		return;
@@ -415,7 +415,7 @@ void Tether::IWindow::SetMinimizeBox(bool minimizeBox)
 	ReconstructStyle();
 }
 
-void Tether::IWindow::SetMaximizeBox(bool maximizeBox)
+void Tether::SimpleWindow::SetMaximizeBox(bool maximizeBox)
 {
 	if (maximizeBox == this->maximizeBox)
 		return;
@@ -424,7 +424,7 @@ void Tether::IWindow::SetMaximizeBox(bool maximizeBox)
 	ReconstructStyle();
 }
 
-void Tether::IWindow::SetMaximized(bool maximize)
+void Tether::SimpleWindow::SetMaximized(bool maximize)
 {
 	if (visible)
 		if (maximize)
@@ -433,13 +433,13 @@ void Tether::IWindow::SetMaximized(bool maximize)
 			ShowWindow(storage->window, SW_SHOW);
 }
 
-void Tether::IWindow::SetFullscreen(
+void Tether::SimpleWindow::SetFullscreen(
 	bool fullscreen,
 	FullscreenSettings* settings,
 	Devices::Monitor* monitor
 )
 {
-	TETHER_ASSERT_INITIALIZED("IWindow::SetFullscreen");
+	TETHER_ASSERT_INITIALIZED("SimpleWindow::SetFullscreen");
 
 	if (this->fullscreen == fullscreen)
 		return;
@@ -481,9 +481,9 @@ void Tether::IWindow::SetFullscreen(
 	this->fullscreen = fullscreen;
 }
 
-int64_t Tether::IWindow::GetX()
+int64_t Tether::SimpleWindow::GetX()
 {
-	TETHER_ASSERT_INITIALIZED_RET("IWindow::GetX", 0);
+	TETHER_ASSERT_INITIALIZED_RET("SimpleWindow::GetX", 0);
 
 	RECT windowRect;
 	GetWindowRect(storage->window, (LPRECT)&windowRect);
@@ -491,9 +491,9 @@ int64_t Tether::IWindow::GetX()
 	return windowRect.left;
 }
 
-int64_t Tether::IWindow::GetY()
+int64_t Tether::SimpleWindow::GetY()
 {
-	TETHER_ASSERT_INITIALIZED_RET("IWindow::GetY", 0);
+	TETHER_ASSERT_INITIALIZED_RET("SimpleWindow::GetY", 0);
 
 	RECT windowRect;
 	GetWindowRect(storage->window, (LPRECT)&windowRect);
@@ -501,7 +501,7 @@ int64_t Tether::IWindow::GetY()
 	return windowRect.top;
 }
 
-uint64_t Tether::IWindow::GetWidth()
+uint64_t Tether::SimpleWindow::GetWidth()
 {
 	RECT windowRect;
 	GetClientRect(storage->window, (LPRECT)&windowRect);
@@ -509,7 +509,7 @@ uint64_t Tether::IWindow::GetWidth()
 	return windowRect.right - windowRect.left;
 }
 
-uint64_t Tether::IWindow::GetHeight()
+uint64_t Tether::SimpleWindow::GetHeight()
 {
 	RECT windowRect;
 	GetClientRect(storage->window, (LPRECT)&windowRect);
@@ -517,11 +517,11 @@ uint64_t Tether::IWindow::GetHeight()
 	return windowRect.bottom - windowRect.top;
 }
 
-void Tether::IWindow::PollEvents()
+void Tether::SimpleWindow::PollEvents()
 {
 	if (!initialized)
 	{
-		DispatchNoInit("IWindow::PollEvents");
+		DispatchNoInit("SimpleWindow::PollEvents");
 		return;
 	}
 	
@@ -556,13 +556,13 @@ void Tether::IWindow::PollEvents()
 	}
 }
 
-void Tether::IWindow::OnDispose()
+void Tether::SimpleWindow::OnDispose()
 {
 	DestroyWindow(storage->window);
 	UnregisterClass(this->className.c_str(), storage->hinst);
 }
 
-std::shared_ptr<wchar_t> Tether::IWindow::ToWide(const char* str)
+std::shared_ptr<wchar_t> Tether::SimpleWindow::ToWide(const char* str)
 {
 	// Size to allocate
 	int size = MultiByteToWideChar(CP_ACP, 0, str, -1, NULL, 0);
@@ -574,7 +574,7 @@ std::shared_ptr<wchar_t> Tether::IWindow::ToWide(const char* str)
 	return std::shared_ptr<wchar_t>(wstr, std::default_delete<wchar_t[]>());
 }
 
-unsigned long Tether::IWindow::CalculateStyle()
+unsigned long Tether::SimpleWindow::CalculateStyle()
 {
 	LONG style = WS_OVERLAPPEDWINDOW | WS_SYSMENU;
 
@@ -587,13 +587,13 @@ unsigned long Tether::IWindow::CalculateStyle()
 	return style;
 }
 
-void Tether::IWindow::ReconstructStyle()
+void Tether::SimpleWindow::ReconstructStyle()
 {
 	SetWindowLongPtr(storage->window, GWL_STYLE, CalculateStyle());
 	UpdateWindow(storage->window);
 }
 
-void Tether::IWindow::SpawnKeyInput(uint32_t scancode, uint32_t keycode, 
+void Tether::SimpleWindow::SpawnKeyInput(uint32_t scancode, uint32_t keycode, 
 	bool pressed)
 {
 	Input::KeyInfo event(
@@ -609,7 +609,7 @@ void Tether::IWindow::SpawnKeyInput(uint32_t scancode, uint32_t keycode,
 	});
 }
 
-int64_t Tether::IWindow::HandleMessage(void* pHWnd, uint32_t msg, uint64_t wParam,
+int64_t Tether::SimpleWindow::HandleMessage(void* pHWnd, uint32_t msg, uint32_t wParam,
 	uint64_t lParam)
 {
 	using namespace Tether::Events;

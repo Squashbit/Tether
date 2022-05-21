@@ -1,13 +1,14 @@
 #ifndef _TETHER_CONTROL_HPP
 #define _TETHER_CONTROL_HPP
 
-#include <Tether/Window.hpp>
+#include <Tether/NativeWindow.hpp>
+#include <Tether/Common/Color.hpp>
 
 namespace Tether::Controls
 {
     class Control
     {
-        friend Window;
+        friend NativeWindow;
     public:
         Control() {}
         
@@ -29,7 +30,7 @@ namespace Tether::Controls
         Color GetForegroundColor() const;
         Color GetBackgroundColor() const;
     protected:
-        virtual void Render(Window* pWindow) {}
+        virtual void Render(NativeWindow* pWindow) {}
     private:
         float x = 0, y = 0;
         float width = 0, height = 0;

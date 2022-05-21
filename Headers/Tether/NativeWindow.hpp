@@ -1,20 +1,15 @@
 /*
  * The NativeWindow class uses native operating-system controls to draw
- * graphics. It cannot do nearly as complicated graphics as the Window class,
- * but it is useful for tool apps.
- * 
- * NOTICE:
- * This file is still in preview. If you want to use it, you have to declare
- * the TETHER_PREVIEW_FEATURES preprocessor definition.
+ * graphics. It cannot do nearly as complicated graphics as the GraphicalWindow class,
+ * but it is useful for small applications.
  */
 
 #ifndef _TETHER_NATIVEWINDOW_HPP
 #define _TETHER_NATIVEWINDOW_HPP
 
 #include <Tether/Common/Defs.hpp>
-#ifdef TETHER_PREVIEW_FEATURES
-
-#include <Tether/IWindow.hpp>
+#include <Tether/Common/Color.hpp>
+#include <Tether/SimpleWindow.hpp>
 
 namespace Tether
 {
@@ -23,7 +18,7 @@ namespace Tether
         class Control;
     }
 
-    class NativeWindow : public IWindow
+    class NativeWindow : public SimpleWindow
     {
         friend Tether::Controls::Control;
     public:
@@ -80,5 +75,4 @@ namespace Tether
     };
 }
 
-#endif // TETHER_PREVIEW_FEATURES
 #endif //_TETHER_NATIVEWINDOW_HPP

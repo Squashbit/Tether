@@ -1,13 +1,13 @@
-#include <Tether/Window.hpp>
+#include <Tether/GraphicalWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 
 using namespace Tether;
 
-void Tether::Window::AddElement(Elements::Element* pElement, bool repaint)
+void Tether::GraphicalWindow::AddElement(Elements::Element* pElement, bool repaint)
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::AddElement");
+		DispatchNoInit("GraphicalWindow::AddElement");
 		return;
 	}
 
@@ -17,11 +17,11 @@ void Tether::Window::AddElement(Elements::Element* pElement, bool repaint)
 		Repaint();
 }
 
-bool Tether::Window::RemoveElement(Elements::Element* pElement, bool repaint)
+bool Tether::GraphicalWindow::RemoveElement(Elements::Element* pElement, bool repaint)
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::RemoveElement");
+		DispatchNoInit("GraphicalWindow::RemoveElement");
 		return false;
 	}
 
@@ -39,31 +39,31 @@ bool Tether::Window::RemoveElement(Elements::Element* pElement, bool repaint)
 	return false;
 }
 
-void Tether::Window::SetBackgroundColor(Color backgroundColor)
+void Tether::GraphicalWindow::SetBackgroundColor(Color backgroundColor)
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::SetBackgroundColor");
+		DispatchNoInit("GraphicalWindow::SetBackgroundColor");
 		return;
 	}
 
 	this->backgroundColor = backgroundColor;
 }
 
-void Tether::Window::ClearElements()
+void Tether::GraphicalWindow::ClearElements()
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::ClearElements");
+		DispatchNoInit("GraphicalWindow::ClearElements");
 		return;
 	}
 }
 
-void Tether::Window::Repaint()
+void Tether::GraphicalWindow::Repaint()
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::Repaint");
+		DispatchNoInit("GraphicalWindow::Repaint");
 		return;
 	}
 
@@ -76,22 +76,22 @@ void Tether::Window::Repaint()
 	// TODO: Element rendering
 }
 
-bool Tether::Window::InitGraphics()
+bool Tether::GraphicalWindow::InitGraphics()
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::InitGraphics");
+		DispatchNoInit("GraphicalWindow::InitGraphics");
 		return false;
 	}
 
 	return true;
 }
 
-void Tether::Window::DisposeGraphics()
+void Tether::GraphicalWindow::DisposeGraphics()
 {
 	if (!initialized)
 	{
-		DispatchNoInit("Window::DisposeGraphics");
+		DispatchNoInit("GraphicalWindow::DisposeGraphics");
 		return;
 	}
 }

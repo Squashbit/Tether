@@ -34,19 +34,24 @@ add_library(${PROJECT_NAME} STATIC
     ${SDIR}/Events/WindowMoveEvent.cpp ${SDIR}/Events/WindowResizeEvent.cpp
     ${SDIR}/Input/InputListener.cpp ${SDIR}/Input/KeyCharInfo.cpp 
     ${SDIR}/Input/KeyInfo.cpp ${SDIR}/Input/MouseMoveInfo.cpp 
-    ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp ${SDIR}/IWindow.cpp 
+    ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp 
+    ${SDIR}/SimpleWindow.cpp
 )
 
 set(DEPENDENT_SOURCES)
 if (TETHER_VULKAN_API)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
-        ${SDIR}/Vulkan_Application.cpp
+        ${SDIR}/Renderer/Vulkan/Device.cpp
+        ${SDIR}/Renderer/Vulkan/Instance.cpp
         ${SDIR}/Renderer/Vulkan/RenderContextNative.cpp
+        ${SDIR}/Renderer/Vulkan/Surface.cpp
+        ${SDIR}/Renderer/Vulkan/Swapchain.cpp
+        ${SDIR}/Vulkan_Application.cpp
     )
 endif()
 if (TETHER_PREVIEW_FEATURES)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
-        ${SDIR}/Window.cpp ${SDIR}/Renderer/RenderContext.cpp
+        ${SDIR}/GraphicalWindow.cpp ${SDIR}/Renderer/RenderContext.cpp
     )
 endif()
 
@@ -54,7 +59,7 @@ if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/Win32_DeviceManager.cpp
         ${SDIR}/Win32_Application.cpp
-        ${SDIR}/Win32_IWindow.cpp
+        ${SDIR}/Win32_SimpleWindow.cpp
 
         ${DEPENDENT_SOURCES}
     )
@@ -62,7 +67,7 @@ elseif (UNIX)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/linux_DeviceManager.cpp
         ${SDIR}/X11_Application.cpp
-        ${SDIR}/X11_IWindow.cpp
+        ${SDIR}/X11_SimpleWindow.cpp
 
         ${DEPENDENT_SOURCES}
     )

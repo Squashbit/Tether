@@ -6,7 +6,7 @@
 
 namespace Tether
 {
-    class IWindow;
+    class SimpleWindow;
 }
 
 namespace Tether::Devices
@@ -22,7 +22,7 @@ namespace Tether::Devices
 
     class Monitor
     {
-        friend IWindow;
+        friend SimpleWindow;
         friend class DeviceManager;
     public:
         Monitor() {}

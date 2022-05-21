@@ -11,14 +11,14 @@
 
 namespace Tether
 {
-	class IWindow;
+	class SimpleWindow;
 }
 
 namespace Tether::Events
 {
 	class EventHandler
 	{
-		friend IWindow;
+		friend SimpleWindow;
 	public:
 		~EventHandler();
 
@@ -28,10 +28,10 @@ namespace Tether::Events
 		virtual void OnWindowMove(WindowMoveEvent event) {}
 		virtual void OnWindowError(WindowErrorEvent event) {}
 	protected:
-		void OnAdd(IWindow* pWindow);
-		void OnRemove(IWindow* pWindow);
+		void OnAdd(SimpleWindow* pWindow);
+		void OnRemove(SimpleWindow* pWindow);
 	private:
-		std::vector<IWindow*> windows;
+		std::vector<SimpleWindow*> windows;
 	};
 }
 

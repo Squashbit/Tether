@@ -24,7 +24,7 @@ Color::Color(const Color& ref)
     b = ref.b;
 }
 
-uint64_t Color::RGB(float r,float g, float b)
+uint64_t Color::ToRGB(float r,float g, float b)
 {
     uint8_t rInt = (uint8_t)(r * 255);
     uint8_t gInt = (uint8_t)(g * 255);
@@ -35,11 +35,7 @@ uint64_t Color::RGB(float r,float g, float b)
 
 uint64_t Color::GetRGB() const
 {
-    uint8_t rInt = (uint8_t)(r * 255);
-    uint8_t gInt = (uint8_t)(g * 255);
-    uint8_t bInt = (uint8_t)(b * 255);
-
-    return bInt + (gInt << 8) + (rInt << 16);
+    return ToRGB(r, g, b);
 }
 
 void Color::SetR(float r)

@@ -1,8 +1,8 @@
 /*
- * This file defines non platform specific fields of the Window class
+ * This file defines non platform specific fields of the GraphicalWindow class
  */
 
-#include <Tether/IWindow.hpp>
+#include <Tether/SimpleWindow.hpp>
 #include <Tether/Common/VectorUtils.hpp>
 #include <Tether/Native.hpp>
 
@@ -13,35 +13,35 @@
 using namespace Tether;
 using namespace Tether::Storage;
 
-Tether::IWindow::IWindow()
+Tether::SimpleWindow::SimpleWindow()
 {
     storage = new VarStorage();
 }
 
-Tether::IWindow::~IWindow()
+Tether::SimpleWindow::~SimpleWindow()
 {
     delete storage;
 }
 
-VarStorage* Tether::IWindow::GetStorage()
+VarStorage* Tether::SimpleWindow::GetStorage()
 {
 	return storage;
 }
 
-void Tether::IWindow::Hint(HintType type, int64_t pValue)
+void Tether::SimpleWindow::Hint(HintType type, int64_t pValue)
 {
     // Hints can only be set before the window is initialized.
     if (!initialized)
         hints.push_back({ type, pValue });
 }
 
-void Tether::IWindow::AddEventHandler(Events::EventHandler& handler, 
+void Tether::SimpleWindow::AddEventHandler(Events::EventHandler& handler, 
     Events::EventType eventType)
 {
     AddEventHandler(&handler, eventType);
 }
 
-void Tether::IWindow::AddEventHandler(Events::EventHandler* handler,
+void Tether::SimpleWindow::AddEventHandler(Events::EventHandler* handler,
     Events::EventType eventType)
 {
     using namespace Events;
@@ -61,12 +61,12 @@ void Tether::IWindow::AddEventHandler(Events::EventHandler* handler,
     handler->OnAdd(this);
 }
 
-void Tether::IWindow::RemoveEventHandler(Events::EventHandler& handler)
+void Tether::SimpleWindow::RemoveEventHandler(Events::EventHandler& handler)
 {
     RemoveEventHandler(&handler);
 }
 
-void Tether::IWindow::RemoveEventHandler(Events::EventHandler* handler)
+void Tether::SimpleWindow::RemoveEventHandler(Events::EventHandler* handler)
 {
     handler->OnRemove(this);
 
@@ -90,13 +90,13 @@ void Tether::IWindow::RemoveEventHandler(Events::EventHandler* handler)
         handlers.erase(handlers.find(toErase[i]));
 }
 
-void Tether::IWindow::AddInputListener(Input::InputListener& listener, 
+void Tether::SimpleWindow::AddInputListener(Input::InputListener& listener, 
 	Input::InputType inputType)
 {
     AddInputListener(&listener, inputType);
 }
 
-void Tether::IWindow::AddInputListener(Input::InputListener* listener, 
+void Tether::SimpleWindow::AddInputListener(Input::InputListener* listener, 
 	Input::InputType inputType)
 {
     using namespace Input;
@@ -116,12 +116,12 @@ void Tether::IWindow::AddInputListener(Input::InputListener* listener,
     listener->OnAdd(this);
 }
 
-void Tether::IWindow::RemoveInputListener(Input::InputListener& listener)
+void Tether::SimpleWindow::RemoveInputListener(Input::InputListener& listener)
 {
     RemoveInputListener(&listener);
 }
 
-void Tether::IWindow::RemoveInputListener(Input::InputListener* listener)
+void Tether::SimpleWindow::RemoveInputListener(Input::InputListener* listener)
 {
     listener->OnRemove(this);
 
@@ -145,37 +145,37 @@ void Tether::IWindow::RemoveInputListener(Input::InputListener* listener)
         inputListeners.erase(inputListeners.find(toErase[i]));
 }
 
-int64_t Tether::IWindow::GetMouseX()
+int64_t Tether::SimpleWindow::GetMouseX()
 {
     return mouseX;
 }
 
-int64_t Tether::IWindow::GetMouseY()
+int64_t Tether::SimpleWindow::GetMouseY()
 {
     return mouseY;
 }
 
-int64_t Tether::IWindow::GetRelativeMouseX()
+int64_t Tether::SimpleWindow::GetRelativeMouseX()
 {
     return relMouseX;
 }
 
-int64_t Tether::IWindow::GetRelativeMouseY()
+int64_t Tether::SimpleWindow::GetRelativeMouseY()
 {
     return relMouseY;
 }
 
-void Tether::IWindow::SetCloseRequested(bool requested)
+void Tether::SimpleWindow::SetCloseRequested(bool requested)
 {
     this->closeRequested = requested;
 }
 
-bool Tether::IWindow::IsCloseRequested()
+bool Tether::SimpleWindow::IsCloseRequested()
 {
     return closeRequested;
 }
 
-void Tether::IWindow::SpawnEvent(
+void Tether::SimpleWindow::SpawnEvent(
     Events::EventType eventType,
     std::function<void(Events::EventHandler*)> callEventFun
 )
@@ -188,7 +188,7 @@ void Tether::IWindow::SpawnEvent(
     }
 }
 
-void Tether::IWindow::SpawnInput(
+void Tether::SimpleWindow::SpawnInput(
     Input::InputType inputType,
 	std::function<void(Input::InputListener*)> callInputFun
 )
@@ -201,7 +201,7 @@ void Tether::IWindow::SpawnInput(
     }
 }
 
-void Tether::IWindow::DispatchNoInit(std::string functionName)
+void Tether::SimpleWindow::DispatchNoInit(std::string functionName)
 {
     SpawnEvent(Events::EventType::WINDOW_ERROR, 
     [&](Events::EventHandler* pEventHandler)
@@ -216,7 +216,7 @@ void Tether::IWindow::DispatchNoInit(std::string functionName)
     });
 }
 
-void Tether::IWindow::DispatchError(ErrorCode code, ErrorSeverity severity, 
+void Tether::SimpleWindow::DispatchError(ErrorCode code, ErrorSeverity severity, 
     std::string functionName)
 {
     SpawnEvent(Events::EventType::WINDOW_ERROR, 

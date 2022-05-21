@@ -3,13 +3,16 @@
 using namespace Tether::Renderer;
 
 RenderContext::RenderContext()
-{
-	initialized = true;
-}
+{}
 
 bool RenderContext::Init(IRenderContextNative* pNative)
 {
+	if (initialized)
+		return false;
+
 	native = pNative;
+
+	initialized = true;
 	return true;
 }
 
@@ -22,7 +25,4 @@ void RenderContext::OnDispose()
 {
 	if (native)
 		native->Dispose();
-	native = nullptr; // bruh
-
-
 }

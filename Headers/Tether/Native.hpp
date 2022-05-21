@@ -55,7 +55,7 @@ namespace Tether::Storage
 		uint32_t lastPressed = UINT32_MAX;
 	};
 
-	typedef int (*PFN_XISelectEvents)(Display*,Window,XIEventMask*,int);
+	typedef int (*PFN_XISelectEvents)(Display*,GraphicalWindow,XIEventMask*,int);
 	#define XISelectEvents(display, window, masks, numMasks) \
 		Application::Get().storage->xi.selectEvents(display, window, masks, numMasks)
 	
