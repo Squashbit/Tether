@@ -31,10 +31,13 @@ namespace Tether
 
         // Vulkan functions
         bool LoadVulkan();
-        bool InitVulkan();
+        bool InitVulkan(bool validationLayers = false);
 
         Storage::AppVarStorage* GetStorage();
         Storage::VulkanNative* GetVulkanNative();
+
+        bool IsVulkanLoaded();
+        bool IsVulkanInitialized();
 
         static Application& Get();
     protected:

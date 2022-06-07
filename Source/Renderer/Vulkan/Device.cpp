@@ -12,8 +12,11 @@ bool Device::Init(
     uint32_t extentionCount
 )
 {
-    if (initialized)
+    if (initialized || !pInstance || !queueFamilies)
         return false;
+
+    this->pInstance = pInstance;
+    this->iloader = pInstance->GetLoader();
     
     VkDeviceCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -35,9 +38,11 @@ bool Device::Init(
     }
     
     // Create the device
-    if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)
+    if (iloader->vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)
         != VK_SUCCESS)
         return false;
+
+    loader.Load(iloader, &device);
     
     initialized = true;
     return true;
@@ -46,14 +51,14 @@ bool Device::Init(
 VkQueue Device::GetDeviceQueue(uint32_t familyIndex, uint32_t queueIndex)
 {
     VkQueue queue;
-    vkGetDeviceQueue(device, familyIndex, queueIndex, &queue);
+    loader.vkGetDeviceQueue(device, familyIndex, queueIndex, &queue);
 
     return queue;
 }
 
 void Device::WaitIdle()
 {
-    vkDeviceWaitIdle(device);
+    loader.vkDeviceWaitIdle(device);
 }
 
 VkDevice Device::Get()
@@ -61,7 +66,12 @@ VkDevice Device::Get()
     return device;
 }
 
+DeviceLoader* Device::GetLoader()
+{
+	return &loader;
+}
+
 void Device::OnDispose()
 {
-    vkDestroyDevice(device, nullptr);
+    loader.vkDestroyDevice(device, nullptr);
 }

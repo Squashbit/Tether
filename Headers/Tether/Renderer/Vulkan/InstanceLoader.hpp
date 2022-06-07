@@ -4,18 +4,33 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
 
+#include <vulkan/vulkan.h>
+
 namespace Tether::Vulkan
 {
-	class InstanceLoader : public IDisposable
+	class InstanceLoader
 	{
 	public:
 		InstanceLoader() = default;
-		TETHER_DISPOSE_ON_DESTRUCT(InstanceLoader);
-		TETHER_NO_COPY(InstanceLoader);
+		
+		void Load(VkInstance* pInstance);
 
-		bool Load(VkInstance* pInstance);
-	private:
-		void OnDispose();
+		// different breed
+		void* vkCreateXlibSurfaceKHR = nullptr;
+		void* vkCreateWin32SurfaceKHR = nullptr;
+
+		TETHER_INSTANCE_FUNC_VAR(CreateDebugUtilsMessengerEXT);
+		TETHER_INSTANCE_FUNC_VAR(CreateDevice);
+		TETHER_INSTANCE_FUNC_VAR(DestroyDebugUtilsMessengerEXT);
+		TETHER_INSTANCE_FUNC_VAR(DestroyInstance);
+		TETHER_INSTANCE_FUNC_VAR(DestroySurfaceKHR);
+		TETHER_INSTANCE_FUNC_VAR(EnumerateDeviceExtensionProperties);
+		TETHER_INSTANCE_FUNC_VAR(GetDeviceProcAddr);
+		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceQueueFamilyProperties);
+		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceSurfaceCapabilitiesKHR);
+		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceSurfaceFormatsKHR);
+		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceSurfacePresentModesKHR);
+		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceSurfaceSupportKHR);
 	};
 }
 

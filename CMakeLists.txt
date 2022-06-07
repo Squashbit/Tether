@@ -42,7 +42,9 @@ set(DEPENDENT_SOURCES)
 if (TETHER_VULKAN_API)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
         ${SDIR}/Renderer/Vulkan/Device.cpp
+        ${SDIR}/Renderer/Vulkan/DeviceLoader.cpp
         ${SDIR}/Renderer/Vulkan/Instance.cpp
+        ${SDIR}/Renderer/Vulkan/InstanceLoader.cpp
         ${SDIR}/Renderer/Vulkan/RenderContextNative.cpp
         ${SDIR}/Renderer/Vulkan/Surface.cpp
         ${SDIR}/Renderer/Vulkan/Swapchain.cpp

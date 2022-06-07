@@ -4,7 +4,8 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
 
-#include <vector>
+#include <Tether/Renderer/Vulkan/InstanceLoader.hpp>
+#include <Tether/Renderer/Vulkan/DeviceLoader.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -59,9 +60,15 @@ namespace Tether::Vulkan
         void WaitIdle();
         
         VkDevice Get();
+        DeviceLoader* GetLoader();
     protected:
         void OnDispose();
     private:
+        Instance* pInstance = nullptr;
+        InstanceLoader* iloader = nullptr;
+
+        DeviceLoader loader;
+
         VkDevice device;
     };
 }

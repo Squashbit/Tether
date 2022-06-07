@@ -13,6 +13,9 @@
 #include <vulkan/vulkan_win32.h>
 #endif
 
+#define TETHER_INCLUDE_VULKAN
+#include <Tether/NativeVulkan.hpp>
+
 using namespace Tether::Vulkan;
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan_DebugCallback(
@@ -27,31 +30,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan_DebugCallback(
 		pCallbackData);
 	
 	return false;
-}
-
-static VkResult Vulkan_CreateDebugUtilsMessengerEXT(VkInstance instance, 
-	const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, 
-	const VkAllocationCallbacks* pAllocator, 
-	VkDebugUtilsMessengerEXT* pDebugMessenger) 
-{
-	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-		instance, "vkCreateDebugUtilsMessengerEXT");
-
-	if (func != nullptr)
-		return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-	else
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-}
-
-static void Vulkan_DestroyDebugUtilsMessengerEXT(VkInstance instance, 
-	VkDebugUtilsMessengerEXT debugMessenger, 
-	const VkAllocationCallbacks* pAllocator) 
-{
-	auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-		instance, "vkDestroyDebugUtilsMessengerEXT");
-	
-	if (func != nullptr)
-		func(instance, debugMessenger, pAllocator);
 }
 
 bool Instance::Init(
@@ -144,11 +122,13 @@ bool Instance::Init(
 	extentions = std::vector<VkExtensionProperties>(extentionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount,
 		extentions.data());
+
+	loader.Load(&instance);
 	
-	if (debugMode)
-		Vulkan_CreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo,
+	if (debugMode && loader.vkCreateDebugUtilsMessengerEXT)
+		loader.vkCreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo,
 			nullptr, &debugMessenger);
-	
+
 	initialized = true;
 	return true;
 }
@@ -159,19 +139,19 @@ QueueFamilyIndices Instance::FindQueueFamilies(
 	QueueFamilyIndices queueFamilies;
 
 	uint32_t familyCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
+	loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
 
 	if (familyCount == 0 || !pSurface)
 		return queueFamilies;
 
 	std::vector<VkQueueFamilyProperties> families(familyCount);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, 
+	loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount,
 		families.data());
-	
+
 	int i = 0;
 	for (const auto& queueFamily : families)
 	{
-		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT 
+		if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT
 			&& !queueFamilies.hasGraphicsFamily)
 		{
 			queueFamilies.hasGraphicsFamily = true;
@@ -179,7 +159,7 @@ QueueFamilyIndices Instance::FindQueueFamilies(
 		}
 
 		VkBool32 presentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, 
+		loader.vkGetPhysicalDeviceSurfaceSupportKHR(device, i,
 			pSurface->Get(), &presentSupport);
 		if (presentSupport && !queueFamilies.hasPresentFamily)
 		{
@@ -189,7 +169,7 @@ QueueFamilyIndices Instance::FindQueueFamilies(
 
 		if (queueFamilies.hasGraphicsFamily && queueFamilies.hasPresentFamily)
 			break;
-		
+
 		i++;
 	}
 
@@ -202,28 +182,28 @@ SwapchainDetails Instance::QuerySwapchainSupport(
 	VkSurfaceKHR surface = pSurface->Get();
 
 	SwapchainDetails details;
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, 
+	loader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface,
 		&details.capabilities);
 	
 	uint32_t formatCount;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, 
+	loader.vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
 		nullptr);
 	
 	if (formatCount != 0)
 	{
 		details.formats.resize(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount, 
+		loader.vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
 			details.formats.data());
 	}
 
 	uint32_t presentModeCount;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface, 
+	loader.vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
 		&presentModeCount, details.presentModes.data());
 	
 	if (presentModeCount != 0)
 	{
 		details.presentModes.resize(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
+		loader.vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
 			&presentModeCount, details.presentModes.data());
 	}
 
@@ -263,6 +243,11 @@ VkInstance Instance::Get()
 	return instance;
 }
 
+InstanceLoader* Instance::GetLoader()
+{
+	return &loader;
+}
+
 void Instance::DispatchDebugMessage(
 	VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 	VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -286,12 +271,12 @@ bool Instance::IsDebugMode()
 
 void Instance::OnDispose()
 {
-	if (debugMode)
-		Vulkan_DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+	if (debugMode && loader.vkDestroyDebugUtilsMessengerEXT)
+		loader.vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
 	debugCallbacks.clear();
 	
-	vkDestroyInstance(instance, nullptr);
+	loader.vkDestroyInstance(instance, nullptr);
 }
 
 bool Instance::CheckDeviceExtentionSupport(VkPhysicalDevice device, 
@@ -301,11 +286,11 @@ bool Instance::CheckDeviceExtentionSupport(VkPhysicalDevice device,
 	// We need to check for those here before we can use the device.
 
 	uint32_t count;
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
+	loader.vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
 		nullptr);
 	
 	std::vector<VkExtensionProperties> availableExtentions(count);
-	vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
+	loader.vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
 		availableExtentions.data());
 	
 	std::vector<std::string> requiredExtentions(extentionCount);

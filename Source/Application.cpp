@@ -9,7 +9,10 @@ bool Application::Init()
 {
     if (initialized)
         return false;
-    storage = new Storage::AppVarStorage();
+
+    storage = new(std::nothrow) Storage::AppVarStorage();
+    if (!storage)
+        return false;
 
     if (!OnInit())
         return false;

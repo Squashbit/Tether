@@ -5,15 +5,6 @@
 
 using namespace Tether;
 
-#define LOAD_VULKAN_FUNCTION(nativeName, type, name) \
-	vulkan->nativeName = (type)LoadFunction(vulkan->handle, name); \
-	if (!vulkan->nativeName) \
-	{ \
-		FreeLibrary(vulkan->handle); \
-		delete vulkan; \
-		return false; \
-	}
-
 bool Application::LoadVulkan()
 {
 	if (vulkan)
@@ -38,27 +29,24 @@ bool Application::LoadVulkan()
 		return false;
 	} vulkan->handle = vulkanLibrary;
 
-	LOAD_VULKAN_FUNCTION(
-		GetInstanceProcAddr, 
-		PFN_vkGetInstanceProcAddr,
-		"vkGetInstanceProcAddr"
-	);
+	vulkan->GetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)LoadFunction(
+		vulkan->handle, "vkGetInstanceProcAddr");
 
-	vulkan->CreateInstance = 
-		(PFN_vkCreateInstance)vkGetInstanceProcAddr(NULL, "vkCreateInstance");
-	vulkan->EnumInstanceExtProps =
-		(PFN_vkEnumerateInstanceExtensionProperties)vkGetInstanceProcAddr(NULL, 
-			"vkEnumerateInstanceExtensionProperties");
-
+	TETHER_INSTANCE_FUNC_NULL(CreateInstance);
+	TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceExtensionProperties);
+	TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceLayerProperties);
+	
 	return true;
 }
 
-bool Application::InitVulkan()
+bool Application::InitVulkan(bool validationlayers)
 {
 	if (!LoadVulkan())
 		return false;
 
-	// Init stuff
+	if (!vulkan->instance.Init("TetherApp", "Tether",
+		validationlayers))
+		return false;
 
 	vulkan->initialized = true;
 	return true;
@@ -69,6 +57,19 @@ Storage::VulkanNative* Application::GetVulkanNative()
 	return vulkan;
 }
 
+bool Application::IsVulkanLoaded()
+{
+	return vulkan;
+}
+
+bool Application::IsVulkanInitialized()
+{
+	if (!vulkan)
+		return false;
+
+	return vulkan->initialized;
+}
+
 void Application::DisposeVulkan()
 {
 	if (!vulkan)
@@ -77,6 +78,12 @@ void Application::DisposeVulkan()
 	// Dispose loaded stuff
 	FreeLibrary(vulkan->handle);
 
-	// Then dispose Vulkan itself
-	// ...when there's actually something to dispose
+	if (vulkan->initialized)
+	{
+		// Then dispose the instance
+		vulkan->instance.Dispose();
+	}
+
+	delete vulkan;
+	vulkan = nullptr;
 }

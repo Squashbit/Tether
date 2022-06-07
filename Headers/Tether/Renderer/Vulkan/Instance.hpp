@@ -9,6 +9,7 @@
 #include <Tether/Renderer/Vulkan/DebugCallback.hpp>
 #include <Tether/Renderer/Vulkan/Device.hpp>
 #include <Tether/Renderer/Vulkan/Surface.hpp>
+#include <Tether/Renderer/Vulkan/InstanceLoader.hpp>
 #include <Tether/Renderer/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Renderer/Vulkan/Common/QueueFamilyIndices.hpp>
 
@@ -57,6 +58,8 @@ namespace Tether::Vulkan
 		void RemoveDebugMessenger(DebugCallback* messenger);
 
 		VkInstance Get();
+		Vulkan::InstanceLoader* GetLoader();
+
 		std::vector<VkExtensionProperties> GetAvailableExtentions();
 
 		void DispatchDebugMessage(
@@ -81,6 +84,8 @@ namespace Tether::Vulkan
 		// application and Vulkan.
 		VkInstance instance;
 		VkDebugUtilsMessengerEXT debugMessenger;
+
+		Vulkan::InstanceLoader loader;
 		
 		std::vector<DebugCallback*> debugCallbacks;
 		std::vector<VkExtensionProperties> extentions;

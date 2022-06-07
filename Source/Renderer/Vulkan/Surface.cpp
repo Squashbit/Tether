@@ -5,9 +5,13 @@
 #ifdef __linux__
 #include <vulkan/vulkan_xlib.h>
 #elif _WIN32
+#define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
 #endif
+
+#define TETHER_INCLUDE_VULKAN
+#include <Tether/NativeVulkan.hpp>
 
 using namespace Tether::Vulkan;
 using namespace Tether;
@@ -18,6 +22,7 @@ bool Surface::Init(Instance* pInstance, Tether::SimpleWindow* window)
         return false;
     
     this->pInstance = pInstance;
+    this->pLoader = pInstance->GetLoader();
 
 #ifdef __linux__
     VkXlibSurfaceCreateInfoKHR createInfo{};
@@ -25,9 +30,8 @@ bool Surface::Init(Instance* pInstance, Tether::SimpleWindow* window)
     createInfo.dpy = Application::Get().GetStorage()->display;
     createInfo.window = window->GetStorage()->window;
     
-    if (vkCreateXlibSurfaceKHR(pInstance->Get(), &createInfo, nullptr,
-        &surface) != VK_SUCCESS)
-        return false;
+	PFN_vkCreateXlibSurfaceKHR func = (PFN_vkCreateXlibSurfaceKHR)
+        pLoader->vkCreateXlibSurfaceKHR;
 #elif _WIN32
     Tether::Storage::VarStorage* varStorage = 
         ((Tether::Storage::VarStorage*)window->GetStorage());
@@ -36,11 +40,14 @@ bool Surface::Init(Instance* pInstance, Tether::SimpleWindow* window)
     createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
     createInfo.hwnd = varStorage->window;
     createInfo.hinstance = varStorage->hinst;
-    
-    if (vkCreateWin32SurfaceKHR(pInstance->Get(), &createInfo, nullptr,
-        &surface) != VK_SUCCESS)
-        return false;
+
+    PFN_vkCreateWin32SurfaceKHR func = (PFN_vkCreateWin32SurfaceKHR)
+        pLoader->vkCreateWin32SurfaceKHR;
 #endif
+
+	if (func(pInstance->Get(), &createInfo, nullptr,
+		&surface) != VK_SUCCESS)
+		return false;
     
     initialized = true;
     return true;
@@ -53,5 +60,5 @@ VkSurfaceKHR Surface::Get()
 
 void Surface::OnDispose()
 {
-    vkDestroySurfaceKHR(pInstance->Get(), surface, nullptr);
+    pLoader->vkDestroySurfaceKHR(pInstance->Get(), surface, nullptr);
 }

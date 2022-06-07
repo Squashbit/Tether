@@ -10,6 +10,7 @@
 namespace Tether::Vulkan
 {
     class Instance;
+    class InstanceLoader;
     class Surface : public IDisposable
     {
     public:
@@ -31,6 +32,8 @@ namespace Tether::Vulkan
         void OnDispose();
     private:
         Instance* pInstance;
+        Vulkan::InstanceLoader* pLoader;
+
         VkSurfaceKHR surface;
     };
 }
