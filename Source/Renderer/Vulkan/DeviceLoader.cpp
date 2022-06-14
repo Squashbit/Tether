@@ -11,6 +11,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	if (!iloader || !pDevice)
 		return;
 
+	TETHER_DEVICE_FUNC(DestroyDevice);
 	TETHER_DEVICE_FUNC(DeviceWaitIdle);
 	TETHER_DEVICE_FUNC(GetDeviceQueue);
 }

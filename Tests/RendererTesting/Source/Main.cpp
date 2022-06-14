@@ -50,9 +50,8 @@ int main()
 	}
 
 	Renderer::RenderContext ctx;
-	Renderer::Vulkan::RenderContextNative vkNative;
+	Vulkan::RenderContextNative vkNative;
 
-	vkNative.Init();
 	ctx.Init(&vkNative);
 
 	window.SetVisible(true);

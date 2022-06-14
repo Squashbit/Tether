@@ -38,6 +38,7 @@ namespace Tether::Renderer
 		 * Initializes the RenderContext (wow really).
 		 * 
 		 * @param pNative A pointer to the native. 
+		 * The native must stay alive as long as this Render Context is in use.
 		 * The native needed is at Renderer/~api name~/RenderContextNative.hpp.
 		 * For example, Vulkan would be located at:
 		 * Renderer/Vulkan/RenderContextNative.hpp
