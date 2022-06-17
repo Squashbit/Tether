@@ -44,6 +44,7 @@ namespace Tether::Vulkan
 		void OnDispose();
 
 		VkInstance instance;
+
 		VkDevice device;
 		VkSwapchainKHR swapchain;
 	};

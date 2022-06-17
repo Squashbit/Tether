@@ -1,3 +1,4 @@
+#define TETHER_INCLUDE_VULKAN
 #include <Tether/Renderer/Vulkan/VkUtils.hpp>
 #include <vector>
 
@@ -7,8 +8,8 @@ static const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-static bool IsDeviceSuitable(VkPhysicalDevice device, Vulkan::Instance* pInstance,
-	Vulkan::Surface* pSurface)
+static bool IsDeviceSuitable(VkPhysicalDevice device, Instance* pInstance,
+	Surface* pSurface)
 {
 	InstanceLoader* iloader = pInstance->GetLoader();
 
@@ -17,7 +18,7 @@ static bool IsDeviceSuitable(VkPhysicalDevice device, Vulkan::Instance* pInstanc
 	iloader->vkGetPhysicalDeviceProperties(device, &deviceProperties);
 	iloader->vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-	Vulkan::QueueFamilyIndices families =
+	QueueFamilyIndices families =
 		pInstance->FindQueueFamilies(device, pSurface);
 
 	bool extentionsSupported = pInstance->CheckDeviceExtentionSupport(device,
@@ -26,7 +27,7 @@ static bool IsDeviceSuitable(VkPhysicalDevice device, Vulkan::Instance* pInstanc
 	bool swapChainGood = false;
 	if (extentionsSupported)
 	{
-		Vulkan::SwapchainDetails details = pInstance->QuerySwapchainSupport(device,
+		SwapchainDetails details = pInstance->QuerySwapchainSupport(device,
 			pSurface);
 		swapChainGood = !details.formats.empty()
 			&& !details.presentModes.empty();
@@ -41,7 +42,7 @@ static bool IsDeviceSuitable(VkPhysicalDevice device, Vulkan::Instance* pInstanc
 		&& extentionsSupported;
 }
 
-bool Utils::PickDevice(VkPhysicalDevice* pDevice, Vulkan::Instance* pInstance, 
+bool VkUtils::PickDevice(VkPhysicalDevice* pDevice, Vulkan::Instance* pInstance,
 	Vulkan::Surface* pSurface)
 {
 	InstanceLoader* iloader = pInstance->GetLoader();
@@ -56,7 +57,7 @@ bool Utils::PickDevice(VkPhysicalDevice* pDevice, Vulkan::Instance* pInstance,
 		devices.data());
 
 	for (VkPhysicalDevice device : devices)
-		if (IsDeviceSuitable(device, pSurface))
+		if (IsDeviceSuitable(device, pInstance, pSurface))
 		{
 			*pDevice = device;
 			return true;

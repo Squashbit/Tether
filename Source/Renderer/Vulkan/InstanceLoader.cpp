@@ -27,8 +27,11 @@ void InstanceLoader::Load(VkInstance* pInstance)
 	TETHER_INSTANCE_FUNC(DestroyDebugUtilsMessengerEXT);
 	TETHER_INSTANCE_FUNC(DestroyInstance);
 	TETHER_INSTANCE_FUNC(DestroySurfaceKHR);
+	TETHER_INSTANCE_FUNC(EnumeratePhysicalDevices);
 	TETHER_INSTANCE_FUNC(EnumerateDeviceExtensionProperties);
 	TETHER_INSTANCE_FUNC(GetDeviceProcAddr);
+	TETHER_INSTANCE_FUNC(GetPhysicalDeviceFeatures);
+	TETHER_INSTANCE_FUNC(GetPhysicalDeviceProperties);
 	TETHER_INSTANCE_FUNC(GetPhysicalDeviceQueueFamilyProperties);
 	TETHER_INSTANCE_FUNC(GetPhysicalDeviceSurfaceCapabilitiesKHR);
 	TETHER_INSTANCE_FUNC(GetPhysicalDeviceSurfaceFormatsKHR);

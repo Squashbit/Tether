@@ -48,6 +48,8 @@ if (TETHER_VULKAN_API)
         ${SDIR}/Renderer/Vulkan/RenderContextNative.cpp
         ${SDIR}/Renderer/Vulkan/Surface.cpp
         ${SDIR}/Renderer/Vulkan/Swapchain.cpp
+        ${SDIR}/Renderer/Vulkan/VulkanContext.cpp
+        ${SDIR}/Renderer/Vulkan/VkUtils.cpp
         ${SDIR}/Vulkan_Application.cpp
     )
 endif()

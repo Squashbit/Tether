@@ -9,7 +9,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Tether::Vulkan::Utils
+namespace Tether::Vulkan::VkUtils
 {
 	bool PickDevice(VkPhysicalDevice* pDevice, Vulkan::Instance* pInstance, 
 		Vulkan::Surface* pSurface);

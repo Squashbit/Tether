@@ -5,9 +5,6 @@
 #include <iostream>
 #include <vector>
 
-#define TETHER_INCLUDE_VULKAN
-#include <Tether/NativeVulkan.hpp>
-
 using namespace Tether;
 
 static bool InitVulkan(SimpleWindow* pWindow)
@@ -50,8 +47,16 @@ int main()
 	}
 
 	Renderer::RenderContext ctx;
+	Vulkan::VulkanContext vkContext;
 	Vulkan::RenderContextNative vkNative;
 
+	Vulkan::ContextOptions options;
+	options.pWindow = &window;
+
+	if (vkContext.Init(&options) != Vulkan::VulkanContext::ErrorCode::SUCCESS)
+		return 1;
+
+	vkNative.Init(&vkContext);
 	ctx.Init(&vkNative);
 
 	window.SetVisible(true);
