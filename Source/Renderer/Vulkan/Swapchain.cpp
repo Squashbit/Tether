@@ -16,11 +16,12 @@ bool Swapchain::Init(
 		return false;
 	
 	this->pDevice = pDevice;
+	this->pLoader = pDevice->GetLoader();
 	this->imageFormat = createInfo->imageFormat;
 	this->extent = createInfo->imageExtent;
 	this->imageCount = createInfo->minImageCount;
 	
-	if (vkCreateSwapchainKHR(pDevice->Get(), 
+	if (pLoader->vkCreateSwapchainKHR(pDevice->Get(), 
 		createInfo, nullptr, &swapchain))
 		return false;
 	
@@ -36,11 +37,11 @@ uint32_t Swapchain::GetImageCount()
 std::vector<VkImage> Swapchain::GetImages()
 {
 	uint32_t numImages;
-	vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
+	pLoader->vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
 		nullptr);
 	
 	std::vector<VkImage> swapchainImages(numImages);
-	vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
+	pLoader->vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
 		swapchainImages.data());
 
 	return swapchainImages;
@@ -70,7 +71,7 @@ bool Swapchain::GetImageViews(std::vector<VkImageView>* pVec)
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 		
-		if (vkCreateImageView(pDevice->Get(), &createInfo, nullptr,
+		if (pLoader->vkCreateImageView(pDevice->Get(), &createInfo, nullptr,
 			&pVec->at(i)) != VK_SUCCESS)
 			return false;
 	}
@@ -95,7 +96,7 @@ VkSwapchainKHR Swapchain::Get()
 
 void Swapchain::OnDispose()
 {
-	vkDestroySwapchainKHR(pDevice->Get(), swapchain, nullptr);
+	pLoader->vkDestroySwapchainKHR(pDevice->Get(), swapchain, nullptr);
 }
 
 VkPresentModeKHR Swapchain::ChoosePresentMode(

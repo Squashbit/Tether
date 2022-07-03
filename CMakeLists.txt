@@ -45,10 +45,11 @@ if (TETHER_VULKAN_API)
         ${SDIR}/Renderer/Vulkan/DeviceLoader.cpp
         ${SDIR}/Renderer/Vulkan/Instance.cpp
         ${SDIR}/Renderer/Vulkan/InstanceLoader.cpp
-        ${SDIR}/Renderer/Vulkan/RenderContextNative.cpp
+        ${SDIR}/Renderer/Vulkan/SimpleNative.cpp
+        ${SDIR}/Renderer/Vulkan/AdvancedNative.cpp
         ${SDIR}/Renderer/Vulkan/Surface.cpp
         ${SDIR}/Renderer/Vulkan/Swapchain.cpp
-        ${SDIR}/Renderer/Vulkan/VulkanContext.cpp
+        
         ${SDIR}/Renderer/Vulkan/VkUtils.cpp
         ${SDIR}/Vulkan_Application.cpp
     )
@@ -59,6 +60,7 @@ if (TETHER_PREVIEW_FEATURES)
     )
 endif()
 
+# Set the sources
 if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/Win32_DeviceManager.cpp

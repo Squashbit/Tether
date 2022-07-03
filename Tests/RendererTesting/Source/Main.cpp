@@ -1,34 +1,42 @@
 #include <Tether/Tether.hpp>
-
-#include <Tether/Renderer/Vulkan/RenderContextNative.hpp>
+#include <Tether/Renderer/Vulkan/SimpleNative.hpp>
 
 #include <iostream>
 #include <vector>
 
+#define TETHER_INCLUDE_VULKAN
+#include <Tether/NativeVulkan.hpp>
+
 using namespace Tether;
 
-static bool InitVulkan(SimpleWindow* pWindow)
+class DebugLogger : public Vulkan::DebugCallback
 {
-	/*if (!surface.Init(&instance, pWindow))
-		return false;
-
-	VkPhysicalDevice physicalDevice;
-	if (!PickDevice(&physicalDevice, &surface))
-		return false;
-
-	if (!device.Init(&instance, physicalDevice, ))*/
-	return true;
-}
-
-static void DisposeVulkan()
-{
-	/*surface.Dispose();*/
-}
+public:
+	void OnDebugLog(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData
+	)
+	{
+		switch (messageSeverity)
+		{
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			{
+				std::cout << pCallbackData->pMessage << std::endl;
+			}
+			break;
+		}
+	}
+};
 
 int main()
 {
 	Application& app = Application::Get();
-	app.InitVulkan();
+	app.InitVulkan(true);
+
+	DebugLogger vulkanLogger;
+	app.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
 
 	SimpleWindow window;
 	window.Hint(HintType::X, 120);
@@ -40,32 +48,20 @@ int main()
 		return 1;
 	}
 
-	if (!InitVulkan(&window))
-	{
-		std::cout << "Failed to initialize Vulkan" << std::endl;
-		return 1;
-	}
-
 	Renderer::RenderContext ctx;
-	Vulkan::VulkanContext vkContext;
-	Vulkan::RenderContextNative vkNative;
-
-	Vulkan::ContextOptions options;
-	options.pWindow = &window;
-
-	if (vkContext.Init(&options) != Vulkan::VulkanContext::ErrorCode::SUCCESS)
-		return 1;
-
-	vkNative.Init(&vkContext);
-	ctx.Init(&vkNative);
+	Vulkan::SimpleNative vkNative;
 
 	window.SetVisible(true);
+	if (vkNative.Init(&window) != Vulkan::ErrorCode::SUCCESS)
+		return 1;
+
+	ctx.Init(&vkNative);
+
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
 	}
 
 	window.Dispose();
-	DisposeVulkan();
 	return 0;
 }

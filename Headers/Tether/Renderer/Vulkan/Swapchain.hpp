@@ -81,6 +81,7 @@ namespace Tether::Vulkan
         VkFormat imageFormat;
 
         Device* pDevice = nullptr;
+        DeviceLoader* pLoader = nullptr;
     };
 }
 
