@@ -85,6 +85,8 @@ set(DEPENDENT_HEADERS)
 if (TETHER_VULKAN_API)
     find_package(Vulkan REQUIRED)
     set(DEPENDENT_HEADERS ${DEPENDENT_HEADERS} ${Vulkan_INCLUDE_DIR})
+
+    add_dependencies(${PROJECT_NAME} compileTetherAssets)
 endif()
 
 target_include_directories(${PROJECT_NAME} 
