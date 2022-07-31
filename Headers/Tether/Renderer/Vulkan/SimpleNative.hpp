@@ -42,6 +42,7 @@ namespace Tether::Vulkan
 	private:
 		bool InitDevice();
 		bool InitSwapchain();
+		bool InitRenderPass();
 
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 
@@ -52,14 +53,17 @@ namespace Tether::Vulkan
 		InstanceLoader* iloader = nullptr;
 		Instance* instance = nullptr;
 
-		Surface surface;
+		DeviceLoader* dloader = nullptr;
 		Device device;
+
+		Surface surface;
 		Swapchain swapchain;
 
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkPhysicalDevice physicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
+		VkRenderPass renderPass;
 
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;

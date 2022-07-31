@@ -18,6 +18,8 @@ namespace Tether::Vulkan
 		// Can be caused by many different things. 
 		// No graphics queue family, failed to create image views, etc.
 		SWAPCHAIN_INIT_FAILED,
+		// Failed to initialize the RenderPass.
+		RENDERPASS_INIT_FAILED,
 	};
 }
 

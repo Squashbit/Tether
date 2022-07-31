@@ -2,6 +2,8 @@
 .vscode
 CMakeSettings.json
 
+Assets/Build
+
 vgcore.*
 
 Build

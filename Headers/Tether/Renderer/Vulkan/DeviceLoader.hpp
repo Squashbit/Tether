@@ -18,8 +18,10 @@ namespace Tether::Vulkan
 		void Load(InstanceLoader* pInstLoader, VkDevice* pDevice);
 
 		TETHER_DEVICE_FUNC_VAR(CreateImageView);
+		TETHER_DEVICE_FUNC_VAR(CreateRenderPass);
 		TETHER_DEVICE_FUNC_VAR(CreateSwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(DestroyDevice);
+		TETHER_DEVICE_FUNC_VAR(DestroyRenderPass);
 		TETHER_DEVICE_FUNC_VAR(DestroySwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(DeviceWaitIdle);
 		TETHER_DEVICE_FUNC_VAR(GetDeviceQueue);

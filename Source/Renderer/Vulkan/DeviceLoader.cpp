@@ -12,8 +12,10 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 		return;
 
 	TETHER_DEVICE_FUNC(CreateImageView);
+	TETHER_DEVICE_FUNC(CreateRenderPass);
 	TETHER_DEVICE_FUNC(CreateSwapchainKHR);
 	TETHER_DEVICE_FUNC(DestroyDevice);
+	TETHER_DEVICE_FUNC(DestroyRenderPass);
 	TETHER_DEVICE_FUNC(DestroySwapchainKHR);
 	TETHER_DEVICE_FUNC(DeviceWaitIdle);
 	TETHER_DEVICE_FUNC(GetDeviceQueue);

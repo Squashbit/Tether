@@ -14,6 +14,8 @@ message(STATUS "TETHER_OPENGL_API = ${TETHER_OPENGL_API}")
 message(STATUS "TETHER_PREVIEW_FEATURES = ${TETHER_PREVIEW_FEATURES}")
 message(STATUS "TETHER_BUILD_TESTS = ${TETHER_BUILD_TESTS}")
 
+add_subdirectory(Assets)
+
 if (TETHER_BUILD_TESTS)
     add_subdirectory(Tests/SimpleWindow)
     add_subdirectory(Tests/RendererTesting)
