@@ -18,15 +18,16 @@ public:
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData
 	)
 	{
-		switch (messageSeverity)
-		{
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-			{
-				std::cout << pCallbackData->pMessage << std::endl;
-			}
-			break;
-		}
+		std::cout << pCallbackData->pMessage << std::endl;
+		// switch (messageSeverity)
+		// {
+		// 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		// 	case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		// 	{
+		// 		std::cout << pCallbackData->pMessage << std::endl;
+		// 	}
+		// 	break;
+		// }
 	}
 };
 

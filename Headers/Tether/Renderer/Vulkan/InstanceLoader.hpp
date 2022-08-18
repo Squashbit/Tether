@@ -16,8 +16,8 @@ namespace Tether::Vulkan
 		void Load(VkInstance* pInstance);
 
 		// different breed
-		void* vkCreateXlibSurfaceKHR = nullptr;
-		void* vkCreateWin32SurfaceKHR = nullptr;
+		PFN_vkVoidFunction vkCreateXlibSurfaceKHR = nullptr;
+		PFN_vkVoidFunction vkCreateWin32SurfaceKHR = nullptr;
 
 		TETHER_INSTANCE_FUNC_VAR(CreateDebugUtilsMessengerEXT);
 		TETHER_INSTANCE_FUNC_VAR(CreateDevice);

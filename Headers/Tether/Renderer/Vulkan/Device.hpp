@@ -15,7 +15,10 @@ namespace Tether::Vulkan
     class Device : public IDisposable
     {
     public:
-        Device() {}
+        Device() 
+            :
+            IDisposable()
+        {}
         TETHER_NO_COPY(Device);
         
         /**

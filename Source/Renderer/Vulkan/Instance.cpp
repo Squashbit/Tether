@@ -272,7 +272,7 @@ bool Instance::IsDebugMode()
 void Instance::OnDispose()
 {
 	if (debugMode && loader.vkDestroyDebugUtilsMessengerEXT)
-		loader.vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+		loader.vkDestroyDebugUtilsMessengerEXT(NULL, NULL, nullptr);
 
 	debugCallbacks.clear();
 	
