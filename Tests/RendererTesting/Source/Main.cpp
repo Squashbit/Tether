@@ -1,5 +1,5 @@
 #include <Tether/Tether.hpp>
-#include <Tether/Renderer/Vulkan/SimpleNative.hpp>
+#include <Tether/Module/Rendering/Vulkan/SimpleNative.hpp>
 
 #include <iostream>
 #include <vector>
@@ -9,7 +9,7 @@
 
 using namespace Tether;
 
-class DebugLogger : public Vulkan::DebugCallback
+class DebugLogger : public Rendering::Vulkan::DebugCallback
 {
 public:
 	void OnDebugLog(
@@ -50,10 +50,10 @@ int main()
 	}
 
 	Renderer::RenderContext ctx;
-	Vulkan::SimpleNative vkNative;
+	Rendering::Vulkan::SimpleNative vkNative;
 
 	window.SetVisible(true);
-	if (vkNative.Init(&window) != Vulkan::ErrorCode::SUCCESS)
+	if (vkNative.Init(&window) != Rendering::Vulkan::ErrorCode::SUCCESS)
 		return 1;
 
 	ctx.Init(&vkNative);

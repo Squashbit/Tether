@@ -22,18 +22,15 @@ endif()
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
 	"Headers"
-	"../../Headers"
+	"../../Tether/Headers"
+	"../../Tether.Rendering/Headers"
 PRIVATE
 	${VK_INCLUDES}
 )
 
-target_link_directories(${PROJECT_NAME}
-	PRIVATE "../../Build"
-)
-
 if (UNIX)
 	target_link_libraries(${PROJECT_NAME} 
-		${CMAKE_DL_LIBS} pthread tether X11
+		${CMAKE_DL_LIBS} pthread tether tetherRendering X11
 		${VK_LIBS}
 	)
 elseif(WIN32)
