@@ -6,13 +6,15 @@
 #ifndef _TETHER_GRAPHICALWINDOW_HPP
 #define _TETHER_GRAPHICALWINDOW_HPP
 
+#include <Tether/Module/Rendering/Common/Defs.hpp>
+
 #include <Tether/Common/Color.hpp>
 #include <Tether/Elements/Element.hpp>
 #include <Tether/SimpleWindow.hpp>
 
 namespace Tether
 {
-	class GraphicalWindow : public SimpleWindow
+	class TETHER_EXPORT GraphicalWindow : public SimpleWindow
 	{
 	public:
 		GraphicalWindow() {}

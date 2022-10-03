@@ -10,7 +10,6 @@ namespace Tether
     namespace Storage
     {
         struct AppVarStorage;
-        struct VulkanNative;
     }
 
     namespace Devices
@@ -18,7 +17,7 @@ namespace Tether
         class DeviceManager;
     }
 
-    class Application : public IDisposable
+    class TETHER_EXPORT Application : public IDisposable
     {
         friend class SimpleWindow;
         friend Devices::DeviceManager;
@@ -29,26 +28,17 @@ namespace Tether
 
         bool Init();
 
-        // Vulkan functions
-        bool LoadVulkan();
-        bool InitVulkan(bool validationLayers = false);
+        void RegisterModule(Module* pModule);
 
         Storage::AppVarStorage* GetStorage();
-        Storage::VulkanNative* GetVulkanNative();
-
-        bool IsVulkanLoaded();
-        bool IsVulkanInitialized();
-
+        
         static Application& Get();
     protected:
         Storage::AppVarStorage* storage = nullptr;
-        Storage::VulkanNative* vulkan = nullptr;
     private:
         bool OnInit();
         void OnAppDispose();
         
-        void DisposeVulkan();
-
         void* LoadLibrary(const char* path);
         void* LoadFunction(void* handle, const char* funcName);
         void LoadLibraries();
@@ -60,6 +50,8 @@ namespace Tether
         void CreateKeyLUT();
 
         void OnDispose();
+
+        std::vector<Module*> modules;
 
         static Application internal;
     };

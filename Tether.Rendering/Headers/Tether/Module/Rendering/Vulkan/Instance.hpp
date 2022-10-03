@@ -6,6 +6,7 @@
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
@@ -15,7 +16,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class Instance : public IDisposable
+	class TETHER_EXPORT Instance : public IDisposable
 	{
 	public:
 		Instance() {}

@@ -17,7 +17,7 @@ namespace Tether::Devices
     //     struct DeviceVarStorage;
     // }
 
-    class DeviceManager
+    class TETHER_EXPORT DeviceManager
     {
         friend SimpleWindow;
     public:

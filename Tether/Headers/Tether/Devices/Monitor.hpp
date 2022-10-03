@@ -1,6 +1,8 @@
 #ifndef _TETHER_MONITOR_HPP
 #define _TETHER_MONITOR_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <iostream>
 #include <vector>
 
@@ -20,14 +22,14 @@ namespace Tether::Devices
         uint64_t height;
     };
 
-    class Monitor
+    class TETHER_EXPORT Monitor
     {
         friend SimpleWindow;
         friend class DeviceManager;
     public:
         Monitor() {}
 		Monitor(const Monitor& ref);
-
+            // bew work
         uint64_t GetIndex() const;
         int64_t GetX() const;
         int64_t GetY() const;

@@ -8,8 +8,8 @@
 #ifndef _TETHER_RENDERER_RENDERCONTEXT_HPP
 #define _TETHER_RENDERER_RENDERCONTEXT_HPP
 
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
-#include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Types.hpp>
 
 #ifdef TETHER_INCLUDE_VULKAN
@@ -18,7 +18,7 @@
 
 namespace Tether::Renderer
 {
-	class IRenderContextNative : public IDisposable
+	class TETHER_EXPORT IRenderContextNative : public IDisposable
 	{
 	public:
 		IRenderContextNative() = default;
@@ -26,7 +26,7 @@ namespace Tether::Renderer
 		TETHER_NO_COPY(IRenderContextNative);
 	};
 
-	class RenderContext : public IDisposable
+	class TETHER_EXPORT RenderContext : public IDisposable
 	{
 	public:
 		RenderContext();

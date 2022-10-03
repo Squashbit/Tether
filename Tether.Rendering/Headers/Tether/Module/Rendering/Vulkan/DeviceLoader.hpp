@@ -4,13 +4,14 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
 
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 
 #include <vulkan/vulkan.h>
 
 namespace Tether::Rendering::Vulkan
 {
-	class DeviceLoader
+	class TETHER_EXPORT DeviceLoader
 	{
 	public:
 		DeviceLoader() = default;

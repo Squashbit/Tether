@@ -1,11 +1,12 @@
 #ifndef _TETHER_INPUT_KEYINFO_HPP
 #define _TETHER_INPUT_KEYINFO_HPP
 
+#include <Tether/Common/Defs.hpp>
 #include <stdint.h>
 
 namespace Tether::Input
 {
-    class KeyInfo
+    class TETHER_EXPORT KeyInfo
     {
     public:
         KeyInfo() {}

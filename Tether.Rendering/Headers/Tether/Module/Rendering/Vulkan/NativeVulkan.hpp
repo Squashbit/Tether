@@ -5,7 +5,7 @@
 #ifndef _TETHER_NATIVEVULKAN_HPP
 #define _TETHER_NATIVEVULKAN_HPP
 
-#include <Tether/Common/Defs.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #ifdef TETHER_INCLUDE_VULKAN
 
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
@@ -18,7 +18,7 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Tether::Storage
+namespace Tether::Rendering::Storage
 {
 #define vkCreateInstance(createInfo, pAllocator, pInstance) \
 	TETHER_APP_VK->CreateInstance(createInfo, pAllocator, pInstance)
@@ -29,7 +29,7 @@ namespace Tether::Storage
 #define vkGetInstanceProcAddr(instance, pName) \
 	TETHER_APP_VK->GetInstanceProcAddr(instance, pName)
 	
-	struct VulkanNative
+	struct TETHER_EXPORT VulkanNative
 	{
 		void* handle = nullptr;
 

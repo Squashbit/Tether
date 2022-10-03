@@ -1,11 +1,13 @@
 #ifndef _TETHER_WINDOWRESIZEEVENT_HPP
 #define _TETHER_WINDOWRESIZEEVENT_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <iostream>
 
 namespace Tether::Events
 {
-    class WindowResizeEvent
+    class TETHER_EXPORT WindowResizeEvent
     {
     public:
         WindowResizeEvent() {}

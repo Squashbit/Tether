@@ -1,4 +1,4 @@
-#include <Tether/GraphicalWindow.hpp>
+#include <Tether/Module/Rendering/GraphicalWindow.hpp>
 #include <Tether/Controls/Control.hpp>
 
 using namespace Tether;

@@ -12,6 +12,7 @@
 #ifndef _TETHER_RENDERER_VULKAN_SIMPLENATIVE_HPP
 #define _TETHER_RENDERER_VULKAN_SIMPLENATIVE_HPP
 
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/ErrorCode.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
@@ -27,7 +28,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class SimpleNative : public Renderer::IRenderContextNative
+	class TETHER_EXPORT SimpleNative : public Renderer::IRenderContextNative
 	{
 	public:
 		SimpleNative() = default;

@@ -18,7 +18,7 @@
 #define TETHER_INSTANCE_FUNC_NULL(name) \
 	vulkan->name = (PFN_vk##name)vkGetInstanceProcAddr(nullptr, "vk"#name)
 
-#define TETHER_APP_VK Tether::Application::Get().GetVulkanNative()
+#define TETHER_APP_VK Tether::Rendering::RenderingModule.Get()->GetVulkanNative()
 
 #if defined(__INTELLISENSE__)
 

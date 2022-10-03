@@ -10,12 +10,13 @@
 
 #include <Tether/Module/Rendering/RenderContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/AdvancedNativeInfo.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 
 #include <vulkan/vulkan.h>
 
 namespace Tether::Rendering::Vulkan
 {
-	class AdvancedNative : public Renderer::IRenderContextNative
+	class TETHER_EXPORT AdvancedNative : public Renderer::IRenderContextNative
 	{
 	public:
 		AdvancedNative() = default;

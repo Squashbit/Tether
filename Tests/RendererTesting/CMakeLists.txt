@@ -10,14 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-set(VK_LIBS)
-set(VK_INCLUDES)
-if (TETHER_VULKAN_API)
-    add_dependencies(${PROJECT_NAME} vkshaders VulkanMemoryAllocator)
-
-    set(VK_LIBS ${Vulkan_LIBRARIES})
-    set(VK_INCLUDES ${Vulkan_INCLUDE_DIR})
-endif()
+add_dependencies(${PROJECT_NAME} vkshaders VulkanMemoryAllocator)
+set(VK_LIBS ${Vulkan_LIBRARIES})
+set(VK_INCLUDES ${Vulkan_INCLUDE_DIR})
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
@@ -35,8 +30,9 @@ if (UNIX)
 	)
 elseif(WIN32)
 	target_link_libraries(${PROJECT_NAME} 
-		${CMAKE_DL_LIBS} tether
+		${CMAKE_DL_LIBS}
 		${VK_LIBS}
+		tether tetherRendering
 	)
 endif()
 	

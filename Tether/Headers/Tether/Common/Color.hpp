@@ -1,11 +1,12 @@
 #ifndef _TETHER_COLOR_HPP
 #define _TETHER_COLOR_HPP
 
+#include <Tether/Common/Defs.hpp>
 #include <cstdint>
 
 namespace Tether
 {
-	class Color
+	class TETHER_EXPORT Color
 	{
 	public:
 		Color();

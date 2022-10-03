@@ -33,7 +33,6 @@ Application& Application::Get()
 
 void Application::OnDispose()
 {
-    DisposeVulkan();
     OnAppDispose();
     
     delete storage;

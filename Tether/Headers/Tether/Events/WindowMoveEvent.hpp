@@ -1,11 +1,13 @@
 #ifndef _TETHER_WINDOWMOVEEVENT_HPP
 #define _TETHER_WINDOWMOVEEVENT_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <iostream>
 
 namespace Tether::Events
 {
-    class WindowMoveEvent
+    class TETHER_EXPORT WindowMoveEvent
     {
     public:
         WindowMoveEvent() {}

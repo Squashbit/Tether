@@ -1,13 +1,15 @@
 #ifndef _TETHER_TYPES_HPP
 #define _TETHER_TYPES_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <iostream>
 #include <memory>
 
 namespace Tether
 {
 	template<typename T>
-	class Vector2
+	class TETHER_EXPORT Vector2
 	{
 	public:
 		Vector2() {}
@@ -34,7 +36,7 @@ namespace Tether
 	};
 
 	template<typename T>
-	class Vector3
+	class TETHER_EXPORT Vector3
 	{
 	public:
 		Vector3() {}
@@ -65,7 +67,7 @@ namespace Tether
 	};
 
 	template<typename T>
-	class Vector4
+	class TETHER_EXPORT Vector4
 	{
 	public:
 		Vector4() {}

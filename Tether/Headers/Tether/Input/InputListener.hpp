@@ -1,6 +1,7 @@
 #ifndef _TETHER_INPUT_INPUTLISTENER_HPP
 #define _TETHER_INPUT_INPUTLISTENER_HPP
 
+#include <Tether/Common/Defs.hpp>
 #include <Tether/Input/InputType.hpp>
 #include <Tether/Input/MouseMoveInfo.hpp>
 #include <Tether/Input/RawMouseMoveInfo.hpp>
@@ -16,7 +17,7 @@ namespace Tether
 
 namespace Tether::Input
 {
-    class InputListener
+    class TETHER_EXPORT InputListener
     {
         friend SimpleWindow;
     public:

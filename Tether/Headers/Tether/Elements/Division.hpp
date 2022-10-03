@@ -4,11 +4,12 @@
 #ifndef _TETHER_ELEMENTS_DIVISION_HPP
 #define _TETHER_ELEMENTS_DIVISION_HPP
 
+#include <Tether/Common/Defs.hpp>
 #include <Tether/Elements/Element.hpp>
 
 namespace Tether::Elements
 {
-	class Division : public Element
+	class TETHER_EXPORT Division : public Element
 	{
 	public:
 

@@ -1,6 +1,8 @@
 #ifndef _TETHER_EVENTHANDLER_HPP
 #define _TETHER_EVENTHANDLER_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <Tether/Events/WindowClosingEvent.hpp>
 #include <Tether/Events/WindowRepaintEvent.hpp>
 #include <Tether/Events/WindowResizeEvent.hpp>
@@ -16,7 +18,7 @@ namespace Tether
 
 namespace Tether::Events
 {
-	class EventHandler
+	class TETHER_EXPORT EventHandler
 	{
 		friend SimpleWindow;
 	public:

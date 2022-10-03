@@ -50,7 +50,7 @@ namespace Tether
 
 #ifdef _WIN32
 	class SimpleWindow;
-	class WindowProcCaller
+	class TETHER_EXPORT WindowProcCaller
 	{
 	public:
 		int64_t HandleMessage(void* hWnd, Tether::SimpleWindow* pWnd,
@@ -75,7 +75,7 @@ namespace Tether
 		uint64_t fields = 0;
 	};
 
-	class SimpleWindow : public IDisposable
+	class TETHER_EXPORT SimpleWindow : public IDisposable
 	{
 	#ifdef _WIN32
 		friend WindowProcCaller;

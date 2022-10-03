@@ -4,6 +4,7 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
 
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 
@@ -12,7 +13,7 @@
 namespace Tether::Rendering::Vulkan
 {
     class Instance;
-    class Device : public IDisposable
+    class TETHER_EXPORT Device : public IDisposable
     {
     public:
         Device() 

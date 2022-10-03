@@ -2,12 +2,13 @@
 #define _TETHER_WINDOWERROREVENT_HPP
 
 #include <Tether/Common/Types.hpp>
+#include <Tether/Common/Defs.hpp>
 
 #include <iostream>
 
 namespace Tether::Events
 {
-    class WindowErrorEvent
+    class TETHER_EXPORT WindowErrorEvent
     {
     public:
         WindowErrorEvent() {}

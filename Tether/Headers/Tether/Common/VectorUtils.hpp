@@ -1,6 +1,8 @@
 #ifndef _TETHER_VECTORUTILS_HPP
 #define _TETHER_VECTORUTILS_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #include <iostream>
 #include <vector>
 #include <algorithm>

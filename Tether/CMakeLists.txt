@@ -8,7 +8,7 @@ file(GLOB_RECURSE HEADERS
     "Headers/*.hpp" "Headers/*.h" 
 )
 
-add_library(${PROJECT_NAME} STATIC 
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} 
     ${HEADERS}
 
     ${SDIR}/Common/Color.cpp ${SDIR}/Common/IDisposable.cpp 
@@ -21,13 +21,6 @@ add_library(${PROJECT_NAME} STATIC
     ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp 
     ${SDIR}/SimpleWindow.cpp
 )
-
-set(DEPENDENT_SOURCES)
-if (TETHER_VULKAN_API)
-    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
-        ${SDIR}/Vulkan_Application.cpp
-    )
-endif()
 
 # Set the sources of platform specific files
 if (WIN32)

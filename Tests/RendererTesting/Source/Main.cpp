@@ -5,7 +5,7 @@
 #include <vector>
 
 #define TETHER_INCLUDE_VULKAN
-#include <Tether/NativeVulkan.hpp>
+#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
 using namespace Tether;
 
@@ -34,11 +34,10 @@ public:
 int main()
 {
 	Application& app = Application::Get();
-	app.InitVulkan(true);
+	//app.InitVulkan(true);
 
 	DebugLogger vulkanLogger;
-	app.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
-
+	
 	SimpleWindow window;
 	window.Hint(HintType::X, 120);
 	window.Hint(HintType::Y, 120);

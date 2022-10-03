@@ -9,6 +9,8 @@
 #ifndef _TETHER_IDISPOSABLE_HPP
 #define _TETHER_IDISPOSABLE_HPP
 
+#include <Tether/Common/Defs.hpp>
+
 #define TETHER_DISPOSE_ON_DESTRUCT(className) \
     ~className() \
     { \
@@ -17,7 +19,7 @@
 
 namespace Tether
 {
-    class IDisposable
+    class TETHER_EXPORT IDisposable
     {
     public:
         // Calls the Dispose function
@@ -33,7 +35,7 @@ namespace Tether
          */
         void Dispose();
     protected:
-        // This is the fuction that should be overridden for object disposal.
+        // This is the function that should be overridden for object disposal.
         virtual void OnDispose() {}
 
         // This field must be set to true in order for OnDispose to be called.

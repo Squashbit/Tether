@@ -3,10 +3,11 @@
 
 #include <Tether/NativeWindow.hpp>
 #include <Tether/Common/Color.hpp>
+#include <Tether/Common/Defs.hpp>
 
 namespace Tether::Controls
 {
-    class Control
+    class TETHER_EXPORT Control
     {
         friend NativeWindow;
     public:

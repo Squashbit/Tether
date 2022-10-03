@@ -1,6 +1,6 @@
 #include <Tether/Module/Rendering/RenderContext.hpp>
 
-using namespace Tether::Rendering;
+using namespace Tether::Renderer;
 
 RenderContext::RenderContext()
 {}

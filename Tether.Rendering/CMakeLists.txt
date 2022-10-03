@@ -17,7 +17,7 @@ file(GLOB_RECURSE HEADERS
     "Headers/*.hpp" "Headers/*.h" 
 )
 
-add_library(${PROJECT_NAME} STATIC 
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${HEADERS}
 
     ${SDIR}/GraphicalWindow.cpp 
@@ -26,7 +26,6 @@ add_library(${PROJECT_NAME} STATIC
 )
 
 add_dependencies(${PROJECT_NAME} tether)
-
 set(DEPENDENT_SOURCES)
 if (TETHER_VULKAN_API)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
@@ -39,6 +38,7 @@ if (TETHER_VULKAN_API)
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
         
+        # ${SDIR}/Vulkan/Vulkan_Application.cpp
         ${SDIR}/Vulkan/VkUtils.cpp
     )
 endif()

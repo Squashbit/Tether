@@ -1,7 +1,7 @@
 #include <Tether/Application.hpp>
 
 #define TETHER_INCLUDE_VULKAN
-#include <Tether/NativeVulkan.hpp>
+#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
 using namespace Tether;
 

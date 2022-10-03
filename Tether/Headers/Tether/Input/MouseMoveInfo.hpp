@@ -1,11 +1,12 @@
 #ifndef _TETHER_INPUT_MOUSEMOVEINFO_HPP
 #define _TETHER_INPUT_MOUSEMOVEINFO_HPP
 
+#include <Tether/Common/Defs.hpp>
 #include <stdint.h>
 
 namespace Tether::Input
 {
-    class MouseMoveInfo
+    class TETHER_EXPORT MouseMoveInfo
     {
     public:
         MouseMoveInfo() {}

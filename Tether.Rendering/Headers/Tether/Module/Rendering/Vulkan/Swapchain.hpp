@@ -3,7 +3,7 @@
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
-#include <Tether/Common/Ref.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
@@ -12,7 +12,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-    class Swapchain : public IDisposable
+    class TETHER_EXPORT Swapchain : public IDisposable
     {
     public:
         Swapchain() {}

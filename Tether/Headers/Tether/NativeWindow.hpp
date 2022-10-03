@@ -18,7 +18,7 @@ namespace Tether
         class Control;
     }
 
-    class NativeWindow : public SimpleWindow
+    class TETHER_EXPORT NativeWindow : public SimpleWindow
     {
         friend Tether::Controls::Control;
     public:
