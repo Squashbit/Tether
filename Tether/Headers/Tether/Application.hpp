@@ -1,6 +1,7 @@
 #ifndef _TETHER_APPLICATION_HPP
 #define _TETHER_APPLICATION_HPP
 
+#include <Tether/Module.hpp>
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Types.hpp>
