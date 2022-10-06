@@ -6,6 +6,8 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Types.hpp>
 
+#include <vector>
+
 namespace Tether
 {
     namespace Storage
@@ -20,6 +22,7 @@ namespace Tether
 
     class TETHER_EXPORT Application : public IDisposable
     {
+        friend Module;
         friend class SimpleWindow;
         friend Devices::DeviceManager;
     public:
@@ -29,12 +32,12 @@ namespace Tether
 
         bool Init();
 
-        void RegisterModule(Module* pModule);
-
         Storage::AppVarStorage* GetStorage();
         
         static Application& Get();
     protected:
+        void RegisterModule(Module* pModule);
+
         Storage::AppVarStorage* storage = nullptr;
     private:
         bool OnInit();

@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${SDIR}/Input/InputListener.cpp ${SDIR}/Input/KeyCharInfo.cpp 
     ${SDIR}/Input/KeyInfo.cpp ${SDIR}/Input/MouseMoveInfo.cpp 
     ${SDIR}/Input/RawMouseMoveInfo.cpp ${SDIR}/Application.cpp 
-    ${SDIR}/SimpleWindow.cpp
+    ${SDIR}/SimpleWindow.cpp ${SDIR}/Module.cpp 
 )
 
 # Set the sources of platform specific files

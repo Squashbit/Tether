@@ -16,11 +16,9 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 	Application& app = Application::Get();
 	if (!app.IsInitialized() && !app.Init())
 		return ErrorCode::APP_INIT_FAILED;
-	if (!app.IsVulkanLoaded() && !app.LoadVulkan())
-		return ErrorCode::APP_INIT_FAILED;
-
+	
 	this->pWindow = pWindow;
-	this->instance = &app.GetVulkanNative()->instance;
+	// TODO: this->instance = &(RenderingModule::Get().GetVulkanNative()->instance);
 	this->iloader = instance->GetLoader();
 
 	if (!surface.Init(instance, pWindow))

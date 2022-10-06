@@ -69,3 +69,7 @@ PRIVATE
     ${TETHER_PATH}/Headers
     ${DEPENDENT_HEADERS}
 )
+
+target_link_libraries(${PROJECT_NAME}
+    tether
+)

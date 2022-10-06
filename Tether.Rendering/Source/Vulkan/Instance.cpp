@@ -113,7 +113,7 @@ bool Instance::Init(
 		}
 	}
 	
-	if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
+	/*if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
 		return false;
 
 	uint32_t extentionCount = 0;
@@ -121,7 +121,7 @@ bool Instance::Init(
 
 	extentions = std::vector<VkExtensionProperties>(extentionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount,
-		extentions.data());
+		extentions.data()); TODO*/
 
 	loader.Load(&instance);
 	
@@ -307,17 +307,17 @@ bool Instance::CheckDeviceExtentionSupport(VkPhysicalDevice device,
 
 bool Instance::CheckValidationLayerSupport(std::vector<const char*> layers)
 {
-	uint32_t layerCount;
+	/*uint32_t layerCount;
 	vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
 	std::vector<VkLayerProperties> availableLayers(layerCount);
-	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+	vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data()); TODO*/
 
-	for (const char* layerName : layers) 
+	/*for (const char* layerName : layers)
 	{
 		bool layerFound = false;
 		for (const auto& layerProperties : availableLayers)
-			if (std::strcmp(layerName, layerProperties.layerName) == 0) 
+			if (std::strcmp(layerName, layerProperties.layerName) == 0)
 			{
 				layerFound = true;
 				break;
@@ -325,7 +325,7 @@ bool Instance::CheckValidationLayerSupport(std::vector<const char*> layers)
 
 		if (!layerFound)
 			return false;
-	}
+	}*/
 	
 	return true;
 }

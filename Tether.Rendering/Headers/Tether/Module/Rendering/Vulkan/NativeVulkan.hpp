@@ -8,13 +8,12 @@
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #ifdef TETHER_INCLUDE_VULKAN
 
+#include <Tether/Module/Rendering/RenderingModule.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
-
-#include <Tether/Application.hpp>
 
 #include <vulkan/vulkan.h>
 
