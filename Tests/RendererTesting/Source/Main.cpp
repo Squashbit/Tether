@@ -30,13 +30,14 @@ public:
 	}
 };
 
-int main()
-{
-	Application& app = Application::Get();
-	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();
+static SimpleWindow window;
+static DebugLogger vulkanLogger;
+static Renderer::RenderContext ctx;
+static Rendering::Vulkan::SimpleNative vkNative;
 
-	// Initialize the application
-	app.Init();
+static bool InitVulkan()
+{
+	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();
 
 	// Initialize Vulkan. Doing so shouldn't be necessary since anything that needs
 	// Vulkan initializes itself internally, but doing that you usually don't get
@@ -47,18 +48,50 @@ int main()
 		case Rendering::Vulkan::ErrorCode::INCOMPATIBLE_DRIVER:
 		{
 			std::cerr << "Incompatible Vulkan driver" << std::endl;
-			return 1;
+			return false;
 		}
 		break;
-		
+
 		case Rendering::Vulkan::ErrorCode::SUCCESS: break;
-		default: return 1;
+		default: return false;
 	}
 
-	DebugLogger vulkanLogger;
 	rendering.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
+
+	Rendering::Vulkan::ErrorCode nativeError = vkNative.Init(&window);
+	switch (nativeError)
+	{
+		case Rendering::Vulkan::ErrorCode::SUCCESS: break;
+
+		case Rendering::Vulkan::ErrorCode::DEVICE_NOT_FOUND:
+		{
+			std::cout << "Failed to initialize Vulkan. No suitable device found."
+				<< std::endl;
+			return false;
+		}
+		break;
+
+		default:
+		{
+			std::cout << "Failed to initialize Vulkan." << std::endl;
+			return false;
+		}
+		break;
+	}
 	
-	SimpleWindow window;
+	ctx.Init(&vkNative);
+
+	return true;
+}
+
+int main()
+{
+	Application& app = Application::Get();
+	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();
+
+	// Initialize the application (wow really)
+	app.Init();
+	
 	window.Hint(HintType::X, 120);
 	window.Hint(HintType::Y, 120);
 	window.Hint(HintType::VISIBLE, false);
@@ -68,22 +101,16 @@ int main()
 		return 2;
 	}
 
-	Renderer::RenderContext ctx;
-	Rendering::Vulkan::SimpleNative vkNative;
-
-	window.SetVisible(true);
-	if (vkNative.Init(&window) != Rendering::Vulkan::ErrorCode::SUCCESS)
+	if (!InitVulkan())
 		return 3;
 
-	ctx.Init(&vkNative);
-
+	window.SetVisible(true);
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
 	}
 
 	window.Dispose();
-
-	rendering.DisposeVulkan();
+	app.Dispose();
 	return 0;
 }

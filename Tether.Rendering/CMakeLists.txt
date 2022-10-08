@@ -25,9 +25,10 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${SDIR}/RenderingModule.cpp
 )
 
-add_dependencies(${PROJECT_NAME} tether)
+add_dependencies(${PROJECT_NAME} tether compileTetherAssets)
+
 set(DEPENDENT_SOURCES)
-if (TETHER_VULKAN_API)
+if (TETHER_RENDERING_VULKAN_API)
     set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
         ${SDIR}/Vulkan/Device.cpp
         ${SDIR}/Vulkan/DeviceLoader.cpp
@@ -54,12 +55,8 @@ elseif (UNIX)
     )
 endif()
 
-set(DEPENDENT_HEADERS)
-if (TETHER_VULKAN_API)
+if (TETHER_RENDERING_VULKAN_API)
     find_package(Vulkan REQUIRED)
-    set(DEPENDENT_HEADERS ${DEPENDENT_HEADERS} ${Vulkan_INCLUDE_DIR})
-
-    add_dependencies(${PROJECT_NAME} compileTetherAssets)
 endif()
 
 target_include_directories(${PROJECT_NAME} 
@@ -67,7 +64,7 @@ PUBLIC
     "Headers"
 PRIVATE
     ${TETHER_PATH}/Headers
-    ${DEPENDENT_HEADERS}
+    ${Vulkan_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}

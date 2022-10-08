@@ -39,25 +39,13 @@ elseif (UNIX)
     )
 endif()
 
-set(DEPENDENT_HEADERS)
-if (TETHER_VULKAN_API)
-    find_package(Vulkan REQUIRED)
-    set(DEPENDENT_HEADERS ${DEPENDENT_HEADERS} ${Vulkan_INCLUDE_DIR})
-
-    add_dependencies(${PROJECT_NAME} compileTetherAssets)
-endif()
-
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
     "Headers"
-PRIVATE
-    ${DEPENDENT_HEADERS}
 )
 
 if (WIN32)
-    target_link_libraries(${PROJECT_NAME}
-        
-    )
+    target_link_libraries(${PROJECT_NAME})
 elseif (UNIX)
     target_link_libraries(${PROJECT_NAME}
         X11 Xrandr
