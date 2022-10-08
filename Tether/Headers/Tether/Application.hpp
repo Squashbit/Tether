@@ -26,13 +26,13 @@ namespace Tether
         friend class SimpleWindow;
         friend Devices::DeviceManager;
     public:
-        TETHER_NO_COPY(Application);
         TETHER_DISPOSE_ON_DESTRUCT(Application);
         Application() {}
 
         bool Init();
 
         Storage::AppVarStorage* GetStorage();
+        std::vector<Module*>* GetModules();
         
         static Application& Get();
     protected:
@@ -42,13 +42,9 @@ namespace Tether
     private:
         bool OnInit();
         void OnAppDispose();
-        
-        void* LoadLibrary(const char* path);
-        void* LoadFunction(void* handle, const char* funcName);
-        void LoadLibraries();
-        void LoadFunctions();
 
-        void FreeLibrary(void* library);
+		void LoadLibraries();
+		void LoadFunctions();
         void FreeLibraries();
 
         void CreateKeyLUT();

@@ -26,18 +26,16 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
 if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/Win32_DeviceManager.cpp
+        ${SDIR}/Common/Win32_LibraryLoader.cpp
         ${SDIR}/Win32_Application.cpp
         ${SDIR}/Win32_SimpleWindow.cpp
-
-        ${DEPENDENT_SOURCES}
     )
 elseif (UNIX)
     target_sources(${PROJECT_NAME} PRIVATE
         ${SDIR}/Devices/linux_DeviceManager.cpp
+        ${SDIR}/Common/Linux_LibraryLoader.cpp
         ${SDIR}/X11_Application.cpp
         ${SDIR}/X11_SimpleWindow.cpp
-
-        ${DEPENDENT_SOURCES}
     )
 endif()
 
@@ -55,3 +53,13 @@ PUBLIC
 PRIVATE
     ${DEPENDENT_HEADERS}
 )
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME}
+        
+    )
+elseif (UNIX)
+    target_link_libraries(${PROJECT_NAME}
+        X11 Xrandr
+    )
+endif()

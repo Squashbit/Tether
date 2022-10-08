@@ -7,6 +7,8 @@ namespace Tether::Rendering::Vulkan
 	{
 		// Success!
 		SUCCESS,
+		FAILURE,
+		INCOMPATIBLE_DRIVER,
 		// The vulkan instance in the Application failed to initialize
 		APP_INIT_FAILED, 
 		// Failed to create the surface

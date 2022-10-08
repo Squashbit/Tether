@@ -7,8 +7,12 @@ RenderingModule RenderingModule::internal = RenderingModule();
 
 bool RenderingModule::OnInit()
 {
-	std::cout << "Rendering module initialized!" << std::endl;
 	return true;
+}
+
+void RenderingModule::OnDispose()
+{
+	DisposeVulkan();
 }
 
 RenderingModule& RenderingModule::Get()

@@ -38,7 +38,7 @@ if (TETHER_VULKAN_API)
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
         
-        # ${SDIR}/Vulkan/Vulkan_Application.cpp
+        ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
         ${SDIR}/Vulkan/VkUtils.cpp
     )
 endif()

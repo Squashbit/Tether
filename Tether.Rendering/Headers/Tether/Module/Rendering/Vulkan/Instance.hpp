@@ -32,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 		 * 
 		 * @returns True if initialization succeeded. Otherwise, false.
 		 */
-		bool Init(
+		VkResult Init(
 			const char* applicationName = "VulkanApp",
 			const char* engineName = "VulkanEngine",
 			bool debugMode = false

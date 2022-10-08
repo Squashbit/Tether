@@ -44,6 +44,11 @@ Storage::AppVarStorage* Application::GetStorage()
     return storage;
 }
 
+std::vector<Module*>* Application::GetModules()
+{
+    return &modules;
+}
+
 Application& Application::Get()
 {
     return internal;
@@ -51,7 +56,10 @@ Application& Application::Get()
 
 void Application::OnDispose()
 {
+	// Dispose all modules
+    for (size_t i = 0; i < modules.size(); i++)
+        modules[i]->OnDispose();
+
     OnAppDispose();
-    
     delete storage;
 }

@@ -94,7 +94,7 @@ if (COMPDEFS MATCHES "^VULKAN_API")
 	add_dependencies(compileTetherAssets compileTetherVKshaders)
 endif()
 
-message("Compiler for assets is \"${CMAKE_CXX_COMPILER_ID}\"")
+message(STATUS "Compiler for assets is \"${CMAKE_CXX_COMPILER_ID}\"")
 
 # Compile assets
 foreach(source IN LISTS ASSETS)

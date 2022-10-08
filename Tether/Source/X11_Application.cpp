@@ -3,25 +3,55 @@
 #include <Tether/Application.hpp>
 #include <Tether/Native.hpp>
 
+#include <Tether/Common/LibraryLoader.hpp>
+
 #include <dlfcn.h>
 #include <string.h>
 
 using namespace Tether;
 
-void* Application::LoadLibrary(const char* path)
+void Application::LoadLibraries()
 {
-    return dlopen(path, RTLD_LAZY | RTLD_LOCAL);
+	using namespace Storage;
+
+	int garbage;
+
+#if defined(__CYGWIN__)
+	storage->xrr.handle = LibraryLoader::LoadLibrary("libXrandr-2.so");
+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+	storage->xrr.handle = LibraryLoader::LoadLibrary("libXrandr.so");
+#else
+	storage->xrr.handle = LibraryLoader::LoadLibrary("libXrandr.so.2");
+#endif
+
+#if defined(__CYGWIN__)
+	storage->xi.handle = LibraryLoader::LoadLibrary("libXi-6.so");
+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+	storage->xi.handle = LibraryLoader::LoadLibrary("libXi.so");
+#else
+	storage->xi.handle = LibraryLoader::LoadLibrary("libXi.so.6");
+#endif
+
+	if (!XQueryExtension(storage->display, "XInputExtension",
+		&storage->xi.opcode, &garbage, &garbage))
+		storage->xi.available = false;
 }
 
-void* Application::LoadFunction(void* handle, const char* funcName)
+void Application::LoadFunctions()
 {
-    return dlsym(handle, funcName);
+	using namespace Storage;
+
+	if (storage->xi.handle && storage->xi.available)
+	{
+		storage->xi.selectEvents = (PFN_XISelectEvents)
+            LibraryLoader::LoadFunction(storage->xi.handle, "XISelectEvents");
+	}
 }
 
-void Application::FreeLibrary(void* library)
+void Application::FreeLibraries()
 {
-    if (library)
-        dlclose(library);
+    LibraryLoader::FreeLibrary(storage->xrr.handle);
+    LibraryLoader::FreeLibrary(storage->xi.handle);
 }
 
 bool Application::OnInit()
@@ -58,44 +88,6 @@ void Application::OnAppDispose()
     XCloseDisplay(storage->display);
 
     FreeLibraries();
-}
-
-void Application::LoadLibraries()
-{
-    using namespace Storage;
-
-    int garbage;
-
-#if defined(__CYGWIN__)
-    storage->xrr.handle = LoadLibrary("libXrandr-2.so");
-#elif defined(__OpenBSD__) || defined(__NetBSD__)
-    storage->xrr.handle = LoadLibrary("libXrandr.so");
-#else
-    storage->xrr.handle = LoadLibrary("libXrandr.so.2");
-#endif
-
-#if defined(__CYGWIN__)
-    storage->xi.handle = LoadLibrary("libXi-6.so");
-#elif defined(__OpenBSD__) || defined(__NetBSD__)
-    storage->xi.handle = LoadLibrary("libXi.so");
-#else
-    storage->xi.handle = LoadLibrary("libXi.so.6");
-#endif
-
-    if (!XQueryExtension(storage->display, "XInputExtension", 
-        &storage->xi.opcode, &garbage, &garbage))
-        storage->xi.available = false;
-}
-
-void Application::LoadFunctions()
-{
-    using namespace Storage;
-
-    if (storage->xi.handle && storage->xi.available)
-    {
-        storage->xi.selectEvents = (PFN_XISelectEvents)
-            LoadFunction(storage->xi.handle, "XISelectEvents");
-    }
 }
 
 static Keycodes TranslateScancode(const KeySym* keysyms, int width)
@@ -176,7 +168,8 @@ static Keycodes TranslateScancode(const KeySym* keysyms, int width)
         case XK_F22:            return Keycodes::KEY_F22;
         case XK_F23:            return Keycodes::KEY_F23;
         case XK_F24:            return Keycodes::KEY_F24;
-        case XK_F25:            return Keycodes::KEY_F25; // im gonna press the f25 key
+        // I'm gonna press the f25 key
+        case XK_F25:            return Keycodes::KEY_F25; 
 
         // Numeric keypad
         case XK_KP_Divide:      return Keycodes::KEY_KP_DIVIDE;
@@ -184,7 +177,6 @@ static Keycodes TranslateScancode(const KeySym* keysyms, int width)
         case XK_KP_Subtract:    return Keycodes::KEY_KP_SUBTRACT;
         case XK_KP_Add:         return Keycodes::KEY_KP_ADD;
 
-        // These should have been detected in secondary keysym test above!
         case XK_KP_Insert:      return Keycodes::KEY_KP_0;
         case XK_KP_End:         return Keycodes::KEY_KP_1;
         case XK_KP_Down:        return Keycodes::KEY_KP_2;
@@ -283,12 +275,6 @@ void Application::CreateKeyLUT()
 
     XkbFreeNames(desc, XkbKeyNamesMask, true);
     XkbFreeKeyboard(desc, 0, true);
-}
-
-void Application::FreeLibraries()
-{
-    FreeLibrary(storage->xrr.handle);
-    FreeLibrary(storage->xi.handle);
 }
 
 #endif //__linux__

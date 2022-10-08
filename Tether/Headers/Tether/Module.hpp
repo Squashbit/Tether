@@ -6,11 +6,11 @@
 
 namespace Tether
 {
-	class TETHER_EXPORT Module : public IDisposable
+	class TETHER_EXPORT Module
 	{
+		friend class Application;
 	public:
 		TETHER_NO_COPY(Module);
-		TETHER_DISPOSE_ON_DESTRUCT(Module);
 		/**
 		 * @brief
 		 * The module constructor. Just initializes this module with the given
@@ -21,10 +21,11 @@ namespace Tether
 		 * @param moduleName The formal name of the module.
 		 */
 		Module(Module* pThisModule, const char* moduleName);
-
-		virtual bool OnInit() { return true; }
-
+		
 		const char* GetModuleName();
+	protected:
+		virtual bool OnInit() { return true; }
+		virtual void OnDispose() {}
 	private:
 		const char* moduleName = nullptr;
 	};

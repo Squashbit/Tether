@@ -32,14 +32,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan_DebugCallback(
 	return false;
 }
 
-bool Instance::Init(
+VkResult Instance::Init(
 	const char* applicationName,
 	const char* engineName,
 	bool debugMode
 )
 {
 	if (initialized)
-		return false;
+		return VK_ERROR_UNKNOWN;
 	
 	this->debugMode = debugMode;
 
@@ -88,7 +88,7 @@ bool Instance::Init(
 		// Initialize validation layers
 
 		if (!CheckValidationLayerSupport(validationLayers))
-			return false;
+			return VK_ERROR_UNKNOWN;
 		
 		createInfo.enabledLayerCount = 
 			static_cast<uint32_t>(validationLayers.size());
@@ -113,15 +113,16 @@ bool Instance::Init(
 		}
 	}
 	
-	/*if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-		return false;
+	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+	if (result != VK_SUCCESS)
+		return result;
 
 	uint32_t extentionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount, nullptr);
 
 	extentions = std::vector<VkExtensionProperties>(extentionCount);
 	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount,
-		extentions.data()); TODO*/
+		extentions.data());
 
 	loader.Load(&instance);
 	
@@ -130,7 +131,7 @@ bool Instance::Init(
 			nullptr, &debugMessenger);
 
 	initialized = true;
-	return true;
+	return VK_SUCCESS;
 }
 
 QueueFamilyIndices Instance::FindQueueFamilies(
@@ -272,7 +273,7 @@ bool Instance::IsDebugMode()
 void Instance::OnDispose()
 {
 	if (debugMode && loader.vkDestroyDebugUtilsMessengerEXT)
-		loader.vkDestroyDebugUtilsMessengerEXT(NULL, NULL, nullptr);
+		loader.vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
 	debugCallbacks.clear();
 	
