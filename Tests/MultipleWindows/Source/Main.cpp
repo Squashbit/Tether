@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include <Tether/Tether.hpp>
+#include <Tether/Module/Rendering/GraphicalWindow.hpp>
 
 #include <thread>
 #include <chrono>
@@ -9,7 +10,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Tether::GraphicalWindow
+class TestWindow : public Rendering::GraphicalWindow
 {
 public:
 	class EventHandler : public Events::EventHandler

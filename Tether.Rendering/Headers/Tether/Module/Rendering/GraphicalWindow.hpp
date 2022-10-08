@@ -12,7 +12,7 @@
 #include <Tether/Elements/Element.hpp>
 #include <Tether/SimpleWindow.hpp>
 
-namespace Tether
+namespace Tether::Rendering
 {
 	class TETHER_EXPORT GraphicalWindow : public SimpleWindow
 	{

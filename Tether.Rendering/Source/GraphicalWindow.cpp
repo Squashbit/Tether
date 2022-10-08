@@ -2,8 +2,9 @@
 #include <Tether/Controls/Control.hpp>
 
 using namespace Tether;
+using namespace Tether::Rendering;
 
-void Tether::GraphicalWindow::AddElement(Elements::Element* pElement, bool repaint)
+void GraphicalWindow::AddElement(Elements::Element* pElement, bool repaint)
 {
 	if (!initialized)
 	{
@@ -17,7 +18,7 @@ void Tether::GraphicalWindow::AddElement(Elements::Element* pElement, bool repai
 		Repaint();
 }
 
-bool Tether::GraphicalWindow::RemoveElement(Elements::Element* pElement, bool repaint)
+bool GraphicalWindow::RemoveElement(Elements::Element* pElement, bool repaint)
 {
 	if (!initialized)
 	{
@@ -39,7 +40,7 @@ bool Tether::GraphicalWindow::RemoveElement(Elements::Element* pElement, bool re
 	return false;
 }
 
-void Tether::GraphicalWindow::SetBackgroundColor(Color backgroundColor)
+void GraphicalWindow::SetBackgroundColor(Color backgroundColor)
 {
 	if (!initialized)
 	{
@@ -50,7 +51,7 @@ void Tether::GraphicalWindow::SetBackgroundColor(Color backgroundColor)
 	this->backgroundColor = backgroundColor;
 }
 
-void Tether::GraphicalWindow::ClearElements()
+void GraphicalWindow::ClearElements()
 {
 	if (!initialized)
 	{
@@ -59,7 +60,7 @@ void Tether::GraphicalWindow::ClearElements()
 	}
 }
 
-void Tether::GraphicalWindow::Repaint()
+void GraphicalWindow::Repaint()
 {
 	if (!initialized)
 	{
@@ -76,7 +77,7 @@ void Tether::GraphicalWindow::Repaint()
 	// TODO: Element rendering
 }
 
-bool Tether::GraphicalWindow::InitGraphics()
+bool GraphicalWindow::InitGraphics()
 {
 	if (!initialized)
 	{
@@ -87,7 +88,7 @@ bool Tether::GraphicalWindow::InitGraphics()
 	return true;
 }
 
-void Tether::GraphicalWindow::DisposeGraphics()
+void GraphicalWindow::DisposeGraphics()
 {
 	if (!initialized)
 	{
