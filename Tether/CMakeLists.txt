@@ -1,13 +1,11 @@
 cmake_minimum_required (VERSION 3.8)
 project ("tether")
 
-set(SDIR Source)
-set(CMAKE_CXX_STANDARD 17)
-
 file(GLOB_RECURSE HEADERS 
     "Headers/*.hpp" "Headers/*.h" 
 )
 
+set(SDIR Source)
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} 
     ${HEADERS}
 

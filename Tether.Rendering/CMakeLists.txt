@@ -1,22 +1,19 @@
 cmake_minimum_required (VERSION 3.8)
 project ("tetherRendering")
 
-set(SDIR Source)
-set(CMAKE_CXX_STANDARD 17)
-set(TETHER_PATH "../Tether")
-
 option(TETHER_RENDERING_VULKAN_API "Build tether with Vulkan capabilities" OFF)
 option(TETHER_RENDERING_OPENGL_API "Build tether with OpenGL capabilities" OFF)
-
 message(STATUS "TETHER_RENDERING_VULKAN_API = ${TETHER_RENDERING_VULKAN_API}")
 message(STATUS "TETHER_RENDERING_OPENGL_API = ${TETHER_RENDERING_OPENGL_API}")
 
+# Add the assets CMakeLists.txt file
 add_subdirectory(Assets)
 
 file(GLOB_RECURSE HEADERS 
     "Headers/*.hpp" "Headers/*.h" 
 )
 
+set(SDIR Source)
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${HEADERS}
 
@@ -63,7 +60,8 @@ target_include_directories(${PROJECT_NAME}
 PUBLIC 
     "Headers"
 PRIVATE
-    ${TETHER_PATH}/Headers
+    ${TETHER_RELATIVE_PATH}/Headers
+    ${TETHER_BINARY_DIR}
     ${Vulkan_INCLUDE_DIR}
 )
 

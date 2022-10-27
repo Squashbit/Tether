@@ -1,0 +1,3 @@
+[submodule "Vendor/Bin2cpp"]
+	path = Vendor/Bin2cpp
+	url = https://github.com/Squashbit/Bin2cpp

@@ -1,29 +1,34 @@
 cmake_minimum_required (VERSION 3.8)
 
-# Relative to the build directory
-set(SHADER_BINARY_DIR Shaders)
-
-# Relative to the list directory
-set(SHADER_SOURCE_DIR Shaders)
-set(COMPILED_ASSETS_DIR Compiled/Assets)
-set(BIN2CPP_UNIX_DIR Compiled/bin2cpp)
-set(BIN2CPP_WINDOWS_DIR Compiled/bin2cpp.exe)
+# Relative to the build directory 
+# Build/*name*/Tether/Tether.Rendering/Assets
+set(COMMON_DIR Common)
+set(SHADER_BINARY_DIR VulkanShaders)
+set(SHADER_HEADER_DIR CompiledShaders)
+set(COMPILED_ASSETS_DIR Compiled)
 
 # The absolute path to the compiled assets directory
-# Build/-Configuration-/Tether/Assets/-COMPILED_ASSETS_DIR-
-set (ABSOLUTE_COMPILED_DIR
-	"\"${CMAKE_CURRENT_BINARY_DIR}/${COMPILED_ASSETS_DIR}\""
+# Build/*name*/Tether/Tether.Rendering/Assets/${COMPILED_ASSETS_DIR}
+set (BUILD_COMPILED_DIR
+	"${CMAKE_CURRENT_BINARY_DIR}/${COMPILED_ASSETS_DIR}"
 )
 
 # The absolute path to the shader binary directory
-# Build/-Configuration-/Tether/Assets/-SHADER_BINARY_DIR-
-set (ABSOLUTE_SHADER_DIR
-	"\"${CMAKE_CURRENT_BINARY_DIR}/${SHADER_BINARY_DIR}\""
+# Build/*name*/Tether/Tether.Rendering/Assets/${SHADER_BINARY_DIR}
+set (BUILD_SHADER_DIR
+	"${CMAKE_CURRENT_BINARY_DIR}/${SHADER_BINARY_DIR}"
+)
+
+# The absolute path to the shader headers directory
+# Build/*name*/Tether/Tether.Rendering/Assets/${SHADER_HEADER_DIR}
+set (BUILD_SHADER_HEADER_DIR
+	"${CMAKE_CURRENT_BINARY_DIR}/${SHADER_HEADER_DIR}"
 )
 
 if (TETHER_RENDERING_VULKAN_API)
-	
-	# Compile shaders
+	# Firstly, compile Vulkan shaders into .spv.
+
+	add_custom_target(compileTetherVKSpv)
 
 	# GLSLC is required for Vulkan shader compilation
 	find_program(glslc_executable NAMES glslc)
@@ -31,26 +36,12 @@ if (TETHER_RENDERING_VULKAN_API)
 
 	# Find all shader files
 	file(GLOB_RECURSE SHADERS
-		${SHADER_SOURCE_DIR}/*.vert
-		${SHADER_SOURCE_DIR}/*.frag
+		${SHADER_BINARY_DIR}/*.vert
+		${SHADER_BINARY_DIR}/*.frag
 	)
 
 	# Make the shader bin directory (if it doesn't exist)
-	if (WIN32)
-		add_custom_command(
-			COMMAND
-				IF not exist ${ABSOLUTE_SHADER_DIR} ( mkdir ${ABSOLUTE_SHADER_DIR} )
-			OUTPUT tetherShaderdir
-			COMMENT "Creating compiled shaders directory"
-		)
-	elseif(UNIX)
-		add_custom_command(
-			COMMAND
-				mkdir -p ${ABSOLUTE_SHADER_DIR}
-			OUTPUT tetherShaderdir
-			COMMENT "Creating compiled shaders directory"
-		)
-	endif()
+	file(MAKE_DIRECTORY ${BUILD_SHADER_DIR})
 
 	# Compile all shaders with glslc
 	foreach(source IN LISTS SHADERS)
@@ -59,59 +50,81 @@ if (TETHER_RENDERING_VULKAN_API)
 
 		# Run glslc for each shader
 		add_custom_command(
+			TARGET compileTetherVKSpv
 			COMMAND
 				${glslc_executable}
 				# Output file
-				-o ${ABSOLUTE_SHADER_DIR}/${FILENAME}.spv
+				-o \"${BUILD_SHADER_DIR}/${FILENAME}.spv\"
 				# Source file
-				${source}
-			OUTPUT ${FILENAME}.spv
-			COMMENT "Compiling shader: ${FILENAME}"
+				\"${source}\"
 		)
 
-		list(APPEND SPV_SHADERS ${FILENAME}.spv)
+		list(APPEND SPV_SHADERS "${BUILD_SHADER_DIR}/${FILENAME}.spv")
 	endforeach()
 
-	add_custom_target(compileTetherVKshaders ALL DEPENDS ${SPV_SHADERS} 
-		tetherShaderdir)
+
+	# Compile SPV into .h
+	add_custom_target(compileTetherVkShaders)
+	add_dependencies(compileTetherVkShaders compileTetherVKSpv)
+
+	file(MAKE_DIRECTORY ${BUILD_SHADER_HEADER_DIR})
+
+	foreach(source IN LISTS SPV_SHADERS)
+		# Get the name of the file without path (with extension)
+		get_filename_component(FILENAME ${source} NAME)
+
+		add_custom_command(
+			TARGET compileTetherVkShaders 
+			COMMAND
+				bin2cpp
+				-s ${source}
+				-o \"${BUILD_SHADER_HEADER_DIR}/${FILENAME}.h\"
+				-n Tether::Assets::VulkanShaders
+		)
+	endforeach()
 endif()
 
-# ----- END SHADERS COMPILATION  -----
+# ----- END SHADER-ASSET COMPILATION  -----
 # ----- BEGIN ASSETS COMPILATION -----
 
-# Find all assets
+# Convert all assets into header files with bin2cpp
+
+# Target & deps
+add_custom_target(compileTetherAssets)
+add_dependencies(compileTetherAssets bin2cpp)
+
+# Find all assets (relative to the list directory)
 file(GLOB_RECURSE ASSETS
-	*.*
+	${COMMON_DIR}/*.*
 )
 
-# Remove the CMake file
-list(REMOVE_ITEM ASSETS CMakeLists.txt)
-# TODO: Remove the compiled assets directory
+file(MAKE_DIRECTORY ${BUILD_COMPILED_DIR})
 
-add_custom_target(compileTetherAssets)
-# Add vulkan shaders dependency
-if (COMPDEFS MATCHES "^VULKAN_API")
-	add_dependencies(compileTetherAssets compileTetherVKshaders)
+# If Tether.Rendering is compiled with Vulkan features, then add the target that
+# compiles VULKAN shaders into SPV.
+if (TETHER_RENDERING_VULKAN_API)
+	add_dependencies(compileTetherAssets compileTetherVkShaders)
 endif()
 
-message(STATUS "Compiler for assets is \"${CMAKE_CXX_COMPILER_ID}\"")
-
-# Compile assets
 foreach(source IN LISTS ASSETS)
 	# Get the name of the file without path (with extension)
 	get_filename_component(FILENAME ${source} NAME)
 
-	string(REPLACE "." "_" ARRAY_NAME "${FILENAME}")
-	
+	file(RELATIVE_PATH FILE_RELPATH ${CMAKE_CURRENT_LIST_DIR}/${COMMON_DIR} ${source})
+	get_filename_component(RELPATH ${FILE_RELPATH} DIRECTORY)
+
 	# Potential issue: There may be multiple assets with the same name so they
 	# should be stored in their folders relative to the Assets folder
-	set(OUTPUT_FILE "\"${ABSOLUTE_COMPILED_DIR}/${FILENAME}.o\"")
+	set(OUTPUT_DIRECTORY "${BUILD_COMPILED_DIR}/${RELPATH}")
+	set(OUTPUT_FILE "${OUTPUT_DIRECTORY}/${FILENAME}.h")
 
-	#add_custom_command(
-	#	TARGET compileTetherAssets 
-	#	COMMAND
-	#		# TODO: Assets command
-	#	COMMENT "Compiling asset: ${OUTPUT_FILE}"
-	#)
+	add_custom_command(
+		TARGET compileTetherAssets 
+		COMMAND
+			bin2cpp
+			-s ${source}
+			-o ${OUTPUT_FILE}
+			-n Tether::Assets
+			-mkd # -mkd tells bin2cpp to create the directory the output is in
+	)
 endforeach()
-
