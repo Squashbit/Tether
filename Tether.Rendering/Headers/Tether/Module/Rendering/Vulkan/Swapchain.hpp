@@ -65,7 +65,7 @@ namespace Tether::Rendering::Vulkan
         
         uint32_t GetImageCount();
         std::vector<VkImage> GetImages();
-        bool GetImageViews(std::vector<VkImageView>* pVec);
+        bool CreateImageViews(std::vector<VkImageView>* pVec);
 
         VkExtent2D GetExtent();
         VkFormat GetImageFormat();

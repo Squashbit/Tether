@@ -23,6 +23,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CreateShaderModule);
 		TETHER_DEVICE_FUNC_VAR(CreateSwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(DestroyDevice);
+		TETHER_DEVICE_FUNC_VAR(DestroyImageView);
 		TETHER_DEVICE_FUNC_VAR(DestroyRenderPass);
 		TETHER_DEVICE_FUNC_VAR(DestroyShaderModule);
 		TETHER_DEVICE_FUNC_VAR(DestroySwapchainKHR);

@@ -47,7 +47,7 @@ std::vector<VkImage> Swapchain::GetImages()
 	return swapchainImages;
 }
 
-bool Swapchain::GetImageViews(std::vector<VkImageView>* pVec)
+bool Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 {
 	std::vector<VkImage> images = GetImages();
 

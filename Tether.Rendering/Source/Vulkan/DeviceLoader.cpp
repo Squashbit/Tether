@@ -16,6 +16,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(CreateShaderModule);
 	TETHER_DEVICE_FUNC(CreateSwapchainKHR);
 	TETHER_DEVICE_FUNC(DestroyDevice);
+	TETHER_DEVICE_FUNC(DestroyImageView);
 	TETHER_DEVICE_FUNC(DestroyRenderPass);
 	TETHER_DEVICE_FUNC(DestroyShaderModule);
 	TETHER_DEVICE_FUNC(DestroySwapchainKHR);

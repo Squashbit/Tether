@@ -146,7 +146,7 @@ bool SimpleNative::InitSwapchain()
 		return false;
 
 	swapchainImages = swapchain.GetImages();
-	if (!swapchain.GetImageViews(&swapchainImageViews))
+	if (!swapchain.CreateImageViews(&swapchainImageViews))
 		return false;
 
 	return true;
@@ -257,7 +257,12 @@ void SimpleNative::OnDispose()
 
 	vertexModule.Dispose();
 	fragmentModule.Dispose();
+
+	for (VkImageView imageView : swapchainImageViews)
+		dloader->vkDestroyImageView(device.Get(), imageView, nullptr);
+
 	swapchain.Dispose();
+
 	device.Dispose();
 	surface.Dispose();
 }
