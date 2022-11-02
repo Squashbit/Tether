@@ -5,23 +5,20 @@ namespace Tether::Rendering::Vulkan
 {
 	enum class ErrorCode
 	{
-		// Success!
 		SUCCESS,
-		FAILURE,
+		UNKNOWN,
+		// The GPU probably doesn't support the selected Vulkan version.
 		INCOMPATIBLE_DRIVER,
-		// The vulkan instance in the Application failed to initialize
 		APP_INIT_FAILED, 
-		// Failed to create the surface
+		VULKAN_NOT_INITIALIZED, 
 		SURFACE_INIT_FAILED, 
-		// No suitable GPU was found
 		DEVICE_NOT_FOUND,
-		// Failed to initialize the device.
 		DEVICE_INIT_FAILED,
 		// Can be caused by many different things. 
 		// No graphics queue family, failed to create image views, etc.
 		SWAPCHAIN_INIT_FAILED,
-		// Failed to initialize the RenderPass.
 		RENDERPASS_INIT_FAILED,
+		SHADER_INIT_FAILED,
 	};
 }
 

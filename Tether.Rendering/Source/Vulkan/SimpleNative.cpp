@@ -5,6 +5,9 @@
 #include <Tether/Module/Rendering/Vulkan/VkUtils.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
+#include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
+#include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
+
 using namespace Tether::Rendering::Vulkan;
 
 static const std::vector<const char*> deviceExtensions = {
@@ -13,16 +16,17 @@ static const std::vector<const char*> deviceExtensions = {
 
 ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 {
-	Application& app = Application::Get();
-	if (!app.IsInitialized() && !app.Init())
-		return ErrorCode::APP_INIT_FAILED;
+	if (initialized)
+		return ErrorCode::UNKNOWN;
+
+	TETHER_TRY_INIT_APP_RETURNVAL(ErrorCode::APP_INIT_FAILED);
 
 	RenderingModule& module = RenderingModule::Get();
 	if (!module.IsVulkanInitialized())
-		return ErrorCode::APP_INIT_FAILED;
+		return ErrorCode::VULKAN_NOT_INITIALIZED;
 	
 	this->pWindow = pWindow;
-	this->instance = &(RenderingModule::Get().GetVulkanNative()->instance);
+	this->instance = &(module.GetVulkanNative()->instance);
 	this->iloader = instance->GetLoader();
 
 	if (!surface.Init(instance, pWindow))
@@ -39,7 +43,10 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 		return ErrorCode::SWAPCHAIN_INIT_FAILED;
 	if (!InitRenderPass())
 		return ErrorCode::RENDERPASS_INIT_FAILED;
+	if (!InitShaders())
+		return ErrorCode::SHADER_INIT_FAILED;
 
+	initialized = true;
 	return ErrorCode::SUCCESS;
 }
 
@@ -89,11 +96,7 @@ bool SimpleNative::InitSwapchain()
 	Vulkan::SwapchainDetails details =
 		instance->QuerySwapchainSupport(physicalDevice, &surface);
 	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(details);
-
-	uint32_t imageCount = details.capabilities.minImageCount + 1;
-	if (details.capabilities.maxImageCount > 0 &&
-		imageCount > details.capabilities.maxImageCount)
-		imageCount = details.capabilities.maxImageCount;
+	uint32_t imageCount = FindImageCount(details);
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -209,6 +212,25 @@ bool SimpleNative::InitRenderPass()
 	return true;
 }
 
+bool SimpleNative::InitShaders()
+{
+	if (!vertexModule.CreateFromSpirV(
+		&device, Vulkan::ShaderType::VERTEX,
+		(uint32_t*)Tether::Assets::VulkanShaders::_binary_solid_vert_spv,
+		sizeof(Tether::Assets::VulkanShaders::_binary_solid_vert_spv)
+	))
+		return false;
+
+	if (!fragmentModule.CreateFromSpirV(
+		&device, ShaderType::FRAG,
+		(uint32_t*)Tether::Assets::VulkanShaders::_binary_solid_frag_spv,
+		sizeof(Tether::Assets::VulkanShaders::_binary_solid_frag_spv)
+	))
+		return false;
+
+	return true;
+}
+
 VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
 {
 	for (const auto& availableFormat : details.formats)
@@ -219,10 +241,22 @@ VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
 	return details.formats[0];
 }
 
+uint32_t SimpleNative::FindImageCount(SwapchainDetails details)
+{
+	uint32_t imageCount = details.capabilities.minImageCount + 1;
+	if (details.capabilities.maxImageCount > 0 &&
+		imageCount > details.capabilities.maxImageCount)
+		imageCount = details.capabilities.maxImageCount;
+
+	return imageCount;
+}
+
 void SimpleNative::OnDispose()
 {
 	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
 
+	vertexModule.Dispose();
+	fragmentModule.Dispose();
 	swapchain.Dispose();
 	device.Dispose();
 	surface.Dispose();

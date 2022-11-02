@@ -18,6 +18,9 @@
 
 namespace Tether::Renderer
 {
+	// A "native" is a class that another class can store as a member variable,
+	// usually for something platform specific, or API specific,
+	// therefore being "native" to that API or Operating System.
 	class TETHER_EXPORT IRenderContextNative : public IDisposable
 	{
 	public:

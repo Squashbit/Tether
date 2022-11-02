@@ -22,7 +22,7 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${SDIR}/RenderingModule.cpp
 )
 
-add_dependencies(${PROJECT_NAME} tether compileTetherAssets)
+add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 
 set(DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
@@ -35,7 +35,7 @@ if (TETHER_RENDERING_VULKAN_API)
         ${SDIR}/Vulkan/AdvancedNative.cpp
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
-        
+        ${SDIR}/Vulkan/ShaderModule.cpp
         ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
         ${SDIR}/Vulkan/VkUtils.cpp
     )

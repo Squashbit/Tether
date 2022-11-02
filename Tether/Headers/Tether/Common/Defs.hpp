@@ -7,6 +7,16 @@
 	typename& operator=(const typename&) = delete; \
 	typename& operator=(typename&&) = delete;
 
+#define TETHER_TRY_INIT_APP_RETURNVAL(returnValue) \
+	Application& app = Application::Get(); \
+	if (!app.IsInitialized() && !app.Init()) \
+		return returnValue;
+
+#define TETHER_TRY_INIT_APP() \
+	Application& app = Application::Get(); \
+	if (!app.IsInitialized() && !app.Init()) \
+		return;
+
 #if defined(_WIN32) && defined(_TETHER_BUILD_DLL)
 // Ignore the 4251 warning.
 #pragma warning(disable : 4251)

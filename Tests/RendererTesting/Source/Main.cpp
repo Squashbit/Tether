@@ -32,7 +32,7 @@ public:
 
 static SimpleWindow window;
 static DebugLogger vulkanLogger;
-static Renderer::RenderContext ctx;
+static Renderer::RenderContext renderContext;
 static Rendering::Vulkan::SimpleNative vkNative;
 
 static bool InitVulkan()
@@ -79,7 +79,7 @@ static bool InitVulkan()
 		break;
 	}
 	
-	ctx.Init(&vkNative);
+	renderContext.Init(&vkNative);
 
 	return true;
 }
@@ -111,6 +111,7 @@ int main()
 	}
 
 	window.Dispose();
+	renderContext.Dispose();
 	app.Dispose();
 	return 0;
 }

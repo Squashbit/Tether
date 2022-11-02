@@ -46,7 +46,7 @@ bool RenderingModule::LoadVulkan()
 Vulkan::ErrorCode RenderingModule::InitVulkan(bool validationlayers)
 {
 	if (!LoadVulkan())
-		return Vulkan::ErrorCode::FAILURE;
+		return Vulkan::ErrorCode::UNKNOWN;
 
 	VkResult result = vulkan->instance.Init("TetherApp", "Tether",
 		validationlayers);
@@ -57,7 +57,7 @@ Vulkan::ErrorCode RenderingModule::InitVulkan(bool validationlayers)
 		break;
 
 		case VK_SUCCESS: break;
-		default: return Vulkan::ErrorCode::FAILURE; break;
+		default: return Vulkan::ErrorCode::UNKNOWN; break;
 	}
 
 	vulkan->initialized = true;

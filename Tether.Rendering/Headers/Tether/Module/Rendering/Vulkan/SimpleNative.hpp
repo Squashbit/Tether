@@ -1,10 +1,3 @@
-// WARNING: 
-// THIS IS CURRENTLY A PREVIEW FEATURE.
-// IN ORDER TO USE THIS PROPERLY, TETHER MUST BE COMPILED WITH THE 
-// TETHER_PREVIEW_FEATURES CMAKE OPTION ENABLED.
-//
-// THIS IS SUBJECT TO CHANGE, AND MAY NOT RESEMBLE THE FINAL VERSION.
-
 // Useful for quickly creating a Render Context Native without having to initialize 
 // all Vulkan objects manually. 
 // See AdvancedNative to manually specify Vulkan objects.
@@ -18,6 +11,7 @@
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
+#include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 #include <Tether/Module/Rendering/RenderContext.hpp>
@@ -35,17 +29,15 @@ namespace Tether::Rendering::Vulkan
 		virtual ~SimpleNative() {}
 		TETHER_NO_COPY(SimpleNative);
 
-		/**
-		 * @brief
-		 * Initializes the SimpleNative. 
-		 */
 		ErrorCode Init(SimpleWindow* pWindow);
 	private:
 		bool InitDevice();
 		bool InitSwapchain();
 		bool InitRenderPass();
+		bool InitShaders();
 
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
+		uint32_t FindImageCount(SwapchainDetails details);
 
 		void OnDispose();
 
@@ -65,6 +57,9 @@ namespace Tether::Rendering::Vulkan
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 		VkRenderPass renderPass;
+
+		Vulkan::ShaderModule vertexModule;
+		Vulkan::ShaderModule fragmentModule;
 
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;

@@ -64,8 +64,8 @@ if (TETHER_RENDERING_VULKAN_API)
 
 
 	# Compile SPV into .h
-	add_custom_target(compileTetherVkShaders)
-	add_dependencies(compileTetherVkShaders compileTetherVKSpv)
+	add_custom_target(convertTetherSpvToHeaders)
+	add_dependencies(convertTetherSpvToHeaders compileTetherVKSpv)
 
 	file(MAKE_DIRECTORY ${BUILD_SHADER_HEADER_DIR})
 
@@ -74,7 +74,7 @@ if (TETHER_RENDERING_VULKAN_API)
 		get_filename_component(FILENAME ${source} NAME)
 
 		add_custom_command(
-			TARGET compileTetherVkShaders 
+			TARGET convertTetherSpvToHeaders 
 			COMMAND
 				bin2cpp
 				-s ${source}
@@ -90,8 +90,8 @@ endif()
 # Convert all assets into header files with bin2cpp
 
 # Target & deps
-add_custom_target(compileTetherAssets)
-add_dependencies(compileTetherAssets bin2cpp)
+add_custom_target(compileTetherRenderingAssets)
+add_dependencies(compileTetherRenderingAssets bin2cpp)
 
 # Find all assets (relative to the list directory)
 file(GLOB_RECURSE ASSETS
@@ -103,7 +103,7 @@ file(MAKE_DIRECTORY ${BUILD_COMPILED_DIR})
 # If Tether.Rendering is compiled with Vulkan features, then add the target that
 # compiles VULKAN shaders into SPV.
 if (TETHER_RENDERING_VULKAN_API)
-	add_dependencies(compileTetherAssets compileTetherVkShaders)
+	add_dependencies(compileTetherRenderingAssets convertTetherSpvToHeaders)
 endif()
 
 foreach(source IN LISTS ASSETS)
@@ -119,7 +119,7 @@ foreach(source IN LISTS ASSETS)
 	set(OUTPUT_FILE "${OUTPUT_DIRECTORY}/${FILENAME}.h")
 
 	add_custom_command(
-		TARGET compileTetherAssets 
+		TARGET compileTetherRenderingAssets 
 		COMMAND
 			bin2cpp
 			-s ${source}
