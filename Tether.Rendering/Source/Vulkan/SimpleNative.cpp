@@ -59,9 +59,7 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 	if (!CreateSyncObjects())
 		return ErrorCode::SYNC_OBJECT_INIT_FAILED;
 
-	dloader->vkResetCommandBuffer(commandBuffer, 0);
-	for (size_t i = 0; i < swapchainImageViews.size(); i++)
-		RecordCommandBuffer(commandBuffer, static_cast<uint32_t>(i));
+	PopulateCommandBuffers();
 
 	initialized = true;
 	return ErrorCode::SUCCESS;
@@ -69,29 +67,31 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 
 bool SimpleNative::RenderFrame()
 {
-	dloader->vkWaitForFences(device.Get(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-	dloader->vkResetFences(device.Get(), 1, &inFlightFence);
+	dloader->vkWaitForFences(device.Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
-	uint32_t imageIndex;
-	dloader->vkAcquireNextImageKHR(device.Get(), swapchain.Get(), UINT64_MAX,
-		imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	uint32_t imageIndex = 0;
+	VkResult imageResult = dloader->vkAcquireNextImageKHR(device.Get(), 
+		swapchain.Get(), UINT64_MAX, imageAvailableSemaphores[currentFrame], 
+		VK_NULL_HANDLE, &imageIndex);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame]};
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame]};
 	VkPipelineStageFlags waitStages[] = { 
 		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	if (dloader->vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) 
+	if (dloader->vkQueueSubmit(graphicsQueue, 1, &submitInfo, 
+		inFlightFences[currentFrame])
 			!= VK_SUCCESS)
 		return false;
 
@@ -107,6 +107,7 @@ bool SimpleNative::RenderFrame()
 	if (dloader->vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS)
 		return false;
 
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 	return true;
 }
 
@@ -465,18 +466,24 @@ bool SimpleNative::CreateCommandPool()
 
 bool SimpleNative::CreateCommandBuffer()
 {
+	commandBuffers.resize(swapchainFramebuffers.size());
+
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = 1;
+	allocInfo.commandBufferCount = swapchainFramebuffers.size();
 
 	return dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
-		&commandBuffer) == VK_SUCCESS;
+		commandBuffers.data()) == VK_SUCCESS;
 }
 
 bool SimpleNative::CreateSyncObjects()
 {
+	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
 	VkSemaphoreCreateInfo semaphoreInfo{};
 	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -484,23 +491,37 @@ bool SimpleNative::CreateSyncObjects()
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr, 
-		&imageAvailableSemaphore) != VK_SUCCESS)
-		return false;
+	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
+			&imageAvailableSemaphores[i]) != VK_SUCCESS)
+			return false;
 
-	if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
-		&renderFinishedSemaphore) != VK_SUCCESS)
-		return false;
+		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
+			&renderFinishedSemaphores[i]) != VK_SUCCESS)
+			return false;
 
-	if (dloader->vkCreateFence(device.Get(), &fenceInfo, nullptr,
-		&inFlightFence) != VK_SUCCESS)
-		return false;
+		if (dloader->vkCreateFence(device.Get(), &fenceInfo, nullptr,
+			&inFlightFences[i]) != VK_SUCCESS)
+			return false;
+	}
 
 	return true;
 }
 
-bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
-	uint32_t imageIndex)
+bool SimpleNative::PopulateCommandBuffers()
+{
+	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
+	{
+		dloader->vkResetCommandBuffer(commandBuffers[i], 0);
+		if (!RecordCommandBuffer(commandBuffers[i], i))
+			return false;
+	}
+
+	return true;
+}
+
+bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index)
 {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -513,7 +534,7 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = renderPass;
-		renderPassInfo.framebuffer = swapchainFramebuffers[imageIndex];
+		renderPassInfo.framebuffer = swapchainFramebuffers[index];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain.GetExtent();
 		renderPassInfo.clearValueCount = 1;
@@ -595,9 +616,14 @@ void SimpleNative::OnDispose()
 
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
-	dloader->vkDestroySemaphore(device.Get(), imageAvailableSemaphore, nullptr);
-	dloader->vkDestroySemaphore(device.Get(), renderFinishedSemaphore, nullptr);
-	dloader->vkDestroyFence(device.Get(), inFlightFence, nullptr);
+	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		dloader->vkDestroySemaphore(device.Get(), imageAvailableSemaphores[i], 
+			nullptr);
+		dloader->vkDestroySemaphore(device.Get(), renderFinishedSemaphores[i], 
+			nullptr);
+		dloader->vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
+	}
 
 	DestroySwapchain();
 

@@ -43,7 +43,8 @@ namespace Tether::Rendering::Vulkan
 		bool CreateCommandBuffer();
 		bool CreateSyncObjects();
 
-		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		bool PopulateCommandBuffers();
+		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
 
 		void DestroySwapchain();
 
@@ -76,15 +77,17 @@ namespace Tether::Rendering::Vulkan
 		Vulkan::ShaderModule fragmentModule;
 
 		VkCommandPool commandPool;
-		VkCommandBuffer commandBuffer;
-
+		
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;
 		std::vector<VkFramebuffer> swapchainFramebuffers;
+		std::vector<VkCommandBuffer> commandBuffers;
+		std::vector<VkSemaphore> imageAvailableSemaphores;
+		std::vector<VkSemaphore> renderFinishedSemaphores;
+		std::vector<VkFence> inFlightFences;
 
-		VkSemaphore imageAvailableSemaphore;
-		VkSemaphore renderFinishedSemaphore;
-		VkFence inFlightFence;
+		uint32_t currentFrame = 0;
+		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	};
 }
 

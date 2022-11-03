@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <chrono>
 
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
@@ -105,11 +106,18 @@ int main()
 		return 3;
 
 	window.SetVisible(true);
+
+	std::chrono::high_resolution_clock::time_point startTime;
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
 
 		renderContext.RenderFrame();
+
+		std::chrono::duration<float, std::milli> timeSpan =
+			std::chrono::high_resolution_clock::now() - startTime;
+		std::cout << "FPS: " << 1000.0f / timeSpan.count() << std::endl;
+		startTime = std::chrono::high_resolution_clock::now();
 	}
 
 	window.Dispose();
