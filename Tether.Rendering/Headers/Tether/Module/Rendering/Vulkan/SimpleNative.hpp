@@ -46,6 +46,7 @@ namespace Tether::Rendering::Vulkan
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
 
+		bool RecreateSwapchain();
 		void DestroySwapchain();
 
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
@@ -85,6 +86,9 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkSemaphore> imageAvailableSemaphores;
 		std::vector<VkSemaphore> renderFinishedSemaphores;
 		std::vector<VkFence> inFlightFences;
+
+		bool shouldRecreateSwapchain = false;
+		bool shouldRecreateCommandBuffers = false;
 
 		uint32_t currentFrame = 0;
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;

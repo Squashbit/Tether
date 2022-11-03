@@ -116,7 +116,7 @@ int main()
 
 		std::chrono::duration<float, std::milli> timeSpan =
 			std::chrono::high_resolution_clock::now() - startTime;
-		std::cout << "FPS: " << 1000.0f / timeSpan.count() << std::endl;
+		// std::cout << "FPS: " << 1000.0f / timeSpan.count() << std::endl;
 		startTime = std::chrono::high_resolution_clock::now();
 	}
 

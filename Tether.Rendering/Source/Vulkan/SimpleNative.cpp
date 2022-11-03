@@ -67,21 +67,40 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 
 bool SimpleNative::RenderFrame()
 {
+	if (shouldRecreateSwapchain)
+	{
+		RecreateSwapchain();
+		shouldRecreateSwapchain = false;
+	}
+
 	dloader->vkWaitForFences(device.Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
 	uint32_t imageIndex = 0;
 	VkResult imageResult = dloader->vkAcquireNextImageKHR(device.Get(), 
 		swapchain.Get(), UINT64_MAX, imageAvailableSemaphores[currentFrame], 
 		VK_NULL_HANDLE, &imageIndex);
 
+	if (imageResult != VK_SUCCESS)
+	{
+		shouldRecreateSwapchain = true;
+		return imageResult == VK_ERROR_OUT_OF_DATE_KHR || 
+			   imageResult == VK_SUBOPTIMAL_KHR;
+	}
+
+	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
+
+	if (shouldRecreateCommandBuffers)
+	{
+		PopulateCommandBuffers();
+		shouldRecreateCommandBuffers = false;
+	}
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+	VkPipelineStageFlags waitStages[] = {
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame]};
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame]};
-	VkPipelineStageFlags waitStages[] = { 
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
 	submitInfo.pWaitSemaphores = waitSemaphores;
 	submitInfo.pWaitDstStageMask = waitStages;
@@ -593,6 +612,23 @@ uint32_t SimpleNative::FindImageCount(SwapchainDetails details)
 	return imageCount;
 }
 
+bool SimpleNative::RecreateSwapchain()
+{
+	device.WaitIdle();
+
+	if (pWindow->GetWidth() == 0 || pWindow->GetHeight() == 0)
+		return true;
+	
+	DestroySwapchain();
+
+	if (!CreateSwapchain())
+		return false;
+	if (!CreateFramebuffers())
+		return false;
+
+	PopulateCommandBuffers();
+}
+
 void SimpleNative::DestroySwapchain()
 {
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
@@ -607,7 +643,7 @@ void SimpleNative::DestroySwapchain()
 
 void SimpleNative::OnDispose()
 {
-	dloader->vkDeviceWaitIdle(device.Get());
+	device.WaitIdle();
 
 	dloader->vkDestroyPipeline(device.Get(), pipeline, nullptr);
 	dloader->vkDestroyPipelineLayout(device.Get(), pipelineLayout, nullptr);
