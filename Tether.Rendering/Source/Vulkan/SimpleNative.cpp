@@ -5,9 +5,12 @@
 #include <Tether/Module/Rendering/Vulkan/VkUtils.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
+#include <Tether/Module/Rendering/Common/VertexTypes.hpp>
+
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
 
+using namespace Tether::Rendering;
 using namespace Tether::Rendering::Vulkan;
 
 static const std::vector<const char*> deviceExtensions = {
@@ -37,20 +40,77 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 
 	queueIndices = instance->FindQueueFamilies(physicalDevice, &surface);
 
-	if (!InitDevice())
+	if (!CreateDevice())
 		return ErrorCode::DEVICE_INIT_FAILED;
-	if (!InitSwapchain())
+	if (!CreateSwapchain())
 		return ErrorCode::SWAPCHAIN_INIT_FAILED;
-	if (!InitRenderPass())
+	if (!CreateRenderPass())
 		return ErrorCode::RENDERPASS_INIT_FAILED;
-	if (!InitShaders())
+	if (!CreateShaders())
 		return ErrorCode::SHADER_INIT_FAILED;
+	if (!CreatePipeline())
+		return ErrorCode::PIPELINE_INIT_FAILED;
+	if (!CreateFramebuffers())
+		return ErrorCode::FRAMEBUFFER_INIT_FAILED;
+	if (!CreateCommandPool())
+		return ErrorCode::COMMANDPOOL_INIT_FAILED;
+	if (!CreateCommandBuffer())
+		return ErrorCode::COMMANDBUFFER_INIT_FAILED;
+	if (!CreateSyncObjects())
+		return ErrorCode::SYNC_OBJECT_INIT_FAILED;
+
+	dloader->vkResetCommandBuffer(commandBuffer, 0);
+	for (size_t i = 0; i < swapchainImageViews.size(); i++)
+		RecordCommandBuffer(commandBuffer, static_cast<uint32_t>(i));
 
 	initialized = true;
 	return ErrorCode::SUCCESS;
 }
 
-bool SimpleNative::InitDevice()
+bool SimpleNative::RenderFrame()
+{
+	dloader->vkWaitForFences(device.Get(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+	dloader->vkResetFences(device.Get(), 1, &inFlightFence);
+
+	uint32_t imageIndex;
+	dloader->vkAcquireNextImageKHR(device.Get(), swapchain.Get(), UINT64_MAX,
+		imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+	VkPipelineStageFlags waitStages[] = { 
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	if (dloader->vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) 
+			!= VK_SUCCESS)
+		return false;
+
+	VkSwapchainKHR swapchains[] = { swapchain.Get()};
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapchains;
+	presentInfo.pImageIndices = &imageIndex;
+
+	if (dloader->vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS)
+		return false;
+
+	return true;
+}
+
+bool SimpleNative::CreateDevice()
 {
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = {
@@ -91,7 +151,7 @@ bool SimpleNative::InitDevice()
 	return true;
 }
 
-bool SimpleNative::InitSwapchain()
+bool SimpleNative::CreateSwapchain()
 {
 	Vulkan::SwapchainDetails details =
 		instance->QuerySwapchainSupport(physicalDevice, &surface);
@@ -152,7 +212,7 @@ bool SimpleNative::InitSwapchain()
 	return true;
 }
 
-bool SimpleNative::InitRenderPass()
+bool SimpleNative::CreateRenderPass()
 {
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapchain.GetImageFormat();
@@ -163,16 +223,6 @@ bool SimpleNative::InitRenderPass()
 	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-	/*VkAttachmentDescription depthAttachment{};
-	depthAttachment.format = FindDepthFormat();
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;*/
 
 	VkAttachmentReference colorAttachmentReference{};
 	colorAttachmentReference.attachment = 0;
@@ -212,7 +262,7 @@ bool SimpleNative::InitRenderPass()
 	return true;
 }
 
-bool SimpleNative::InitShaders()
+bool SimpleNative::CreateShaders()
 {
 	if (!vertexModule.CreateFromSpirV(
 		&device, Vulkan::ShaderType::VERTEX,
@@ -226,6 +276,277 @@ bool SimpleNative::InitShaders()
 		(uint32_t*)Tether::Assets::VulkanShaders::_binary_solid_frag_spv,
 		sizeof(Tether::Assets::VulkanShaders::_binary_solid_frag_spv)
 	))
+		return false;
+
+	return true;
+}
+
+bool SimpleNative::CreatePipeline()
+{
+	VkPipelineLayoutCreateInfo pipelineLayoutDesc{};
+	pipelineLayoutDesc.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	
+	if (dloader->vkCreatePipelineLayout(device.Get(), &pipelineLayoutDesc,
+		nullptr, &pipelineLayout) != VK_SUCCESS)
+		return false;
+	
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+	VkExtent2D swapchainExtent = swapchain.GetExtent();
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float)swapchainExtent.width;
+	viewport.height = (float)swapchainExtent.height;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor{};
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent.width = swapchainExtent.width;
+	scissor.extent.height = swapchainExtent.height;
+
+	VkPipelineViewportStateCreateInfo viewportState{};
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportState.viewportCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.scissorCount = 1;
+	viewportState.pScissors = &scissor;
+
+	VkPipelineRasterizationStateCreateInfo rasterizer{};
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizer.lineWidth = 1.0f;
+	rasterizer.cullMode = VK_CULL_MODE_NONE;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.depthBiasEnable = VK_FALSE;
+
+	VkPipelineMultisampleStateCreateInfo multisampleState{};
+	multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampleState.sampleShadingEnable = VK_FALSE;
+	multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multisampleState.minSampleShading = 0.0f;
+	multisampleState.pSampleMask = nullptr;
+	multisampleState.alphaToCoverageEnable = VK_FALSE;
+	multisampleState.alphaToOneEnable = VK_FALSE;
+
+	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_FALSE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+	VkPipelineColorBlendStateCreateInfo colorBlending{};
+	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlending.logicOpEnable = VK_FALSE;
+	colorBlending.logicOp = VK_LOGIC_OP_COPY;
+	colorBlending.attachmentCount = 1;
+	colorBlending.pAttachments = &colorBlendAttachment;
+
+	VkDynamicState dynamicStates[] =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR
+	};
+
+	VkPipelineDynamicStateCreateInfo dynamicState{};
+	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicState.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
+	dynamicState.pDynamicStates = dynamicStates;
+
+	// Oh, yes, cool thing about Vulkan, you can actually have multiple shader
+	// stages for one shader module. That means that you can have a VSMain and
+	// a PSMain in one shader module (aka a GLSL file in this case).
+
+	VkPipelineShaderStageCreateInfo vertexStage{};
+	vertexStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertexStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertexStage.module = vertexModule.Get();
+	vertexStage.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fragmentStage{};
+	fragmentStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragmentStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragmentStage.module = fragmentModule.Get();
+	fragmentStage.pName = "main";
+
+	VkPipelineShaderStageCreateInfo stages[] =
+	{
+		vertexStage, fragmentStage
+	};
+
+	VkGraphicsPipelineCreateInfo pipelineDesc{};
+	pipelineDesc.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	pipelineDesc.stageCount = sizeof(stages) / sizeof(stages[0]);
+	pipelineDesc.pStages = stages;
+	pipelineDesc.pVertexInputState = &vertexInputInfo;
+	pipelineDesc.pInputAssemblyState = &inputAssembly;
+	pipelineDesc.pViewportState = &viewportState;
+	pipelineDesc.pRasterizationState = &rasterizer;
+	pipelineDesc.pMultisampleState = &multisampleState;
+	pipelineDesc.pColorBlendState = &colorBlending;
+	pipelineDesc.layout = pipelineLayout;
+	pipelineDesc.renderPass = renderPass;
+	pipelineDesc.subpass = 0;
+	pipelineDesc.basePipelineHandle = VK_NULL_HANDLE;
+	pipelineDesc.pDepthStencilState = nullptr;
+	pipelineDesc.pDynamicState = &dynamicState;
+
+	if (dloader->vkCreateGraphicsPipelines(device.Get(), VK_NULL_HANDLE,
+		1, &pipelineDesc, nullptr, &pipeline) != VK_SUCCESS)
+		return false;
+
+	vertexModule.Dispose();
+	fragmentModule.Dispose();
+
+	return true;
+}
+
+bool SimpleNative::CreateFramebuffers()
+{
+	VkExtent2D swapchainExtent = swapchain.GetExtent();
+
+	swapchainFramebuffers.resize(swapchainImageViews.size());
+
+	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
+	{
+		VkImageView attachments[] =
+		{
+			swapchainImageViews[i]
+		};
+
+		VkFramebufferCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		createInfo.renderPass = renderPass;
+		createInfo.attachmentCount = 1;
+		createInfo.pAttachments = attachments;
+		createInfo.width = swapchainExtent.width;
+		createInfo.height = swapchainExtent.height;
+		createInfo.layers = 1;
+
+		if (dloader->vkCreateFramebuffer(device.Get(), &createInfo, nullptr,
+			&swapchainFramebuffers[i]))
+		{
+			for (size_t i2 = 0; i2 < i + 1; i2++)
+				dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i2],
+					nullptr);
+
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool SimpleNative::CreateCommandPool()
+{
+	VkCommandPoolCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	createInfo.queueFamilyIndex = queueIndices.graphicsFamilyIndex;
+
+	return dloader->vkCreateCommandPool(device.Get(), &createInfo, nullptr,
+		&commandPool) == VK_SUCCESS;
+}
+
+bool SimpleNative::CreateCommandBuffer()
+{
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = 1;
+
+	return dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
+		&commandBuffer) == VK_SUCCESS;
+}
+
+bool SimpleNative::CreateSyncObjects()
+{
+	VkSemaphoreCreateInfo semaphoreInfo{};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fenceInfo{};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr, 
+		&imageAvailableSemaphore) != VK_SUCCESS)
+		return false;
+
+	if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
+		&renderFinishedSemaphore) != VK_SUCCESS)
+		return false;
+
+	if (dloader->vkCreateFence(device.Get(), &fenceInfo, nullptr,
+		&inFlightFence) != VK_SUCCESS)
+		return false;
+
+	return true;
+}
+
+bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
+	uint32_t imageIndex)
+{
+	VkCommandBufferBeginInfo beginInfo{};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	
+	if (dloader->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+		return false;
+	{
+		VkClearValue clearColor = { {{ 0.0f, 0.0f, 0.0f, 1.0f }} };
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.framebuffer = swapchainFramebuffers[imageIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = swapchain.GetExtent();
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		dloader->vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, 
+			VK_SUBPASS_CONTENTS_INLINE);
+		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
+			pipeline);
+
+		VkExtent2D swapchainExtent = swapchain.GetExtent();
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)swapchainExtent.width;
+		viewport.height = (float)swapchainExtent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		dloader->vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		scissor.extent.width = swapchainExtent.width;
+		scissor.extent.height = swapchainExtent.height;
+		dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		
+		dloader->vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+		dloader->vkCmdEndRenderPass(commandBuffer);
+	}
+	if (dloader->vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		return false;
 
 	return true;
@@ -251,17 +572,34 @@ uint32_t SimpleNative::FindImageCount(SwapchainDetails details)
 	return imageCount;
 }
 
-void SimpleNative::OnDispose()
+void SimpleNative::DestroySwapchain()
 {
-	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
-
-	vertexModule.Dispose();
-	fragmentModule.Dispose();
+	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
+		dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i],
+			nullptr);
 
 	for (VkImageView imageView : swapchainImageViews)
 		dloader->vkDestroyImageView(device.Get(), imageView, nullptr);
 
 	swapchain.Dispose();
+}
+
+void SimpleNative::OnDispose()
+{
+	dloader->vkDeviceWaitIdle(device.Get());
+
+	dloader->vkDestroyPipeline(device.Get(), pipeline, nullptr);
+	dloader->vkDestroyPipelineLayout(device.Get(), pipelineLayout, nullptr);
+
+	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
+
+	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
+
+	dloader->vkDestroySemaphore(device.Get(), imageAvailableSemaphore, nullptr);
+	dloader->vkDestroySemaphore(device.Get(), renderFinishedSemaphore, nullptr);
+	dloader->vkDestroyFence(device.Get(), inFlightFence, nullptr);
+
+	DestroySwapchain();
 
 	device.Dispose();
 	surface.Dispose();

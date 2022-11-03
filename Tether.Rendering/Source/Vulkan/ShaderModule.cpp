@@ -25,6 +25,11 @@ bool ShaderModule::CreateFromSpirV(Device* pDevice, ShaderType shaderType,
 	return true;
 }
 
+VkShaderModule ShaderModule::Get()
+{
+	return vkShaderModule;
+}
+
 void ShaderModule::OnDispose()
 {
 	dloader->vkDestroyShaderModule(pDevice->Get(), vkShaderModule, nullptr);

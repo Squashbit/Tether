@@ -16,6 +16,14 @@ bool RenderContext::Init(IRenderContextNative* pNative)
 	return true;
 }
 
+bool RenderContext::RenderFrame()
+{
+	if (native)
+		return native->RenderFrame();
+
+	return false;
+}
+
 IRenderContextNative* const RenderContext::GetNative() const
 {
 	return native;

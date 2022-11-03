@@ -18,6 +18,8 @@ namespace Tether::Rendering::Vulkan
 
 		bool CreateFromSpirV(Device* pDevice, ShaderType shaderType, 
 			uint32_t* pBytecode, size_t bytecodeSize);
+
+		VkShaderModule Get();
 	private:
 		void OnDispose();
 

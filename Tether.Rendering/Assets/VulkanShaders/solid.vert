@@ -1,23 +1,21 @@
 #version 450
+#extension GL_KHR_vulkan_glsl : enable
 
-layout(location = 0) in vec3 pos;
-layout(location = 1) in vec2 texcoord;
+vec2 positions[3] = vec2[](
+    vec2(0.0, -0.5),
+    vec2(0.5, 0.5),
+    vec2(-0.5, 0.5)
+);
 
-layout(location = 0) out vec2 fragCoord;
+vec3 colors[3] = vec3[](
+    vec3(1.0, 0.0, 0.0),
+    vec3(0.0, 1.0, 0.0),
+    vec3(0.0, 0.0, 1.0)
+);
 
-layout(set = 0, binding = 0) uniform Camera
-{
-    mat4 view;
-    mat4 projection;
-} cam;
+layout(location = 0) out vec3 fragColor;
 
-layout(set = 2, binding = 0) uniform Object
-{
-    mat4 transform;
-} obj;
-
-void main() 
-{
-    fragCoord = texcoord;
-    gl_Position = cam.projection * cam.view * obj.transform * vec4(pos.xyz, 1);
+void main() {
+    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+    fragColor = colors[gl_VertexIndex];
 }

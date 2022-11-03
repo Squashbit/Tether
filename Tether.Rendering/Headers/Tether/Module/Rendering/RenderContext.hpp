@@ -27,6 +27,8 @@ namespace Tether::Renderer
 		IRenderContextNative() = default;
 		virtual ~IRenderContextNative() {}
 		TETHER_NO_COPY(IRenderContextNative);
+
+		virtual bool RenderFrame() { return false; }
 	};
 
 	class TETHER_EXPORT RenderContext : public IDisposable
@@ -47,6 +49,8 @@ namespace Tether::Renderer
 		 * Renderer/Vulkan/RenderContextNative.hpp
 		 */
 		bool Init(IRenderContextNative* pNative);
+
+		bool RenderFrame();
 
 		IRenderContextNative *const GetNative() const;
 	private:

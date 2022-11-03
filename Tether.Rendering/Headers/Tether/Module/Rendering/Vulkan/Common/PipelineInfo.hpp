@@ -1,8 +1,6 @@
 #ifndef _TETHER_VULKAN_PIPELINEINFO_HPP
 #define _TETHER_VULKAN_PIPELINEINFO_HPP
 
-#include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
-
 #include <vulkan/vulkan.h>
 #include <cstdint>
 
@@ -16,6 +14,19 @@ namespace Tether::Rendering::Vulkan
 		VkDescriptorSetLayout* pSetLayouts;
 		uint32_t dynamicStateCount;
 		VkDynamicState* pDynamicStates;
+
+		uint32_t viewportCount;
+		VkViewport* pViewports;
+		uint32_t scissorCount;
+		VkRect2D* pScissors;
+
+		uint32_t vertexBindingDescriptionCount;
+		VkVertexInputBindingDescription* pVertexBindingDescriptions;
+		uint32_t vertexAttributeDescriptionCount;
+		VkVertexInputAttributeDescription* pVertexAttributeDescriptions;
+
+		VkDevice* pDevice;
+		VkRenderPass* pRenderPass;
 	};
 }
 

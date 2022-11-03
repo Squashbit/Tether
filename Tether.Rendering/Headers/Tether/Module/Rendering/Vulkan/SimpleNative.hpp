@@ -31,10 +31,21 @@ namespace Tether::Rendering::Vulkan
 
 		ErrorCode Init(SimpleWindow* pWindow);
 	private:
-		bool InitDevice();
-		bool InitSwapchain();
-		bool InitRenderPass();
-		bool InitShaders();
+		bool RenderFrame();
+
+		bool CreateDevice();
+		bool CreateSwapchain();
+		bool CreateRenderPass();
+		bool CreateShaders();
+		bool CreatePipeline();
+		bool CreateFramebuffers();
+		bool CreateCommandPool();
+		bool CreateCommandBuffer();
+		bool CreateSyncObjects();
+
+		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+
+		void DestroySwapchain();
 
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 		uint32_t FindImageCount(SwapchainDetails details);
@@ -58,11 +69,22 @@ namespace Tether::Rendering::Vulkan
 		VkQueue presentQueue;
 		VkRenderPass renderPass;
 
+		VkPipeline pipeline;
+		VkPipelineLayout pipelineLayout;
+
 		Vulkan::ShaderModule vertexModule;
 		Vulkan::ShaderModule fragmentModule;
 
+		VkCommandPool commandPool;
+		VkCommandBuffer commandBuffer;
+
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;
+		std::vector<VkFramebuffer> swapchainFramebuffers;
+
+		VkSemaphore imageAvailableSemaphore;
+		VkSemaphore renderFinishedSemaphore;
+		VkFence inFlightFence;
 	};
 }
 

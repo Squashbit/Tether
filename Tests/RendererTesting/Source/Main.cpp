@@ -108,6 +108,8 @@ int main()
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
+
+		renderContext.RenderFrame();
 	}
 
 	window.Dispose();
