@@ -23,7 +23,7 @@
 // MSVC requires you to put __declspec(dllexport) before every function if you are
 // building a DLL.
 #define TETHER_EXPORT __declspec(dllexport)
-#elif defined(_WIN32) && !defined(TETHER_STATIC)
+#elif defined(_WIN32) && (!defined(_TETHER_STATIC) && !defined(_TETHER_BUILD_STATIC))
 // MSVC also requires you to put this before every function if you are calling it from
 // a DLL.
 #define TETHER_EXPORT __declspec(dllimport)

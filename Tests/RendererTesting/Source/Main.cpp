@@ -85,7 +85,13 @@ static bool InitVulkan()
 	return true;
 }
 
+#if defined(_WIN32) && !defined(_DEBUG)
+#include <Windows.h>
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
+	int nCmdShow)
+#else
 int main()
+#endif
 {
 	Application& app = Application::Get();
 	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();

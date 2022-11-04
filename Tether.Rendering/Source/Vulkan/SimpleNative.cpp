@@ -491,7 +491,7 @@ bool SimpleNative::CreateCommandBuffer()
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = swapchainFramebuffers.size();
+	allocInfo.commandBufferCount = static_cast<uint32_t>(swapchainFramebuffers.size());
 
 	return dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
 		commandBuffers.data()) == VK_SUCCESS;
@@ -533,7 +533,7 @@ bool SimpleNative::PopulateCommandBuffers()
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
 	{
 		dloader->vkResetCommandBuffer(commandBuffers[i], 0);
-		if (!RecordCommandBuffer(commandBuffers[i], i))
+		if (!RecordCommandBuffer(commandBuffers[i], static_cast<uint32_t>(i)))
 			return false;
 	}
 
@@ -627,6 +627,8 @@ bool SimpleNative::RecreateSwapchain()
 		return false;
 
 	PopulateCommandBuffers();
+
+	return true;
 }
 
 void SimpleNative::DestroySwapchain()
