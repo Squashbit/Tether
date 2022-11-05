@@ -617,7 +617,7 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		
 		dloader->vkCmdDrawIndexed(
 			commandBuffer, 
-			square.GetVertexCount(),
+			static_cast<uint32_t>(square.GetVertexCount()),
 			1, 0, 0, 0
 		);
 
