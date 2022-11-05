@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_SURFACE_HPP
-#define _TETHER_VULKAN_SURFACE_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
@@ -38,5 +37,3 @@ namespace Tether::Rendering::Vulkan
         VkSurfaceKHR surface;
     };
 }
-
-#endif //_TETHER_VULKAN_SURFACE_HPP

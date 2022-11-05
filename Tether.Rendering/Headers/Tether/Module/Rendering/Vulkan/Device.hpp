@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_DEVICE_HPP
-#define _TETHER_VULKAN_DEVICE_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -76,5 +75,3 @@ namespace Tether::Rendering::Vulkan
         VkDevice device;
     };
 }
-
-#endif //_TETHER_VULKAN_DEVICE_HPP

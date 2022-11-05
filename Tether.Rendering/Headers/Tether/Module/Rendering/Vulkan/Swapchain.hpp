@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_SWAPCHAIN_HPP
-#define _TETHER_VULKAN_SWAPCHAIN_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -84,5 +83,3 @@ namespace Tether::Rendering::Vulkan
         DeviceLoader* pLoader = nullptr;
     };
 }
-
-#endif //_TETHER_VULKAN_SWAPCHAIN_HPP

@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_SHADERSTAGEDESCRIPTOR_HPP
-#define _TETHER_VULKAN_SHADERSTAGEDESCRIPTOR_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
 #include <vulkan/vulkan.h>
@@ -13,5 +12,3 @@ namespace Tether::Rendering::Vulkan
         const char* entrypoint;
     };
 }
-
-#endif //_TETHER_VULKAN_SHADERSTAGEDESCRIPTOR_HPP

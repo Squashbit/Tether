@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERER_VULKAN_ADVANCEDNATIVEINFO_HPP
-#define _TETHER_RENDERER_VULKAN_ADVANCEDNATIVEINFO_HPP
+#pragma once
 
 #include <vulkan/vulkan.h>
 
@@ -12,5 +11,3 @@ namespace Tether::Rendering::Vulkan
 		VkSwapchainKHR swapchain;
 	};
 }
-
-#endif //_TETHER_RENDERER_VULKAN_ADVANCEDNATIVEINFO_HPP

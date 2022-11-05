@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERING_RENDERINGMODULE_HPP
-#define _TETHER_RENDERING_RENDERINGMODULE_HPP
+#pragma once
 
 #include <Tether/Module.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
@@ -44,5 +43,3 @@ namespace Tether::Rendering
 		static RenderingModule internal;
 	};
 }
-
-#endif //_TETHER_RENDERING_RENDERINGMODULE_HPP

@@ -2,8 +2,7 @@
 // Make sure vulkan.h/hpp isn't included after this is included, because it will result
 // in (a lot of) errors.
 
-#ifndef _TETHER_NATIVEVULKAN_HPP
-#define _TETHER_NATIVEVULKAN_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #ifdef TETHER_INCLUDE_VULKAN
@@ -45,4 +44,3 @@ namespace Tether::Rendering::Storage
 }
 
 #endif // TETHER_INCLUDE_VULKAN
-#endif //_TETHER_NATIVEVULKAN_HPP

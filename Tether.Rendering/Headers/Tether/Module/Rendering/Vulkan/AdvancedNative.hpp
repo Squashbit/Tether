@@ -1,12 +1,4 @@
-// WARNING: 
-// THIS IS CURRENTLY A PREVIEW FEATURE.
-// IN ORDER TO USE THIS PROPERLY, TETHER MUST BE COMPILED WITH THE 
-// TETHER_PREVIEW_FEATURES CMAKE OPTION ENABLED.
-//
-// THIS IS SUBJECT TO CHANGE, AND MAY NOT RESEMBLE THE FINAL VERSION.
-
-#ifndef _TETHER_RENDERER_VULKAN_ADVANCEDNATIVE_HPP
-#define _TETHER_RENDERER_VULKAN_ADVANCEDNATIVE_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/RenderContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/AdvancedNativeInfo.hpp>
@@ -32,5 +24,3 @@ namespace Tether::Rendering::Vulkan
 		void OnDispose();
 	};
 }
-
-#endif //_TETHER_RENDERER_VULKAN_ADVANCEDNATIVE_HPP

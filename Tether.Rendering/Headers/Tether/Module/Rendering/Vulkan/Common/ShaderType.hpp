@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERING_VULKAN_COMMON_SHADERTYPE_HPP
-#define _TETHER_RENDERING_VULKAN_COMMON_SHADERTYPE_HPP
+#pragma once
 
 namespace Tether::Rendering::Vulkan
 {
@@ -11,5 +10,3 @@ namespace Tether::Rendering::Vulkan
 		FRAG
 	};
 }
-
-#endif //_TETHER_RENDERING_VULKAN_COMMON_SHADERTYPE_HPP

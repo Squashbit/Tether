@@ -1,5 +1,4 @@
-#ifndef _TETHER_DEVICELOADER_HPP
-#define _TETHER_DEVICELOADER_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -25,6 +24,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(AcquireNextImageKHR);
 		TETHER_DEVICE_FUNC_VAR(AllocateCommandBuffers);
 		TETHER_DEVICE_FUNC_VAR(BeginCommandBuffer);
+		TETHER_DEVICE_FUNC_VAR(CreateBuffer);
 		TETHER_DEVICE_FUNC_VAR(CreateCommandPool);
 		TETHER_DEVICE_FUNC_VAR(CreateFence);
 		TETHER_DEVICE_FUNC_VAR(CreateFramebuffer);
@@ -37,10 +37,15 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CreateSwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(CmdBeginRenderPass);
 		TETHER_DEVICE_FUNC_VAR(CmdBindPipeline);
+		TETHER_DEVICE_FUNC_VAR(CmdBindIndexBuffer);
+		TETHER_DEVICE_FUNC_VAR(CmdBindVertexBuffers);
+		TETHER_DEVICE_FUNC_VAR(CmdCopyBuffer);
 		TETHER_DEVICE_FUNC_VAR(CmdDraw);
+		TETHER_DEVICE_FUNC_VAR(CmdDrawIndexed);
 		TETHER_DEVICE_FUNC_VAR(CmdEndRenderPass);
 		TETHER_DEVICE_FUNC_VAR(CmdSetScissor);
 		TETHER_DEVICE_FUNC_VAR(CmdSetViewport);
+		TETHER_DEVICE_FUNC_VAR(DestroyBuffer);
 		TETHER_DEVICE_FUNC_VAR(DestroyCommandPool);
 		TETHER_DEVICE_FUNC_VAR(DestroyDevice);
 		TETHER_DEVICE_FUNC_VAR(DestroyImageView);
@@ -54,6 +59,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(DestroySwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(DeviceWaitIdle);
 		TETHER_DEVICE_FUNC_VAR(EndCommandBuffer);
+		TETHER_DEVICE_FUNC_VAR(FreeCommandBuffers);
 		TETHER_DEVICE_FUNC_VAR(GetDeviceQueue);
 		TETHER_DEVICE_FUNC_VAR(GetSwapchainImagesKHR);
 		TETHER_DEVICE_FUNC_VAR(ResetCommandBuffer);
@@ -63,5 +69,3 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(WaitForFences);
 	};
 }
-
-#endif //_TETHER_DEVICELOADER_HPP

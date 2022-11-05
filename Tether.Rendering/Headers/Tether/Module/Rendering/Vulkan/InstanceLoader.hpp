@@ -1,5 +1,4 @@
-#ifndef _TETHER_INSTANCELOADER_HPP
-#define _TETHER_INSTANCELOADER_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -36,5 +35,3 @@ namespace Tether::Rendering::Vulkan
 		TETHER_INSTANCE_FUNC_VAR(GetPhysicalDeviceSurfaceSupportKHR);
 	};
 }
-
-#endif //_TETHER_INSTANCELOADER_HPP

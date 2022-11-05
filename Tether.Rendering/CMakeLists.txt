@@ -24,9 +24,9 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 
-set(DEPENDENT_SOURCES)
+set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
-    set(DEPENDENT_SOURCES ${DEPENDENT_SOURCES} 
+    set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
         ${SDIR}/Vulkan/Device.cpp
         ${SDIR}/Vulkan/DeviceLoader.cpp
         ${SDIR}/Vulkan/Instance.cpp
@@ -34,21 +34,25 @@ if (TETHER_RENDERING_VULKAN_API)
         ${SDIR}/Vulkan/SimpleNative.cpp
         ${SDIR}/Vulkan/AdvancedNative.cpp
         ${SDIR}/Vulkan/Surface.cpp
+        ${SDIR}/Vulkan/Pipeline.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
         ${SDIR}/Vulkan/ShaderModule.cpp
-        ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
+        ${SDIR}/Vulkan/VertexBuffer.cpp
+        ${SDIR}/Vulkan/BufferStager.cpp
         ${SDIR}/Vulkan/VkUtils.cpp
+        ${SDIR}/Vulkan/VmaImplementation.cpp
+        ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
     )
 endif()
 
 # Set the sources of platform specific files
 if (WIN32)
     target_sources(${PROJECT_NAME} PRIVATE
-        ${DEPENDENT_SOURCES}
+        ${TETHER_RENDERING_DEPENDENT_SOURCES}
     )
 elseif (UNIX)
     target_sources(${PROJECT_NAME} PRIVATE
-        ${DEPENDENT_SOURCES}
+        ${TETHER_RENDERING_DEPENDENT_SOURCES}
     )
 endif()
 
@@ -63,6 +67,7 @@ PRIVATE
     ${TETHER_RELATIVE_PATH}/Headers
     ${TETHER_BINARY_DIR}
     ${Vulkan_INCLUDE_DIR}
+    "../Vendor/VMA/include"
 )
 
 target_link_libraries(${PROJECT_NAME}

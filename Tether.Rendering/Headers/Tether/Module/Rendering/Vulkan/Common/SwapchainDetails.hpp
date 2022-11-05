@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_SWAPCHAINDETAILS_HPP
-#define _TETHER_VULKAN_SWAPCHAINDETAILS_HPP
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -13,5 +12,3 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkPresentModeKHR> presentModes;
 	};
 }
-
-#endif //_TETHER_VULKAN_SWAPCHAINDETAILS_HPP

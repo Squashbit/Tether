@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_DEBUGCALLBACK_HPP
-#define _TETHER_VULKAN_DEBUGCALLBACK_HPP
+#pragma once
 
 #include <vulkan/vulkan.h>
 
@@ -24,5 +23,3 @@ namespace Tether::Rendering::Vulkan
         {}
     };
 }
-
-#endif //_TETHER_VULKAN_DEBUGCALLBACK_HPP

@@ -16,12 +16,21 @@ option(
 	"Should be ON if Bin2cpp is supplied somewhere other than Vendor/Bin2cpp."
 	OFF
 )
+option(
+	TETHER_VMA_EXTERNAL 
+	"Should be ON if VMA is supplied somewhere other than Vendor/VMA."
+	OFF
+)
 message(STATUS "TETHER_BUILD_TESTS      = ${TETHER_BUILD_TESTS}")
 message(STATUS "TETHER_BUILD_AS_SHARED  = ${TETHER_BUILD_AS_SHARED}")
 message(STATUS "TETHER_BIN2CPP_EXTERNAL = ${TETHER_BIN2CPP_EXTERNAL}")
 
 if (NOT TETHER_BIN2CPP_EXTERNAL)
 	add_subdirectory("Vendor/Bin2cpp")
+endif()
+
+if (NOT TETHER_VMA_EXTERNAL)
+	add_subdirectory("Vendor/VMA")
 endif()
 
 if (TETHER_BUILD_AS_SHARED)

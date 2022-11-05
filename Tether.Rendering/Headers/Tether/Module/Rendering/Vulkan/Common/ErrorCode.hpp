@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERER_VULKAN_COMMON_ERRORCODE_HPP
-#define _TETHER_RENDERER_VULKAN_COMMON_ERRORCODE_HPP
+#pragma once
 
 namespace Tether::Rendering::Vulkan
 {
@@ -26,5 +25,3 @@ namespace Tether::Rendering::Vulkan
 		SYNC_OBJECT_INIT_FAILED,
 	};
 }
-
-#endif //_TETHER_RENDERER_VULKAN_COMMON_ERRORCODE_HPP

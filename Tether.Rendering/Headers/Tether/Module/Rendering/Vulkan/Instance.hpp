@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_INSTANCE_HPP
-#define _TETHER_VULKAN_INSTANCE_HPP
+#pragma once
 
 #include <vector>
 #include <unordered_map>
@@ -94,5 +93,3 @@ namespace Tether::Rendering::Vulkan
 		bool debugMode = false;
 	};
 }
-
-#endif //_TETHER_VULKAN_INSTANCE_HPP

@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_PIPELINEINFO_HPP
-#define _TETHER_VULKAN_PIPELINEINFO_HPP
+#pragma once
 
 #include <vulkan/vulkan.h>
 #include <cstdint>
@@ -8,26 +7,21 @@ namespace Tether::Rendering::Vulkan
 {
     struct PipelineInfo
 	{
-		uint32_t stageCount;
-		VkPipelineShaderStageCreateInfo* pStages;
-		uint32_t setCount;
-		VkDescriptorSetLayout* pSetLayouts;
-		uint32_t dynamicStateCount;
-		VkDynamicState* pDynamicStates;
-
-		uint32_t viewportCount;
-		VkViewport* pViewports;
-		uint32_t scissorCount;
-		VkRect2D* pScissors;
-
-		uint32_t vertexBindingDescriptionCount;
-		VkVertexInputBindingDescription* pVertexBindingDescriptions;
-		uint32_t vertexAttributeDescriptionCount;
-		VkVertexInputAttributeDescription* pVertexAttributeDescriptions;
-
-		VkDevice* pDevice;
-		VkRenderPass* pRenderPass;
+		VkPipelineCreateFlags                            flags;
+		uint32_t                                         stageCount;
+		const VkPipelineShaderStageCreateInfo* pStages;
+		const VkPipelineVertexInputStateCreateInfo* pVertexInputState;
+		const VkPipelineInputAssemblyStateCreateInfo* pInputAssemblyState;
+		const VkPipelineTessellationStateCreateInfo* pTessellationState;
+		const VkPipelineViewportStateCreateInfo* pViewportState;
+		const VkPipelineRasterizationStateCreateInfo* pRasterizationState;
+		const VkPipelineMultisampleStateCreateInfo* pMultisampleState;
+		const VkPipelineDepthStencilStateCreateInfo* pDepthStencilState;
+		const VkPipelineColorBlendStateCreateInfo* pColorBlendState;
+		const VkPipelineDynamicStateCreateInfo* pDynamicState;
+		VkRenderPass                                     renderPass;
+		uint32_t                                         subpass;
+		VkPipeline                                       basePipelineHandle;
+		int32_t                                          basePipelineIndex;
 	};
 }
-
-#endif //_TETHER_VULKAN_PIPELINEINFO_HPP

@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKANDEFS_HPP
-#define _TETHER_VULKANDEFS_HPP
+#pragma once
 
 #define TETHER_VULKAN_FUNC_VAR(name) PFN_vk##name name
 #define TETHER_INSTANCE_FUNC_VAR(name) PFN_vk##name vk##name
@@ -27,5 +26,3 @@
 #endif
 
 #endif // __INTELLISENSE__
-
-#endif //_TETHER_VULKANDEFS_HPP

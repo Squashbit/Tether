@@ -1,5 +1,4 @@
-#ifndef _TETHER_VULKAN_QUEUEFAMILYINDICES_HPP
-#define _TETHER_VULKAN_QUEUEFAMILYINDICES_HPP
+#pragma once
 
 #include <cstdint>
 
@@ -13,5 +12,3 @@ namespace Tether::Rendering::Vulkan
 		uint32_t presentFamilyIndex = 0;
 	};
 }
-
-#endif //_TETHER_VULKAN_QUEUEFAMILYINDICES_HPP

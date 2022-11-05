@@ -1,5 +1,4 @@
-#ifndef _TETHER_VKUTILS_HPP
-#define _TETHER_VKUTILS_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #ifdef TETHER_INCLUDE_VULKAN
@@ -16,4 +15,3 @@ namespace Tether::Rendering::Vulkan::VkUtils
 }
 
 #endif // TETHER_INCLUDE_VULKAN
-#endif //_TETHER_VKUTILS_HPP

@@ -1,10 +1,4 @@
-/*
- * The GraphicalWindow class uses OpenGL to draw graphics. As a result, it can
- * draw far more complicated graphics then the NativeWindow class.
- */
-
-#ifndef _TETHER_GRAPHICALWINDOW_HPP
-#define _TETHER_GRAPHICALWINDOW_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
@@ -62,5 +56,3 @@ namespace Tether::Rendering
 		Color backgroundColor;
 	};
 }
-
-#endif //_TETHER_GRAPHICALWINDOW_HPP

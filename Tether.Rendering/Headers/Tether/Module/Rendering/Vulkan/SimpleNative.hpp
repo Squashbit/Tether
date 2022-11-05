@@ -2,8 +2,7 @@
 // all Vulkan objects manually. 
 // See AdvancedNative to manually specify Vulkan objects.
 
-#ifndef _TETHER_RENDERER_VULKAN_SIMPLENATIVE_HPP
-#define _TETHER_RENDERER_VULKAN_SIMPLENATIVE_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/ErrorCode.hpp>
@@ -12,13 +11,16 @@
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
+#include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
+#include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
 #include <Tether/Module/Rendering/RenderContext.hpp>
 
 #include <vector>
 
 #include <vulkan/vulkan.h>
+#include <vk_mem_alloc.h>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -34,14 +36,16 @@ namespace Tether::Rendering::Vulkan
 		bool RenderFrame();
 
 		bool CreateDevice();
+		bool CreateAllocator();
 		bool CreateSwapchain();
 		bool CreateRenderPass();
 		bool CreateShaders();
 		bool CreatePipeline();
 		bool CreateFramebuffers();
-		bool CreateCommandPool();
-		bool CreateCommandBuffer();
 		bool CreateSyncObjects();
+		bool CreateCommandPool();
+		bool CreateVertexBuffers();
+		bool CreateCommandBuffer();
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
@@ -53,6 +57,10 @@ namespace Tether::Rendering::Vulkan
 		uint32_t FindImageCount(SwapchainDetails details);
 
 		void OnDispose();
+
+		VmaAllocator allocator;
+
+		VertexBuffer square;
 
 		SimpleWindow* pWindow = nullptr;
 
@@ -71,8 +79,7 @@ namespace Tether::Rendering::Vulkan
 		VkQueue presentQueue;
 		VkRenderPass renderPass;
 
-		VkPipeline pipeline;
-		VkPipelineLayout pipelineLayout;
+		Pipeline pipeline;
 
 		Vulkan::ShaderModule vertexModule;
 		Vulkan::ShaderModule fragmentModule;
@@ -94,5 +101,3 @@ namespace Tether::Rendering::Vulkan
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	};
 }
-
-#endif //_TETHER_RENDERER_VULKAN_SIMPLENATIVE_HPP

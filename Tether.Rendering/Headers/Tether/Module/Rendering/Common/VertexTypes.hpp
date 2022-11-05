@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERING_COMMON_VERTEXTYPES_HPP
-#define _TETHER_RENDERING_COMMON_VERTEXTYPES_HPP
+#pragma once
 
 namespace Tether::Rendering::VertexTypes
 {
@@ -9,5 +8,3 @@ namespace Tether::Rendering::VertexTypes
 		float color[3];
 	};
 }
-
-#endif //_TETHER_RENDERING_COMMON_VERTEXTYPES_HPP

@@ -1,5 +1,4 @@
-#ifndef _TETHER_RENDERING_VULKAN_SHADERMODULE_HPP
-#define _TETHER_RENDERING_VULKAN_SHADERMODULE_HPP
+#pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/ShaderType.hpp>
@@ -30,5 +29,3 @@ namespace Tether::Rendering::Vulkan
 		Device* pDevice = nullptr;
 	};
 }
-
-#endif //_TETHER_RENDERING_VULKAN_SHADERMODULE_HPP

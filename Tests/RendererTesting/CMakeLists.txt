@@ -19,7 +19,7 @@ else()
         ${SOURCES} 
     )
 endif()
-add_dependencies(${PROJECT_NAME} tether tetherRendering)
+add_dependencies(${PROJECT_NAME} tether tetherRendering VulkanMemoryAllocator)
 
 find_package(Vulkan REQUIRED)
 target_include_directories(${PROJECT_NAME} 
@@ -27,6 +27,7 @@ PUBLIC
 	"Headers"
 	"../../Tether/Headers"
 	"../../Tether.Rendering/Headers"
+	"../../Vendor/VMA/include"
 PRIVATE
 	${Vulkan_INCLUDE_DIR}
 )

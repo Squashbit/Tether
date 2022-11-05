@@ -42,6 +42,10 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 
 	if (!CreateDevice())
 		return ErrorCode::DEVICE_INIT_FAILED;
+
+	if (!CreateAllocator())
+		return ErrorCode::DEVICE_INIT_FAILED;
+
 	if (!CreateSwapchain())
 		return ErrorCode::SWAPCHAIN_INIT_FAILED;
 	if (!CreateRenderPass())
@@ -52,12 +56,14 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 		return ErrorCode::PIPELINE_INIT_FAILED;
 	if (!CreateFramebuffers())
 		return ErrorCode::FRAMEBUFFER_INIT_FAILED;
-	if (!CreateCommandPool())
-		return ErrorCode::COMMANDPOOL_INIT_FAILED;
-	if (!CreateCommandBuffer())
-		return ErrorCode::COMMANDBUFFER_INIT_FAILED;
 	if (!CreateSyncObjects())
 		return ErrorCode::SYNC_OBJECT_INIT_FAILED;
+	if (!CreateCommandPool())
+		return ErrorCode::COMMANDPOOL_INIT_FAILED;
+	if (!CreateVertexBuffers())
+		return ErrorCode::UNKNOWN;
+	if (!CreateCommandBuffer())
+		return ErrorCode::COMMANDBUFFER_INIT_FAILED;
 
 	PopulateCommandBuffers();
 
@@ -169,6 +175,22 @@ bool SimpleNative::CreateDevice()
 	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
 	return true;
+}
+
+bool SimpleNative::CreateAllocator()
+{
+	VmaVulkanFunctions funcs{};
+	funcs.vkGetInstanceProcAddr = TETHER_APP_VK->GetInstanceProcAddr;
+	funcs.vkGetDeviceProcAddr = iloader->vkGetDeviceProcAddr;
+
+	VmaAllocatorCreateInfo createInfo{};
+	createInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+	createInfo.physicalDevice = physicalDevice;
+	createInfo.device = device.Get();
+	createInfo.instance = instance->Get();
+	createInfo.pVulkanFunctions = &funcs;
+
+	return vmaCreateAllocator(&createInfo, &allocator) == VK_SUCCESS;
 }
 
 bool SimpleNative::CreateSwapchain()
@@ -303,20 +325,40 @@ bool SimpleNative::CreateShaders()
 
 bool SimpleNative::CreatePipeline()
 {
-	VkPipelineLayoutCreateInfo pipelineLayoutDesc{};
-	pipelineLayoutDesc.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	
-	if (dloader->vkCreatePipelineLayout(device.Get(), &pipelineLayoutDesc,
-		nullptr, &pipelineLayout) != VK_SUCCESS)
-		return false;
-	
+	std::vector<VkVertexInputBindingDescription> bindingDescs;
+	std::vector<VkVertexInputAttributeDescription> attribDescs;
+
+	// Vector2 descriptions
+	{
+		VkVertexInputBindingDescription bindingDesc;
+		bindingDesc.binding = 0;
+		bindingDesc.stride = sizeof(VertexTypes::Vertex2);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		bindingDescs.push_back(bindingDesc);
+
+		VkVertexInputAttributeDescription posDesc;
+		posDesc.binding = 0;
+		posDesc.location = 0;
+		posDesc.format = VK_FORMAT_R32G32_SFLOAT;
+		posDesc.offset = offsetof(VertexTypes::Vertex2, position);
+		attribDescs.push_back(posDesc);
+
+		VkVertexInputAttributeDescription colorDesc;
+		colorDesc.binding = 0;
+		colorDesc.location = 1;
+		colorDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+		colorDesc.offset = offsetof(VertexTypes::Vertex2, color);
+		attribDescs.push_back(colorDesc);
+	}
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	
-	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	inputAssembly.primitiveRestartEnable = VK_FALSE;
+	vertexInputInfo.vertexBindingDescriptionCount = 
+		static_cast<uint32_t>(bindingDescs.size());
+	vertexInputInfo.vertexAttributeDescriptionCount = 
+		static_cast<uint32_t>(attribDescs.size());
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescs.data();
+	vertexInputInfo.pVertexAttributeDescriptions = attribDescs.data();
 
 	VkExtent2D swapchainExtent = swapchain.GetExtent();
 
@@ -340,42 +382,6 @@ bool SimpleNative::CreatePipeline()
 	viewportState.pViewports = &viewport;
 	viewportState.scissorCount = 1;
 	viewportState.pScissors = &scissor;
-
-	VkPipelineRasterizationStateCreateInfo rasterizer{};
-	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-	rasterizer.depthClampEnable = VK_FALSE;
-	rasterizer.rasterizerDiscardEnable = VK_FALSE;
-	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-	rasterizer.lineWidth = 1.0f;
-	rasterizer.cullMode = VK_CULL_MODE_NONE;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-	rasterizer.depthBiasEnable = VK_FALSE;
-
-	VkPipelineMultisampleStateCreateInfo multisampleState{};
-	multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisampleState.sampleShadingEnable = VK_FALSE;
-	multisampleState.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-	multisampleState.minSampleShading = 0.0f;
-	multisampleState.pSampleMask = nullptr;
-	multisampleState.alphaToCoverageEnable = VK_FALSE;
-	multisampleState.alphaToOneEnable = VK_FALSE;
-
-	VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorBlendAttachment.blendEnable = VK_FALSE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-
-	VkPipelineColorBlendStateCreateInfo colorBlending{};
-	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-	colorBlending.logicOpEnable = VK_FALSE;
-	colorBlending.logicOp = VK_LOGIC_OP_COPY;
-	colorBlending.attachmentCount = 1;
-	colorBlending.pAttachments = &colorBlendAttachment;
 
 	VkDynamicState dynamicStates[] =
 	{
@@ -409,25 +415,15 @@ bool SimpleNative::CreatePipeline()
 		vertexStage, fragmentStage
 	};
 
-	VkGraphicsPipelineCreateInfo pipelineDesc{};
-	pipelineDesc.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineDesc.stageCount = sizeof(stages) / sizeof(stages[0]);
-	pipelineDesc.pStages = stages;
-	pipelineDesc.pVertexInputState = &vertexInputInfo;
-	pipelineDesc.pInputAssemblyState = &inputAssembly;
-	pipelineDesc.pViewportState = &viewportState;
-	pipelineDesc.pRasterizationState = &rasterizer;
-	pipelineDesc.pMultisampleState = &multisampleState;
-	pipelineDesc.pColorBlendState = &colorBlending;
-	pipelineDesc.layout = pipelineLayout;
-	pipelineDesc.renderPass = renderPass;
-	pipelineDesc.subpass = 0;
-	pipelineDesc.basePipelineHandle = VK_NULL_HANDLE;
-	pipelineDesc.pDepthStencilState = nullptr;
-	pipelineDesc.pDynamicState = &dynamicState;
+	PipelineInfo info{};
+	info.stageCount = sizeof(stages) / sizeof(stages[0]);
+	info.pStages = stages;
+	info.pViewportState = &viewportState;
+	info.renderPass = renderPass;
+	info.pDynamicState = &dynamicState;
+	info.pVertexInputState = &vertexInputInfo;
 
-	if (dloader->vkCreateGraphicsPipelines(device.Get(), VK_NULL_HANDLE,
-		1, &pipelineDesc, nullptr, &pipeline) != VK_SUCCESS)
+	if (!pipeline.Init(device.Get(), dloader, &info))
 		return false;
 
 	vertexModule.Dispose();
@@ -528,6 +524,37 @@ bool SimpleNative::CreateSyncObjects()
 	return true;
 }
 
+bool SimpleNative::CreateVertexBuffers()
+{
+	VertexTypes::Vertex2 vertices[] =
+	{
+		{ { -1.0f, -1.0f}, {0, 1, 1} },
+		{ {  1.0f, -1.0f}, {1, 0, 1} },
+		{ {  1.0f,  1.0f}, {0, 0, 0} },
+		{ { -1.0f,  1.0f}, {1, 1, 0} },
+	};
+
+	uint32_t indices[] =
+	{
+		0, 1, 2, 2, 3, 0
+	};
+
+	VertexBufferInfo info{};
+	info.allocator = allocator;
+	info.device = device.Get();
+	info.dloader = dloader;
+	info.graphicsQueue = graphicsQueue;
+	info.pool = commandPool;
+
+	square.Init(&info);
+	square.UploadData(
+		vertices, sizeof(vertices), 
+		indices, sizeof(indices) / sizeof(uint32_t)
+	);
+
+	return true;
+}
+
 bool SimpleNative::PopulateCommandBuffers()
 {
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
@@ -562,7 +589,7 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		dloader->vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, 
 			VK_SUBPASS_CONTENTS_INLINE);
 		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-			pipeline);
+			pipeline.Get());
 
 		VkExtent2D swapchainExtent = swapchain.GetExtent();
 
@@ -581,8 +608,18 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		scissor.extent.width = swapchainExtent.width;
 		scissor.extent.height = swapchainExtent.height;
 		dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		VkBuffer vbuffers[] = { square.GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
+		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
+			VK_INDEX_TYPE_UINT32);
 		
-		dloader->vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		dloader->vkCmdDrawIndexed(
+			commandBuffer, 
+			square.GetVertexCount(),
+			1, 0, 0, 0
+		);
 
 		dloader->vkCmdEndRenderPass(commandBuffer);
 	}
@@ -594,9 +631,9 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 
 VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
 {
-	for (const auto& availableFormat : details.formats)
-		if (availableFormat.format == VK_FORMAT_B8G8R8_SRGB
-			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+	for (VkSurfaceFormatKHR availableFormat : details.formats)
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
+				&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
 			return availableFormat;
 
 	return details.formats[0];
@@ -647,11 +684,11 @@ void SimpleNative::OnDispose()
 {
 	device.WaitIdle();
 
-	dloader->vkDestroyPipeline(device.Get(), pipeline, nullptr);
-	dloader->vkDestroyPipelineLayout(device.Get(), pipelineLayout, nullptr);
+	square.Dispose();
+
+	pipeline.Dispose();
 
 	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
-
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -664,6 +701,8 @@ void SimpleNative::OnDispose()
 	}
 
 	DestroySwapchain();
+
+	vmaDestroyAllocator(allocator);
 
 	device.Dispose();
 	surface.Dispose();
