@@ -52,6 +52,7 @@ namespace Tether::Rendering::Vulkan
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
+		bool AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();

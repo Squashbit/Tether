@@ -623,21 +623,7 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		scissor.extent.height = swapchainExtent.height;
 		dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		VkBuffer vbuffers[] = { square.GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
-		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
-			VK_INDEX_TYPE_UINT32);
-
-		std::vector<Objects::Object*>* objects = pRenderContext->GetObjects();
-		for (size_t i = 0; i < objects->size(); i++)
-		{
-			dloader->vkCmdDrawIndexed(
-				commandBuffer,
-				static_cast<uint32_t>(square.GetVertexCount()),
-				1, 0, 0, 0
-			);
-		}
+		AddObjectsToCommandBuffer(commandBuffer, index);
 
 		dloader->vkCmdEndRenderPass(commandBuffer);
 	}
@@ -645,6 +631,26 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		return false;
 
 	return true;
+}
+
+bool SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, 
+	uint32_t index)
+{
+	std::vector<Objects::Object*>* objects = pRenderContext->GetObjects();
+	for (size_t i = 0; i < objects->size(); i++)
+	{
+		VkBuffer vbuffers[] = { square.GetBuffer() };
+		VkDeviceSize offsets[] = { 0 };
+		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
+		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
+			VK_INDEX_TYPE_UINT32);
+
+		dloader->vkCmdDrawIndexed(
+			commandBuffer,
+			static_cast<uint32_t>(square.GetVertexCount()),
+			1, 0, 0, 0
+		);
+	}
 }
 
 VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
