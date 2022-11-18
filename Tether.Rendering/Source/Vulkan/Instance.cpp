@@ -51,15 +51,7 @@ VkResult Instance::Init(
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-#ifdef VK_VERSION_1_3
 	appInfo.apiVersion = VK_API_VERSION_1_3;
-#elif VK_VERSION_1_2
-	appInfo.apiVersion = VK_API_VERSION_1_2;
-#elif VK_VERSION_1_1
-	appInfo.apiVersion = VK_API_VERSION_1_1;
-#elif VK_VERSION_1_0
-	appInfo.apiVersion = VK_API_VERSION_1_0;
-#endif
 
 	if (applicationName)
 		appInfo.pApplicationName = applicationName;

@@ -24,7 +24,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT SimpleNative : public Renderer::IRenderContextNative
+	class TETHER_EXPORT SimpleNative : public Rendering::IRenderContextNative
 	{
 	public:
 		SimpleNative() = default;
@@ -33,6 +33,9 @@ namespace Tether::Rendering::Vulkan
 
 		ErrorCode Init(SimpleWindow* pWindow);
 	private:
+		void OnObjectAdd(Objects::Object* pObject);
+		void OnObjectRemove(Objects::Object* pObject);
+
 		bool RenderFrame();
 
 		bool CreateDevice();

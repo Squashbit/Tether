@@ -19,7 +19,7 @@ static const std::vector<const char*> deviceExtensions = {
 
 ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 {
-	if (initialized)
+	if (initialized || !pRenderContext)
 		return ErrorCode::UNKNOWN;
 
 	TETHER_TRY_INIT_APP_RETURNVAL(ErrorCode::APP_INIT_FAILED);
@@ -71,6 +71,16 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 	return ErrorCode::SUCCESS;
 }
 
+void SimpleNative::OnObjectAdd(Objects::Object* pObject)
+{
+	shouldRecreateCommandBuffers = true;
+}
+
+void SimpleNative::OnObjectRemove(Objects::Object* pObject)
+{
+	shouldRecreateCommandBuffers = true;
+}
+
 bool SimpleNative::RenderFrame()
 {
 	if (shouldRecreateSwapchain)
@@ -93,13 +103,13 @@ bool SimpleNative::RenderFrame()
 			   imageResult == VK_SUBOPTIMAL_KHR;
 	}
 
-	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
-
 	if (shouldRecreateCommandBuffers)
 	{
 		PopulateCommandBuffers();
 		shouldRecreateCommandBuffers = false;
 	}
+
+	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
@@ -184,7 +194,7 @@ bool SimpleNative::CreateAllocator()
 	funcs.vkGetDeviceProcAddr = iloader->vkGetDeviceProcAddr;
 
 	VmaAllocatorCreateInfo createInfo{};
-	createInfo.vulkanApiVersion = VK_API_VERSION_1_0;
+	createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 	createInfo.physicalDevice = physicalDevice;
 	createInfo.device = device.Get();
 	createInfo.instance = instance->Get();
@@ -557,6 +567,10 @@ bool SimpleNative::CreateVertexBuffers()
 
 bool SimpleNative::PopulateCommandBuffers()
 {
+	for (size_t i = 0; i < inFlightFences.size(); i++)
+		dloader->vkWaitForFences(device.Get(), 1,
+			&inFlightFences[i], VK_TRUE, UINT64_MAX);
+
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
 	{
 		dloader->vkResetCommandBuffer(commandBuffers[i], 0);
@@ -614,12 +628,16 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
 		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
 			VK_INDEX_TYPE_UINT32);
-		
-		dloader->vkCmdDrawIndexed(
-			commandBuffer, 
-			static_cast<uint32_t>(square.GetVertexCount()),
-			1, 0, 0, 0
-		);
+
+		std::vector<Objects::Object*>* objects = pRenderContext->GetObjects();
+		for (size_t i = 0; i < objects->size(); i++)
+		{
+			dloader->vkCmdDrawIndexed(
+				commandBuffer,
+				static_cast<uint32_t>(square.GetVertexCount()),
+				1, 0, 0, 0
+			);
+		}
 
 		dloader->vkCmdEndRenderPass(commandBuffer);
 	}

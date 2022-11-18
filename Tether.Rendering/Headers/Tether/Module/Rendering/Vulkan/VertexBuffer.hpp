@@ -24,7 +24,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		VertexBuffer() = default;
-		TETHER_DISPOSE_ON_DESTRUCT(VertexBuffer);
+		TETHER_DISPOSE_ON_DESTROY(VertexBuffer);
 		TETHER_NO_COPY(VertexBuffer);
 
 		bool Init(VertexBufferInfo* pInfo);

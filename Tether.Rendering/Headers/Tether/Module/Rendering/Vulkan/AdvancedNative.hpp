@@ -8,7 +8,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT AdvancedNative : public Renderer::IRenderContextNative
+	class TETHER_EXPORT AdvancedNative : public Rendering::IRenderContextNative
 	{
 	public:
 		AdvancedNative() = default;

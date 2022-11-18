@@ -23,7 +23,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferStager() = default;
-		TETHER_DISPOSE_ON_DESTRUCT(BufferStager);
+		TETHER_DISPOSE_ON_DESTROY(BufferStager);
 		TETHER_NO_COPY(BufferStager);
 
 		bool Init(BufferStagerInfo* pInfo);

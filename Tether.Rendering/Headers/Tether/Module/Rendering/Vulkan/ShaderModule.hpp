@@ -12,7 +12,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		ShaderModule() = default;
-		TETHER_DISPOSE_ON_DESTRUCT(ShaderModule);
+		TETHER_DISPOSE_ON_DESTROY(ShaderModule);
 		TETHER_NO_COPY(ShaderModule);
 
 		bool CreateFromSpirV(Device* pDevice, ShaderType shaderType, 

@@ -11,7 +11,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#define TETHER_DISPOSE_ON_DESTRUCT(className) \
+#define TETHER_DISPOSE_ON_DESTROY(className) \
     ~className() \
     { \
         Dispose(); \

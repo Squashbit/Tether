@@ -1,6 +1,8 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Module/Rendering/Vulkan/SimpleNative.hpp>
 
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+
 #include <iostream>
 #include <vector>
 #include <chrono>
@@ -33,8 +35,9 @@ public:
 
 static SimpleWindow window;
 static DebugLogger vulkanLogger;
-static Renderer::RenderContext renderContext;
 static Rendering::Vulkan::SimpleNative vkNative;
+static Rendering::RenderContext renderContext;
+static Rendering::Objects::Rectangle testRect;
 
 static bool InitVulkan()
 {
@@ -58,6 +61,8 @@ static bool InitVulkan()
 	}
 
 	rendering.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
+	
+	renderContext.Init(&vkNative);
 
 	Rendering::Vulkan::ErrorCode nativeError = vkNative.Init(&window);
 	switch (nativeError)
@@ -79,10 +84,14 @@ static bool InitVulkan()
 		}
 		break;
 	}
-	
-	renderContext.Init(&vkNative);
 
 	return true;
+}
+
+static void InitObjects()
+{
+	renderContext.Add(&testRect);
+	renderContext.Add(&testRect);
 }
 
 #if defined(_WIN32) && !defined(_DEBUG)
@@ -110,20 +119,13 @@ int main()
 
 	if (!InitVulkan())
 		return 3;
+	InitObjects();
 
 	window.SetVisible(true);
-
-	std::chrono::high_resolution_clock::time_point startTime;
 	while (!window.IsCloseRequested())
 	{
 		window.PollEvents();
-
 		renderContext.RenderFrame();
-
-		std::chrono::duration<float, std::milli> timeSpan =
-			std::chrono::high_resolution_clock::now() - startTime;
-		// std::cout << "FPS: " << 1000.0f / timeSpan.count() << std::endl;
-		startTime = std::chrono::high_resolution_clock::now();
 	}
 
 	window.Dispose();

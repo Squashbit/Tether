@@ -14,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Pipeline() = default;
-		TETHER_DISPOSE_ON_DESTRUCT(Pipeline);
+		TETHER_DISPOSE_ON_DESTROY(Pipeline);
 		TETHER_NO_COPY(Pipeline);
 
 		/**
