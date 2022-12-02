@@ -6,6 +6,8 @@ namespace Tether::Rendering::Vulkan
 	{
 		SUCCESS,
 		UNKNOWN,
+		LAYER_NOT_PRESENT,
+		VULKAN_LIB_NOT_FOUND,
 		// The GPU probably doesn't support the selected Vulkan version.
 		INCOMPATIBLE_DRIVER,
 		APP_INIT_FAILED, 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
+
 #include <Tether/Module/Rendering/Vulkan/Common/ErrorCode.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
@@ -15,7 +16,7 @@
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
-#include <Tether/Module/Rendering/RenderContext.hpp>
+#include <Tether/Module/Rendering/UIRenderer.hpp>
 
 #include <vector>
 
@@ -24,7 +25,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT SimpleNative : public Rendering::IRenderContextNative
+	class TETHER_EXPORT SimpleNative : public Rendering::UIRendererNative
 	{
 	public:
 		SimpleNative() = default;
@@ -33,6 +34,7 @@ namespace Tether::Rendering::Vulkan
 
 		ErrorCode Init(SimpleWindow* pWindow);
 	private:
+		bool OnObjectCreate(HashedString& typeName, Objects::Object* pObject);
 		void OnObjectAdd(Objects::Object* pObject);
 		void OnObjectRemove(Objects::Object* pObject);
 
@@ -52,7 +54,7 @@ namespace Tether::Rendering::Vulkan
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
-		bool AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
+		void AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();

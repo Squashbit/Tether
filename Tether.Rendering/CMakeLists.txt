@@ -17,8 +17,10 @@ set(SDIR Source)
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${HEADERS}
 
+    ${SDIR}/Objects/Object.cpp 
+    ${SDIR}/Objects/Rectangle.cpp 
     ${SDIR}/GraphicalWindow.cpp 
-    ${SDIR}/RenderContext.cpp
+    ${SDIR}/UIRenderer.cpp
     ${SDIR}/RenderingModule.cpp
 )
 
@@ -27,12 +29,13 @@ add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
     set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
+        ${SDIR}/Vulkan/ObjectNatives/RectangleNative.cpp
         ${SDIR}/Vulkan/Device.cpp
         ${SDIR}/Vulkan/DeviceLoader.cpp
         ${SDIR}/Vulkan/Instance.cpp
         ${SDIR}/Vulkan/InstanceLoader.cpp
         ${SDIR}/Vulkan/SimpleNative.cpp
-        ${SDIR}/Vulkan/AdvancedNative.cpp
+        ${SDIR}/Vulkan/ContextNative.cpp
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Pipeline.cpp
         ${SDIR}/Vulkan/Swapchain.cpp

@@ -46,7 +46,7 @@ bool RenderingModule::LoadVulkan()
 Vulkan::ErrorCode RenderingModule::InitVulkan(bool validationlayers)
 {
 	if (!LoadVulkan())
-		return Vulkan::ErrorCode::UNKNOWN;
+		return Vulkan::ErrorCode::VULKAN_LIB_NOT_FOUND;
 
 	VkResult result = vulkan->instance.Init("TetherApp", "Tether",
 		validationlayers);
@@ -54,6 +54,10 @@ Vulkan::ErrorCode RenderingModule::InitVulkan(bool validationlayers)
 	{
 		case VK_ERROR_INCOMPATIBLE_DRIVER:
 			return Vulkan::ErrorCode::INCOMPATIBLE_DRIVER;
+		break;
+
+		case VK_ERROR_LAYER_NOT_PRESENT:
+			return Vulkan::ErrorCode::LAYER_NOT_PRESENT;
 		break;
 
 		case VK_SUCCESS: break;

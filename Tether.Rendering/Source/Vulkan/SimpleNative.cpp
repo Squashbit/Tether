@@ -1,9 +1,13 @@
 #include <Tether/Module/Rendering/Vulkan/SimpleNative.hpp>
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <set>
 
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/VkUtils.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
+
+#include <Tether/Module/Rendering/Vulkan/ObjectNatives/VkObjectNative.hpp>
+#include <Tether/Module/Rendering/Vulkan/ObjectNatives/RectangleNative.hpp>
 
 #include <Tether/Module/Rendering/Common/VertexTypes.hpp>
 
@@ -19,7 +23,7 @@ static const std::vector<const char*> deviceExtensions = {
 
 ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 {
-	if (initialized || !pRenderContext)
+	if (initialized || !pRenderer)
 		return ErrorCode::UNKNOWN;
 
 	TETHER_TRY_INIT_APP_RETURNVAL(ErrorCode::APP_INIT_FAILED);
@@ -69,6 +73,19 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 
 	initialized = true;
 	return ErrorCode::SUCCESS;
+}
+
+bool SimpleNative::OnObjectCreate(HashedString& typeName, Objects::Object* pObject)
+{
+	Objects::ObjectNative* pNative = nullptr;
+	if (typeName == Objects::Rectangle::typeName)
+		pNative = new(std::nothrow) Natives::RectangleNative();
+
+	if (!pNative)
+		return false;
+
+	pObject->SetNative(pNative);
+	return true;
 }
 
 void SimpleNative::OnObjectAdd(Objects::Object* pObject)
@@ -633,13 +650,15 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 	return true;
 }
 
-bool SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, 
+void SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, 
 	uint32_t index)
 {
-	std::vector<Objects::Object*>* objects = pRenderContext->GetObjects();
-	for (size_t i = 0; i < objects->size(); i++)
+	using namespace Natives;
+
+	const std::vector<Objects::Object*>& objects = pRenderer->GetObjects();
+	for (size_t i = 0; i < objects.size(); i++)
 	{
-		VkBuffer vbuffers[] = { square.GetBuffer() };
+		/*VkBuffer vbuffers[] = { square.GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
 		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
@@ -649,7 +668,12 @@ bool SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 			commandBuffer,
 			static_cast<uint32_t>(square.GetVertexCount()),
 			1, 0, 0, 0
-		);
+		);*/
+
+		Objects::Object* pObject = objects[i];
+		VkObjectNative* pVkNative = (VkObjectNative*)pObject->GetNative();
+
+		pVkNative->AddToCommandBuffer(commandBuffer, index);
 	}
 }
 

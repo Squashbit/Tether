@@ -1,5 +1,4 @@
 #include <Tether/Module/Rendering/RenderingModule.hpp>
-#include <iostream>
 
 using namespace Tether::Rendering;
 
