@@ -1,5 +1,5 @@
 #include <Tether/Tether.hpp>
-#include <Tether/Module/Rendering/Vulkan/SimpleNative.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
@@ -11,6 +11,7 @@
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
 using namespace Tether;
+using namespace Rendering;
 
 class DebugLogger : public Rendering::Vulkan::DebugCallback
 {
@@ -36,7 +37,7 @@ static DebugLogger vulkanLogger;
 
 bool InitVulkan()
 {
-	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();
+	RenderingModule& rendering = RenderingModule::Get();
 
 #if defined(_WIN32) && !defined(_DEBUG)
 	bool debug = false;
@@ -47,17 +48,17 @@ bool InitVulkan()
 	// Initialize Vulkan. Doing so shouldn't be necessary since anything that needs
 	// Vulkan initializes itself internally, but doing that you usually don't get
 	// information about how it failed, so do it here instead.
-	Rendering::Vulkan::ErrorCode error = rendering.InitVulkan(debug);
+	Vulkan::ErrorCode error = rendering.InitVulkan(debug);
 	switch (error)
 	{
-		case Rendering::Vulkan::ErrorCode::INCOMPATIBLE_DRIVER:
+		case Vulkan::ErrorCode::INCOMPATIBLE_DRIVER:
 		{
 			std::cerr << "Incompatible Vulkan driver" << std::endl;
 			return false;
 		}
 		break;
 
-		case Rendering::Vulkan::ErrorCode::SUCCESS: break;
+		case Vulkan::ErrorCode::SUCCESS: break;
 		default:
 		{
 			std::cout << "Failed to initialize Vulkan. Error code = "
@@ -77,9 +78,6 @@ class RendererTestApp : public IDisposable
 public:
 	TETHER_DISPOSE_ON_DESTROY(RendererTestApp);
 	RendererTestApp()
-		:
-		renderer(&vkNative),
-		testRect(&renderer)
 	{
 		window.Hint(HintType::X, 120);
 		window.Hint(HintType::Y, 120);
@@ -114,12 +112,12 @@ public:
 private:
 	bool InitRenderer()
 	{
-		Rendering::Vulkan::ErrorCode nativeError = vkNative.Init(&window);
-		switch (nativeError)
+		Vulkan::ErrorCode error = renderer.Init(&window);
+		switch (error)
 		{
-			case Rendering::Vulkan::ErrorCode::SUCCESS: break;
+			case Vulkan::ErrorCode::SUCCESS: break;
 
-			case Rendering::Vulkan::ErrorCode::DEVICE_NOT_FOUND:
+			case Vulkan::ErrorCode::DEVICE_NOT_FOUND:
 			{
 				std::cout << "Failed to initialize Vulkan. No suitable device found."
 					<< std::endl;
@@ -130,7 +128,7 @@ private:
 			default:
 			{
 				std::cout << "Failed to initialize Vulkan Native. Error code = "
-					<< (int)nativeError << std::endl;
+					<< (int)error << std::endl;
 				return false;
 			}
 			break;
@@ -141,21 +139,21 @@ private:
 
 	void InitObjects()
 	{
-		renderer.AddObject(&testRect);
+		testRect = ScopeTools::Create<Objects::Rectangle>(&renderer);
+		renderer.AddObject(testRect.get());
 	}
 
 	void OnDispose()
 	{
 		window.Dispose();
-		testRect.Dispose();
+		testRect->Dispose();
 		renderer.Dispose();
 	}
 private:
 	SimpleWindow window;
 
-	Rendering::Vulkan::SimpleNative vkNative;
-	Rendering::UIRenderer renderer;
-	Rendering::Objects::Rectangle testRect;
+	Vulkan::VulkanUIRenderer renderer;
+	Scope<Objects::Rectangle> testRect;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)
@@ -167,7 +165,7 @@ int main()
 #endif
 {
 	Application& app = Application::Get();
-	Rendering::RenderingModule& rendering = Rendering::RenderingModule::Get();
+	RenderingModule& rendering = RenderingModule::Get();
 
 	// Initialize the application (wow really)
 	app.Init();

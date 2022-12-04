@@ -2,9 +2,9 @@
 
 using namespace Tether::Rendering::Vulkan::Natives;
 
-VkObjectNative::VkObjectNative(IVkContextNative* pContextNative)
+VkObjectNative::VkObjectNative(VulkanUIRenderer* pVkRenderer)
 	:
-	pContextNative(pContextNative)
+	pVkRenderer(pVkRenderer)
 {
 
 }

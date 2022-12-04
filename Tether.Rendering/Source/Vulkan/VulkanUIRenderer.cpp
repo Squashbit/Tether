@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/SimpleNative.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <set>
 
@@ -21,11 +21,8 @@ static const std::vector<const char*> deviceExtensions = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
+ErrorCode VulkanUIRenderer::Init(SimpleWindow* pWindow)
 {
-	if (initialized || !pRenderer)
-		return ErrorCode::UNKNOWN;
-
 	TETHER_TRY_INIT_APP_RETURNVAL(ErrorCode::APP_INIT_FAILED);
 
 	RenderingModule& module = RenderingModule::Get();
@@ -75,7 +72,7 @@ ErrorCode SimpleNative::Init(SimpleWindow* pWindow)
 	return ErrorCode::SUCCESS;
 }
 
-bool SimpleNative::OnObjectCreate(HashedString& typeName, Objects::Object* pObject)
+bool VulkanUIRenderer::OnObjectCreate(HashedString& typeName, Objects::Object* pObject)
 {
 	Objects::ObjectNative* pNative = nullptr;
 	if (typeName == Objects::Rectangle::typeName)
@@ -88,17 +85,17 @@ bool SimpleNative::OnObjectCreate(HashedString& typeName, Objects::Object* pObje
 	return true;
 }
 
-void SimpleNative::OnObjectAdd(Objects::Object* pObject)
+void VulkanUIRenderer::OnObjectAdd(Objects::Object* pObject)
 {
 	shouldRecreateCommandBuffers = true;
 }
 
-void SimpleNative::OnObjectRemove(Objects::Object* pObject)
+void VulkanUIRenderer::OnObjectRemove(Objects::Object* pObject)
 {
 	shouldRecreateCommandBuffers = true;
 }
 
-bool SimpleNative::RenderFrame()
+bool VulkanUIRenderer::RenderFrame()
 {
 	if (shouldRecreateSwapchain)
 	{
@@ -163,7 +160,7 @@ bool SimpleNative::RenderFrame()
 	return true;
 }
 
-bool SimpleNative::CreateDevice()
+bool VulkanUIRenderer::CreateDevice()
 {
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 	std::set<uint32_t> uniqueQueueFamilies = {
@@ -204,7 +201,7 @@ bool SimpleNative::CreateDevice()
 	return true;
 }
 
-bool SimpleNative::CreateAllocator()
+bool VulkanUIRenderer::CreateAllocator()
 {
 	VmaVulkanFunctions funcs{};
 	funcs.vkGetInstanceProcAddr = TETHER_APP_VK->GetInstanceProcAddr;
@@ -220,7 +217,7 @@ bool SimpleNative::CreateAllocator()
 	return vmaCreateAllocator(&createInfo, &allocator) == VK_SUCCESS;
 }
 
-bool SimpleNative::CreateSwapchain()
+bool VulkanUIRenderer::CreateSwapchain()
 {
 	Vulkan::SwapchainDetails details =
 		instance->QuerySwapchainSupport(physicalDevice, &surface);
@@ -281,7 +278,7 @@ bool SimpleNative::CreateSwapchain()
 	return true;
 }
 
-bool SimpleNative::CreateRenderPass()
+bool VulkanUIRenderer::CreateRenderPass()
 {
 	VkAttachmentDescription colorAttachment{};
 	colorAttachment.format = swapchain.GetImageFormat();
@@ -331,7 +328,7 @@ bool SimpleNative::CreateRenderPass()
 	return true;
 }
 
-bool SimpleNative::CreateShaders()
+bool VulkanUIRenderer::CreateShaders()
 {
 	if (!vertexModule.CreateFromSpirV(
 		&device, Vulkan::ShaderType::VERTEX,
@@ -350,7 +347,7 @@ bool SimpleNative::CreateShaders()
 	return true;
 }
 
-bool SimpleNative::CreatePipeline()
+bool VulkanUIRenderer::CreatePipeline()
 {
 	std::vector<VkVertexInputBindingDescription> bindingDescs;
 	std::vector<VkVertexInputAttributeDescription> attribDescs;
@@ -459,7 +456,7 @@ bool SimpleNative::CreatePipeline()
 	return true;
 }
 
-bool SimpleNative::CreateFramebuffers()
+bool VulkanUIRenderer::CreateFramebuffers()
 {
 	VkExtent2D swapchainExtent = swapchain.GetExtent();
 
@@ -495,7 +492,7 @@ bool SimpleNative::CreateFramebuffers()
 	return true;
 }
 
-bool SimpleNative::CreateCommandPool()
+bool VulkanUIRenderer::CreateCommandPool()
 {
 	VkCommandPoolCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -506,7 +503,7 @@ bool SimpleNative::CreateCommandPool()
 		&commandPool) == VK_SUCCESS;
 }
 
-bool SimpleNative::CreateCommandBuffer()
+bool VulkanUIRenderer::CreateCommandBuffer()
 {
 	commandBuffers.resize(swapchainFramebuffers.size());
 
@@ -520,7 +517,7 @@ bool SimpleNative::CreateCommandBuffer()
 		commandBuffers.data()) == VK_SUCCESS;
 }
 
-bool SimpleNative::CreateSyncObjects()
+bool VulkanUIRenderer::CreateSyncObjects()
 {
 	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 	renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -551,7 +548,7 @@ bool SimpleNative::CreateSyncObjects()
 	return true;
 }
 
-bool SimpleNative::CreateVertexBuffers()
+bool VulkanUIRenderer::CreateVertexBuffers()
 {
 	VertexTypes::Vertex2 vertices[] =
 	{
@@ -582,17 +579,17 @@ bool SimpleNative::CreateVertexBuffers()
 	return true;
 }
 
-VertexBuffer* SimpleNative::GetRectangleBuffer()
+VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()
 {
 	return &square;
 }
 
-DeviceLoader* SimpleNative::GetDeviceLoader()
+DeviceLoader* VulkanUIRenderer::GetDeviceLoader()
 {
 	return dloader;
 }
 
-bool SimpleNative::PopulateCommandBuffers()
+bool VulkanUIRenderer::PopulateCommandBuffers()
 {
 	for (size_t i = 0; i < inFlightFences.size(); i++)
 		dloader->vkWaitForFences(device.Get(), 1,
@@ -608,7 +605,7 @@ bool SimpleNative::PopulateCommandBuffers()
 	return true;
 }
 
-bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index)
+bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index)
 {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -660,26 +657,13 @@ bool SimpleNative::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t i
 	return true;
 }
 
-void SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, 
+void VulkanUIRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 	uint32_t index)
 {
 	using namespace Natives;
-
-	const std::vector<Objects::Object*>& objects = pRenderer->GetObjects();
+	
 	for (size_t i = 0; i < objects.size(); i++)
 	{
-		/*VkBuffer vbuffers[] = { square.GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
-		dloader->vkCmdBindIndexBuffer(commandBuffer, square.GetIndexBuffer(), 0,
-			VK_INDEX_TYPE_UINT32);
-
-		dloader->vkCmdDrawIndexed(
-			commandBuffer,
-			static_cast<uint32_t>(square.GetVertexCount()),
-			1, 0, 0, 0
-		);*/
-
 		Objects::Object* pObject = objects[i];
 		VkObjectNative* pVkNative = (VkObjectNative*)pObject->GetNative();
 
@@ -687,7 +671,7 @@ void SimpleNative::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 	}
 }
 
-VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
+VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat(SwapchainDetails details)
 {
 	for (VkSurfaceFormatKHR availableFormat : details.formats)
 		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
@@ -697,7 +681,7 @@ VkSurfaceFormatKHR SimpleNative::ChooseSurfaceFormat(SwapchainDetails details)
 	return details.formats[0];
 }
 
-uint32_t SimpleNative::FindImageCount(SwapchainDetails details)
+uint32_t VulkanUIRenderer::FindImageCount(SwapchainDetails details)
 {
 	uint32_t imageCount = details.capabilities.minImageCount + 1;
 	if (details.capabilities.maxImageCount > 0 &&
@@ -707,7 +691,7 @@ uint32_t SimpleNative::FindImageCount(SwapchainDetails details)
 	return imageCount;
 }
 
-bool SimpleNative::RecreateSwapchain()
+bool VulkanUIRenderer::RecreateSwapchain()
 {
 	device.WaitIdle();
 
@@ -726,7 +710,7 @@ bool SimpleNative::RecreateSwapchain()
 	return true;
 }
 
-void SimpleNative::DestroySwapchain()
+void VulkanUIRenderer::DestroySwapchain()
 {
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
 		dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i],
@@ -738,7 +722,7 @@ void SimpleNative::DestroySwapchain()
 	swapchain.Dispose();
 }
 
-void SimpleNative::OnDispose()
+void VulkanUIRenderer::OnRendererDispose()
 {
 	device.WaitIdle();
 

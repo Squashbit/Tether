@@ -2,27 +2,28 @@
 
 using namespace Tether::Rendering::Vulkan::Natives;
 
-RectangleNative::RectangleNative(IVkContextNative* pContextNative)
+RectangleNative::RectangleNative(VulkanUIRenderer* pVkRenderer)
 	:
-	VkObjectNative(pContextNative)
+	VkObjectNative(pVkRenderer)
 {
+	if (pVkRenderer->IsInitialized() != true)
+		return;
 
+	this->dloader = pVkRenderer->GetDeviceLoader();
+	this->pRectBuffer = pVkRenderer->GetRectangleBuffer();
 }
 
 void RectangleNative::AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index)
 {
-	DeviceLoader* dloader = pContextNative->GetDeviceLoader();
-	VertexBuffer* pBuffer = pContextNative->GetRectangleBuffer();
-
-	VkBuffer vbuffers[] = { pBuffer->GetBuffer() };
+	VkBuffer vbuffers[] = { pRectBuffer->GetBuffer() };
 	VkDeviceSize offsets[] = { 0 };
 	dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
-	dloader->vkCmdBindIndexBuffer(commandBuffer, pBuffer->GetIndexBuffer(), 0,
+	dloader->vkCmdBindIndexBuffer(commandBuffer, pRectBuffer->GetIndexBuffer(), 0,
 		VK_INDEX_TYPE_UINT32);
 
 	dloader->vkCmdDrawIndexed(
 		commandBuffer,
-		static_cast<uint32_t>(pBuffer->GetVertexCount()),
+		static_cast<uint32_t>(pRectBuffer->GetVertexCount()),
 		1, 0, 0, 0
 	);
 }

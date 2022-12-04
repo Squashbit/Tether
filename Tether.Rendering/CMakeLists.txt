@@ -35,8 +35,7 @@ if (TETHER_RENDERING_VULKAN_API)
         ${SDIR}/Vulkan/DeviceLoader.cpp
         ${SDIR}/Vulkan/Instance.cpp
         ${SDIR}/Vulkan/InstanceLoader.cpp
-        ${SDIR}/Vulkan/SimpleNative.cpp
-        ${SDIR}/Vulkan/ContextNative.cpp
+        ${SDIR}/Vulkan/VulkanUIRenderer.cpp
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Pipeline.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
