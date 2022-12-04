@@ -79,7 +79,7 @@ bool SimpleNative::OnObjectCreate(HashedString& typeName, Objects::Object* pObje
 {
 	Objects::ObjectNative* pNative = nullptr;
 	if (typeName == Objects::Rectangle::typeName)
-		pNative = new(std::nothrow) Natives::RectangleNative();
+		pNative = new(std::nothrow) Natives::RectangleNative(this);
 
 	if (!pNative)
 		return false;
@@ -580,6 +580,16 @@ bool SimpleNative::CreateVertexBuffers()
 	);
 
 	return true;
+}
+
+VertexBuffer* SimpleNative::GetRectangleBuffer()
+{
+	return &square;
+}
+
+DeviceLoader* SimpleNative::GetDeviceLoader()
+{
+	return dloader;
 }
 
 bool SimpleNative::PopulateCommandBuffers()

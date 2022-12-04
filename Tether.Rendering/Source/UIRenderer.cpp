@@ -14,6 +14,11 @@ UIRenderer::UIRenderer(UIRendererNative* pNative)
 	initialized = true;
 }
 
+UIRenderer::~UIRenderer()
+{
+	Dispose();
+}
+
 void UIRenderer::AddObject(Objects::Object* pObject)
 {
 	if (!pObject->IsInitialized())

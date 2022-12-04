@@ -50,7 +50,7 @@ namespace Tether::Rendering
 		 * Renderer/Vulkan/RenderContextNative.hpp
 		 */
 		UIRenderer(UIRendererNative* pNative);
-		TETHER_DISPOSE_ON_DESTROY(UIRenderer);
+		virtual ~UIRenderer();
 		TETHER_NO_COPY(UIRenderer);
 
 		void AddObject(Objects::Object* pObject);

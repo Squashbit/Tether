@@ -10,6 +10,7 @@
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Module/Rendering/Vulkan/IVkContextNative.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
@@ -25,7 +26,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT SimpleNative : public Rendering::UIRendererNative
+	class TETHER_EXPORT SimpleNative : public Rendering::UIRendererNative, IVkContextNative
 	{
 	public:
 		SimpleNative() = default;
@@ -51,6 +52,9 @@ namespace Tether::Rendering::Vulkan
 		bool CreateCommandPool();
 		bool CreateVertexBuffers();
 		bool CreateCommandBuffer();
+
+		VertexBuffer* GetRectangleBuffer();
+		DeviceLoader* GetDeviceLoader();
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);

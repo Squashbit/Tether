@@ -30,6 +30,7 @@ set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
     set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
         ${SDIR}/Vulkan/ObjectNatives/RectangleNative.cpp
+        ${SDIR}/Vulkan/ObjectNatives/VkObjectNative.cpp
         ${SDIR}/Vulkan/Device.cpp
         ${SDIR}/Vulkan/DeviceLoader.cpp
         ${SDIR}/Vulkan/Instance.cpp
