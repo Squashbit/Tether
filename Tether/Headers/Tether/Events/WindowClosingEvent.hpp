@@ -1,5 +1,4 @@
-#ifndef _TETHER_WINDOWCLOSINGEVENT_HPP
-#define _TETHER_WINDOWCLOSINGEVENT_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -10,5 +9,3 @@ namespace Tether::Events
     class TETHER_EXPORT WindowClosingEvent
     {};
 }
-
-#endif //_TETHER_WINDOWCLOSINGEVENT_HPP

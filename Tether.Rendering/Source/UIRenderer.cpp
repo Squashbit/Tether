@@ -14,7 +14,7 @@ UIRenderer::~UIRenderer()
 
 void UIRenderer::AddObject(Objects::Object* pObject)
 {
-	if (!pObject->IsInitialized())
+	if (!pObject->IsInitialized() || pObject->GetUIRenderer() != this)
 		return;
 
 	objects.push_back(pObject);
@@ -23,6 +23,9 @@ void UIRenderer::AddObject(Objects::Object* pObject)
 
 bool UIRenderer::RemoveObject(Objects::Object* pObject)
 {
+	if (!pObject->IsInitialized() || pObject->GetUIRenderer() != this)
+		return false;
+
 	for (size_t i = 0; i < objects.size(); i++)
 		if (objects[i] == pObject)
 		{

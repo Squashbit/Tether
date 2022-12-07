@@ -2,18 +2,6 @@
 
 using namespace Tether::Devices;
 
-Monitor::Monitor(const Monitor& ref)
-{
-    index = ref.index;
-    width = ref.width;
-    height = ref.height;
-    currentMode = ref.currentMode;
-    name = ref.name;
-
-    for (DisplayMode mode : ref.modes)
-        modes.push_back(mode);
-}
-
 int64_t Monitor::GetX() const
 {
     return x;

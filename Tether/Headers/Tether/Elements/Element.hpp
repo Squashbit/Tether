@@ -1,7 +1,6 @@
 // Base class element
 
-#ifndef _TETHER_ELEMENTS_ELEMENT_HPP
-#define _TETHER_ELEMENTS_ELEMENT_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -13,5 +12,3 @@ namespace Tether::Elements
 
 	};
 }
-
-#endif //_TETHER_ELEMENTS_ELEMENT_HPP

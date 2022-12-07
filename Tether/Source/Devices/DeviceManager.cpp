@@ -2,18 +2,10 @@
 
 using namespace Tether::Devices;
 
-DeviceManager::~DeviceManager()
+DeviceManager::DeviceManager(SimpleWindow* pWindow)
+    :
+    pWindow(pWindow),
+    app(&Application::Get())
 {
-
-}
-
-DeviceManager::DeviceManager()
-{
-
-}
-
-bool DeviceManager::Init(SimpleWindow* pWindow)
-{
-    this->pWindow = pWindow;
-    return true;
+    
 }

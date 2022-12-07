@@ -11,12 +11,6 @@ WindowResizeEvent::WindowResizeEvent(
     newHeight(newHeight)
 {}
 
-WindowResizeEvent::WindowResizeEvent(const WindowResizeEvent& ref)
-{
-    newWidth = ref.newWidth;
-    newHeight = ref.newHeight;
-}
-
 uint64_t WindowResizeEvent::GetNewWidth()
 {
     return newWidth;

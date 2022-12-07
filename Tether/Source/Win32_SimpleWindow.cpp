@@ -2,7 +2,7 @@
 
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/Controls/Control.hpp>
-#include <Tether/Common/StringUtils.hpp>
+#include <Tether/Common/StringTools.hpp>
 #include <Tether/Native.hpp>
 
 #include <algorithm>
@@ -84,7 +84,6 @@ bool Tether::SimpleWindow::Init(uint64_t width, uint64_t height, const char* tit
 		return false;
 	}
 
-	app = &Application::Get();
 	if (!app->IsInitialized() && !app->Init())
 		return false;
 
@@ -112,7 +111,7 @@ bool Tether::SimpleWindow::Init(uint64_t width, uint64_t height, const char* tit
 	RECT wr = Tether_GetAdjustedRect(this, setX, setY, setWidth, setHeight);
 
 	// Generate class name
-	this->className = StringUtils::RandomString(20);
+	this->className = StringTools::RandomString(20);
 
 	// Create class
 	storage->wndClass.cbSize = sizeof(WNDCLASSEX);

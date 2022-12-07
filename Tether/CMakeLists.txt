@@ -12,8 +12,7 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
 	${SDIR}/Common/Color.cpp 
 	${SDIR}/Common/HashedString.cpp 
 	${SDIR}/Common/IDisposable.cpp 
-	${SDIR}/Common/StringUtils.cpp 
-	${SDIR}/Common/TypeTools.cpp 
+	${SDIR}/Common/StringTools.cpp 
 	${SDIR}/Controls/Control.cpp
 	${SDIR}/Devices/DeviceManager.cpp 
 	${SDIR}/Devices/Monitor.cpp

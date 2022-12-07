@@ -1,5 +1,4 @@
-#ifndef _TETHER_INPUT_KEYCHARINFO_HPP
-#define _TETHER_INPUT_KEYCHARINFO_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <stdint.h>
@@ -9,14 +8,12 @@ namespace Tether::Input
     class TETHER_EXPORT KeyCharInfo
     {
     public:
-        KeyCharInfo() {}
+        KeyCharInfo() = default;
         KeyCharInfo(
             char key,
             bool autoRepeat
         );
         
-        KeyCharInfo(const KeyCharInfo& ref);
-		
         char GetKey();
         bool IsAutoRepeat();
     private:
@@ -24,5 +21,3 @@ namespace Tether::Input
         bool autoRepeat;
     };
 }
-
-#endif //_TETHER_INPUT_KEYCHARINFO_HPP

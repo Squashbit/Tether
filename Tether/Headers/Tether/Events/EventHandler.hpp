@@ -1,5 +1,4 @@
-#ifndef _TETHER_EVENTHANDLER_HPP
-#define _TETHER_EVENTHANDLER_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -36,5 +35,3 @@ namespace Tether::Events
 		std::vector<SimpleWindow*> windows;
 	};
 }
-
-#endif //_TETHER_EVENTHANDLER_HPP

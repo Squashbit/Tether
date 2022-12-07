@@ -23,18 +23,6 @@ MouseMoveInfo::MouseMoveInfo(
     oldRootY(oldRootY)
 {}
 
-MouseMoveInfo::MouseMoveInfo(const MouseMoveInfo& ref)
-{
-    rootX = ref.rootX;
-    rootY = ref.rootY;
-    relativeX = ref.relativeX;
-    relativeY = ref.relativeY;
-    oldRelativeX = ref.oldRelativeX;
-    oldRelativeY = ref.oldRelativeY;
-    oldRootX = ref.oldRootX;
-    oldRootY = ref.oldRootY;
-}
-
 uint64_t MouseMoveInfo::GetRootX()
 {
     return rootX;

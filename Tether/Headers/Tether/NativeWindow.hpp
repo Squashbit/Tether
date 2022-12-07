@@ -4,8 +4,7 @@
  * but it is useful for small applications.
  */
 
-#ifndef _TETHER_NATIVEWINDOW_HPP
-#define _TETHER_NATIVEWINDOW_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Color.hpp>
@@ -22,12 +21,8 @@ namespace Tether
     {
         friend Tether::Controls::Control;
     public:
-        NativeWindow() {}
-        
-        NativeWindow(const NativeWindow&) = delete;
-		NativeWindow(NativeWindow&&) = delete;
-		NativeWindow& operator=(const NativeWindow&) = delete;
-		NativeWindow& operator=(NativeWindow&&) = delete;
+        NativeWindow() = default;
+        TETHER_NO_COPY(NativeWindow);
 
         /**
          * @brief Adds a control to the window.
@@ -74,5 +69,3 @@ namespace Tether
         Color backgroundColor;
     };
 }
-
-#endif //_TETHER_NATIVEWINDOW_HPP

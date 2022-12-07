@@ -1,5 +1,4 @@
-#ifndef _TETHER_INPUT_MOUSEMOVEINFO_HPP
-#define _TETHER_INPUT_MOUSEMOVEINFO_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <stdint.h>
@@ -9,7 +8,7 @@ namespace Tether::Input
     class TETHER_EXPORT MouseMoveInfo
     {
     public:
-        MouseMoveInfo() {}
+        MouseMoveInfo() = default;
         MouseMoveInfo(
             uint64_t rootX,
             uint64_t rootY,
@@ -21,8 +20,6 @@ namespace Tether::Input
             uint64_t oldRootY
         );
         
-        MouseMoveInfo(const MouseMoveInfo& ref);
-		
         uint64_t GetRootX();
         uint64_t GetRootY();
         uint64_t GetRelativeX();
@@ -42,5 +39,3 @@ namespace Tether::Input
         uint64_t oldRootY = 0;
     };
 }
-
-#endif //_TETHER_INPUT_MOUSEMOVEINFO_HPP

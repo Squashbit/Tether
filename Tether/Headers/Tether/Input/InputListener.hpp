@@ -1,5 +1,4 @@
-#ifndef _TETHER_INPUT_INPUTLISTENER_HPP
-#define _TETHER_INPUT_INPUTLISTENER_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Input/InputType.hpp>
@@ -34,5 +33,3 @@ namespace Tether::Input
 		std::vector<SimpleWindow*> windows;
     };
 }
-
-#endif //_TETHER_INPUTLISTENER_HPP

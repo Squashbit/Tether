@@ -1,5 +1,4 @@
-#ifndef _TETHER_TYPES_HPP
-#define _TETHER_TYPES_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -24,7 +23,6 @@ namespace Tether
 			y(y)
 		{}
 
-		// The ref is the one to copy from (I always forget that)
 		Vector2(const Vector2& ref)
 		{
 			x = ref.x;
@@ -142,7 +140,7 @@ namespace Tether
 	};
 
 	// This comment right here (yes, this comment right here) is the start
-	// of a fuck ton of keys. heeeeeeeeeeeeeeere we go.
+	// of alllll the keys. heeeeeeeeeeeeeeere we go.
 	enum Keycodes
 	{
 		KEY_SPACE              = 32,
@@ -267,13 +265,6 @@ namespace Tether
 		KEY_MENU               = 348
 	};
 
-	enum class RenderingAPI
-	{
-		VULKAN
-	};
-
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
 }
-
-#endif //_TETHER_TYPES_HPP

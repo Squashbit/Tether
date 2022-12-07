@@ -165,9 +165,6 @@ int main()
 #endif
 {
 	Application& app = Application::Get();
-	RenderingModule& rendering = RenderingModule::Get();
-
-	// Initialize the application (wow really)
 	app.Init();
 
 	if (!InitVulkan())

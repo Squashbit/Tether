@@ -1,7 +1,6 @@
 // This file includes window utilities that are platform specific.
 
-#ifndef _TETHER_STORAGE_HPP
-#define _TETHER_STORAGE_HPP
+#pragma once
 
 #include <stdint.h>
 #include <unordered_map>
@@ -92,5 +91,3 @@ namespace Tether::Storage
 	};
 #endif
 }
-
-#endif //_TETHER_STORAGE_HPP

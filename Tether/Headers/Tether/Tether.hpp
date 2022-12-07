@@ -5,8 +5,7 @@
  * Not a link library, the Tether library.
  */
 
-#ifndef _TETHER_TETHER_HPP
-#define _TETHER_TETHER_HPP
+#pragma once
 
 #if !defined(__linux__) && !defined(_WIN32)
 #error Sorry! Linux and Windows are currently the only supported platforms!
@@ -17,5 +16,3 @@
 #include <Tether/Application.hpp>
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/NativeWindow.hpp>
-
-#endif //_TETHER_TETHER_HPP

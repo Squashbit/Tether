@@ -1,5 +1,4 @@
-#ifndef _TETHER_APPLICATION_HPP
-#define _TETHER_APPLICATION_HPP
+#pragma once
 
 #include <Tether/Module.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -26,10 +25,10 @@ namespace Tether
         friend class SimpleWindow;
         friend Devices::DeviceManager;
     public:
+        Application() = default;
         TETHER_DISPOSE_ON_DESTROY(Application);
-        Application() {}
 
-        bool Init();
+		bool Init();
 
         Storage::AppVarStorage* GetStorage();
         std::vector<Module*>* GetModules();
@@ -56,5 +55,3 @@ namespace Tether
         static Application internal;
     };
 }
-
-#endif //_TETHER_APPLICATION_HPP

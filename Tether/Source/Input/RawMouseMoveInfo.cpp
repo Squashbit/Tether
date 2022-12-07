@@ -2,27 +2,18 @@
 
 using namespace Tether::Input;
 
-RawMouseMoveInfo::RawMouseMoveInfo(
-    uint64_t rawX,
-    uint64_t rawY
-)
-    :
-    rawX(rawX),
-    rawY(rawY)
+RawMouseMoveInfo::RawMouseMoveInfo(uint64_t rawX, uint64_t rawY)
+	:
+	rawX(rawX),
+	rawY(rawY)
 {}
-
-RawMouseMoveInfo::RawMouseMoveInfo(const RawMouseMoveInfo& ref)
-{
-    rawX = ref.rawX;
-    rawY = ref.rawY;
-}
 
 int64_t RawMouseMoveInfo::GetRawX()
 {
-    return rawX;
+	return rawX;
 }
 
 int64_t RawMouseMoveInfo::GetRawY()
 {
-    return rawY;
+	return rawY;
 }

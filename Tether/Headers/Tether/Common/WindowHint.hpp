@@ -1,5 +1,4 @@
-#ifndef _TETHER_WINDOWHINT_HPP
-#define _TETHER_WINDOWHINT_HPP
+#pragma once
 
 #include <stdint.h>
 
@@ -23,5 +22,3 @@ namespace Tether
         int64_t value;
     };
 }
-
-#endif //_TETHER_WINDOWHINT_HPP

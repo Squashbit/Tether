@@ -1,5 +1,4 @@
-#ifndef _TETHER_EVENTS_HPP
-#define _TETHER_EVENTS_HPP
+#pragma once
 
 namespace Tether::Events
 {
@@ -12,5 +11,3 @@ namespace Tether::Events
         WINDOW_MOVE,
     };
 }
-
-#endif //_TETHER_EVENTS_HPP

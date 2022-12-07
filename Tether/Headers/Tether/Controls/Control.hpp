@@ -1,5 +1,4 @@
-#ifndef _TETHER_CONTROL_HPP
-#define _TETHER_CONTROL_HPP
+#pragma once
 
 #include <Tether/NativeWindow.hpp>
 #include <Tether/Common/Color.hpp>
@@ -11,13 +10,8 @@ namespace Tether::Controls
     {
         friend NativeWindow;
     public:
-        Control() {}
+        Control() = default;
         
-        Control(const Control&) = delete;
-		Control(Control&&) = delete;
-		Control& operator=(const Control&) = delete;
-		Control& operator=(Control&&) = delete;
-
         void SetX(float x);
         void SetY(float y);
         void SetWidth(float width);
@@ -39,5 +33,3 @@ namespace Tether::Controls
         Color background;
     };
 }
-
-#endif //_TETHER_CONTROL_HPP

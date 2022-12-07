@@ -1,5 +1,4 @@
-#ifndef _TETHER_INPUT_INPUTTYPE_HPP
-#define _TETHER_INPUT_INPUTTYPE_HPP
+#pragma once
 
 namespace Tether::Input
 {
@@ -11,5 +10,3 @@ namespace Tether::Input
         KEY_CHAR,
     };
 }
-
-#endif //_TETHER_INPUT_INPUTTYPE_HPP

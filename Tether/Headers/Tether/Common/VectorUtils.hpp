@@ -1,5 +1,4 @@
-#ifndef _TETHER_VECTORUTILS_HPP
-#define _TETHER_VECTORUTILS_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -21,5 +20,3 @@ namespace Tether::VectorUtils
         return std::count(vec.begin(), vec.end(), element);
     }
 }
-
-#endif //_TETHER_VECTORUTILS_HPP

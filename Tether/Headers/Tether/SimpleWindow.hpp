@@ -1,12 +1,4 @@
-// WARNING: 
-// THIS IS CURRENTLY A PREVIEW FEATURE.
-// IN ORDER TO USE THIS PROPERLY, TETHER MUST BE COMPILED WITH THE 
-// TETHER_PREVIEW_FEATURES CMAKE OPTION ENABLED.
-//
-// THIS IS SUBJECT TO CHANGE, AND MAY NOT RESEMBLE THE FINAL VERSION.
-
-#ifndef _TETHER_SIMPLEWINDOW_HPP
-#define _TETHER_SIMPLEWINDOW_HPP
+#pragma once
 
 #include <Tether/Application.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -100,11 +92,6 @@ namespace Tether
 		 *      Otherwise, false.
 		 */
 		bool Init(uint64_t width, uint64_t height, const char* title);
-
-		/**
-		 * @brief Called when the window is initialized.
-		 */
-		virtual void OnInit() {}
 		
 		void AddEventHandler(Events::EventHandler& handler, 
 			Events::EventType eventType);
@@ -139,14 +126,11 @@ namespace Tether
 			Devices::Monitor* monitor = nullptr
 		);
 
-	#pragma region Cursor functions
 		void SetRawInputEnabled(bool enabled);
 		void SetCursorMode(CursorMode mode);
 		void SetCursorPos(int x, int y);
 		void SetCursorRootPos(int x, int y);
-	#pragma endregion Cursor functions
 		
-	#pragma region GraphicalWindow setters
 		void SetX(int64_t x);
 		void SetY(int64_t y);
 		void SetPosition(int64_t x, int64_t y);
@@ -163,9 +147,7 @@ namespace Tether
 		void SetBoundsEnabled(bool enabled);
 		void SetBounds(int64_t minWidth, int64_t minHeight, int64_t maxWidth,
 			int64_t maxHeight);
-	#pragma endregion GraphicalWindow Setters
-
-	#pragma region GraphicalWindow getters
+		
 		// GraphicalWindow X
 		int64_t GetX();
 		// GraphicalWindow Y
@@ -176,7 +158,6 @@ namespace Tether
 		int64_t GetRelativeMouseY();
 		uint64_t GetWidth();
 		uint64_t GetHeight();
-	#pragma endregion GraphicalWindow getters
 		
 		/**
 		 * @brief Processes all pending events for the window.
@@ -211,6 +192,8 @@ namespace Tether
 		void DispatchError(ErrorCode code, ErrorSeverity severity, 
 			std::string functionName);
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
+
+		virtual void OnInit() {}
 		
 	#ifdef __linux__
 	#endif //__linux__
@@ -278,5 +261,3 @@ namespace Tether
 		bool closeRequested = false;
 	};
 }
-
-#endif //_TETHER_SIMPLEWINDOW_HPP

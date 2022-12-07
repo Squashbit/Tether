@@ -1,5 +1,4 @@
-#ifndef _TETHER_WINDOWRESIZEEVENT_HPP
-#define _TETHER_WINDOWRESIZEEVENT_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -10,14 +9,12 @@ namespace Tether::Events
     class TETHER_EXPORT WindowResizeEvent
     {
     public:
-        WindowResizeEvent() {}
+        WindowResizeEvent() = default;
         WindowResizeEvent(
             uint64_t newWidth,
             uint64_t newHeight
         );
         
-        WindowResizeEvent(const WindowResizeEvent& ref);
-		
         uint64_t GetNewWidth();
         uint64_t GetNewHeight();
     private:
@@ -25,5 +22,3 @@ namespace Tether::Events
         uint64_t newHeight = 0;
     };
 }
-
-#endif //_TETHER_WINDOWRESIZEEVENT_HPP

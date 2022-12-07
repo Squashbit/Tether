@@ -74,11 +74,10 @@ ErrorCode VulkanUIRenderer::Init(SimpleWindow* pWindow)
 
 bool VulkanUIRenderer::OnObjectCreate(HashedString& typeName, Objects::Object* pObject)
 {
-	Objects::ObjectNative* pNative = nullptr;
+	Scope<Objects::ObjectNative> pNative;
 	if (typeName == Objects::Rectangle::typeName)
-		pNative = new(std::nothrow) Natives::RectangleNative(this);
-
-	if (!pNative)
+		pNative = ScopeTools::Create<Natives::RectangleNative>(this);
+	else
 		return false;
 
 	pObject->SetNative(pNative);

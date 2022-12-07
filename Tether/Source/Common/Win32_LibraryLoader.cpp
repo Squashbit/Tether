@@ -13,9 +13,9 @@ static void* LoadLib(const char* path)
 	return LoadLibraryA(path);
 }
 
-static void FreeLib(void* library)
+static bool FreeLib(void* library)
 {
-	FreeLibrary((HMODULE)library);
+	return FreeLibrary((HMODULE)library);
 }
 
 void* LibraryLoader::LoadLibrary(const char* path)
@@ -28,10 +28,12 @@ void* LibraryLoader::LoadFunction(void* handle, const char* funcName)
 	return GetProcAddress((HMODULE)handle, funcName);
 }
 
-void LibraryLoader::FreeLibrary(void* library)
+bool LibraryLoader::FreeLibrary(void* library)
 {
-	if (library)
-		FreeLib(library);
+	if (!library)
+		return false;
+
+	return FreeLib(library);
 }
 
 #endif

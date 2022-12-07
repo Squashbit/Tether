@@ -1,5 +1,4 @@
-#ifndef _TETHER_WINDOWMOVEEVENT_HPP
-#define _TETHER_WINDOWMOVEEVENT_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -10,14 +9,12 @@ namespace Tether::Events
     class TETHER_EXPORT WindowMoveEvent
     {
     public:
-        WindowMoveEvent() {}
+        WindowMoveEvent() = default;
         WindowMoveEvent(
             int64_t x,
             int64_t y
         );
         
-        WindowMoveEvent(const WindowMoveEvent& ref);
-		
         int64_t GetX();
         int64_t GetY();
     private:
@@ -25,5 +22,3 @@ namespace Tether::Events
         int64_t y = 0;
     };
 }
-
-#endif //_TETHER_WINDOWMOVEEVENT_HPP

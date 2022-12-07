@@ -13,13 +13,6 @@ WindowErrorEvent::WindowErrorEvent(
     funcName(funcName)
 {}
 
-WindowErrorEvent::WindowErrorEvent(const WindowErrorEvent& ref)
-{
-    error = ref.error;
-    severity = ref.severity;
-    funcName = ref.funcName;
-}
-
 ErrorCode WindowErrorEvent::GetCode() const
 {
     return error;

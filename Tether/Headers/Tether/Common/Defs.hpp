@@ -1,5 +1,4 @@
-#ifndef _TETHER_DEFS_HPP
-#define _TETHER_DEFS_HPP
+#pragma once
 
 #define TETHER_NO_COPY(typename) \
     typename(const typename&) = delete; \
@@ -30,5 +29,3 @@
 #else
 #define TETHER_EXPORT
 #endif
-
-#endif //_TETHER_DEFS_HPP

@@ -1,5 +1,4 @@
-#ifndef _TETHER_WINDOWERROREVENT_HPP
-#define _TETHER_WINDOWERROREVENT_HPP
+#pragma once
 
 #include <Tether/Common/Types.hpp>
 #include <Tether/Common/Defs.hpp>
@@ -11,12 +10,10 @@ namespace Tether::Events
     class TETHER_EXPORT WindowErrorEvent
     {
     public:
-        WindowErrorEvent() {}
-        WindowErrorEvent(ErrorCode error, ErrorSeverity severity,
+        WindowErrorEvent() = default;
+		WindowErrorEvent(ErrorCode error, ErrorSeverity severity,
             std::string funcName);
         
-        WindowErrorEvent(const WindowErrorEvent& ref);
-		
         ErrorCode GetCode() const;
         ErrorSeverity GetSeverity() const;
         std::string GetFunctionName() const;
@@ -26,5 +23,3 @@ namespace Tether::Events
         std::string funcName;
     };
 }
-
-#endif //_TETHER_WINDOWERROREVENT_HPP

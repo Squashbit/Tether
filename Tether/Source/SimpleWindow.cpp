@@ -15,6 +15,7 @@ using namespace Tether::Storage;
 
 Tether::SimpleWindow::SimpleWindow()
 {
+    app = &Application::Get();
     storage = new VarStorage();
 }
 

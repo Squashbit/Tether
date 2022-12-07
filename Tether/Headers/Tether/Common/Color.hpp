@@ -1,5 +1,4 @@
-#ifndef _TETHER_COLOR_HPP
-#define _TETHER_COLOR_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <cstdint>
@@ -13,17 +12,15 @@ namespace Tether
 		Color(float color);
 		Color(float r, float g, float b);
 
-		Color(const Color& ref);
-		
 		/**
 		 * @brief Converts a color into a single value
 		 */
-		static uint64_t ToRGB(float r, float g, float b);
+		static uint32_t ToRGB(float r, float g, float b);
 
 		/**
 		 * @brief Converts the color into a single value
 		 */
-		uint64_t GetRGB() const;
+		uint32_t GetRGB() const;
 
 		void SetR(float r);
 		void SetG(float g);
@@ -32,8 +29,8 @@ namespace Tether
 		float GetG() const;
 		float GetB() const;
 	private:
-		float r, g, b;
+		float r = 0;
+		float g = 0;
+		float b = 0;
 	};
 }
-
-#endif //_TETHER_COLOR_HPP

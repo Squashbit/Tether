@@ -11,12 +11,6 @@ WindowMoveEvent::WindowMoveEvent(
     y(y)
 {}
 
-WindowMoveEvent::WindowMoveEvent(const WindowMoveEvent& ref)
-{
-    x = ref.x;
-    y = ref.y;
-}
-
 int64_t WindowMoveEvent::GetX()
 {
     return x;

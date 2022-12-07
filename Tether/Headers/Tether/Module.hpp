@@ -1,5 +1,4 @@
-#ifndef _TETHER_MODULE_HPP
-#define _TETHER_MODULE_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
@@ -30,5 +29,3 @@ namespace Tether
 		const char* moduleName = nullptr;
 	};
 }
-
-#endif //_TETHER_MODULE_HPP

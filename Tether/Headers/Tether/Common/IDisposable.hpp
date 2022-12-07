@@ -6,8 +6,7 @@
  * function only if the object's initialized field is set to true.
  */
 
-#ifndef _TETHER_IDISPOSABLE_HPP
-#define _TETHER_IDISPOSABLE_HPP
+#pragma once
 
 #include <Tether/Common/Defs.hpp>
 
@@ -43,5 +42,3 @@ namespace Tether
         bool initialized = false;
     };
 }
-
-#endif //_TETHER_IDISPOSABLE_HPP

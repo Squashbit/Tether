@@ -1,4 +1,5 @@
 #include <Tether/Module/Rendering/Objects/Object.hpp>
+#include <memory>
 
 using namespace Tether::Rendering;
 using namespace Tether::Rendering::Objects;
@@ -10,9 +11,9 @@ Object::Object(UIRenderer* pRenderer)
 	initialized = pRenderer != nullptr;
 }
 
-void Object::SetNative(ObjectNative* pNative)
+void Object::SetNative(Scope<ObjectNative>& native)
 {
-	this->pNative = std::unique_ptr<ObjectNative>(pNative);
+	this->pNative = std::move(native);
 }
 
 UIRenderer* Object::GetUIRenderer()

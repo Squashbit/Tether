@@ -28,7 +28,7 @@ namespace Tether::Rendering::Objects
 		TETHER_DISPOSE_ON_DESTROY(Object);
 		TETHER_NO_COPY(Object);
 
-		void SetNative(ObjectNative* pNative);
+		void SetNative(Scope<ObjectNative>& native);
 
 		UIRenderer* GetUIRenderer();
 		ObjectNative* GetNative();
