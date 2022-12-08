@@ -67,11 +67,9 @@ namespace Tether
 		friend Tether::Controls::Control;
 		friend Tether::Devices::DeviceManager;
 	public:
-		SimpleWindow();
+		SimpleWindow(int width, int height, const char* title, bool visible = false);
 		~SimpleWindow();
 		TETHER_NO_COPY(SimpleWindow);
-
-		bool Create(int width, int height, const char* title, bool visible = true);
 
 		bool Run();
 
@@ -136,7 +134,6 @@ namespace Tether
 
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 
-		virtual void OnInit() {}
 		virtual void OnPollEvent() {}
 
 		Native::SimpleWindowNative* GetWindowNative();

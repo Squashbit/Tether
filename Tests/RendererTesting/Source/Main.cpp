@@ -81,10 +81,6 @@ public:
 		:
 		window(1280, 720, "Renderer testing")
 	{
-		window.Hint(HintType::X, 120);
-		window.Hint(HintType::Y, 120);
-		window.Hint(HintType::VISIBLE, false);
-		
 		if (!InitRenderer())
 		{
 			std::cout << "Failed to initialize renderer" << std::endl;
@@ -161,9 +157,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 int main()
 #endif
 {
-	Application& app = Application::Get();
-	app.Init();
-
 	if (!InitVulkan())
 	{
 		std::cout << "Failed to initialize Vulkan" << std::endl;
@@ -177,6 +170,6 @@ int main()
 	testApp.Run();
 
 	testApp.Dispose();
-	app.Dispose();
+	Application::DisposeApplication();
 	return 0;
 }

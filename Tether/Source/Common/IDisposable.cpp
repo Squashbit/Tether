@@ -2,11 +2,6 @@
 
 using namespace Tether;
 
-IDisposable::~IDisposable()
-{
-    Dispose();
-}
-
 bool IDisposable::IsInitialized() const
 {
     return initialized;

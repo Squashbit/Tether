@@ -99,17 +99,8 @@ public:
 
 	TestWindow()
 		:
+		SimpleWindow(1280, 720, "sup", false),
 		handler(this)
-	{
-		Create(1280, 720, "sup", false);
-	}
-
-	~TestWindow()
-	{
-		RemoveEventHandler(handler);
-	}
-
-	void OnInit()
 	{
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
@@ -128,6 +119,11 @@ public:
 
 		SetVisible(true);
 	}
+
+	~TestWindow()
+	{
+		RemoveEventHandler(handler);
+	}
 private:
 	EventHandler handler;
 	TestListener listener;
@@ -145,5 +141,6 @@ int main()
 		std::this_thread::sleep_for(1ms);
 	}
 
+	Application::DisposeApplication();
 	return 0;
 }

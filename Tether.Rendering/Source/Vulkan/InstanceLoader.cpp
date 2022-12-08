@@ -8,10 +8,6 @@ using namespace Tether::Rendering::Vulkan;
 
 void InstanceLoader::Load(VkInstance* pInstance)
 {
-	Application& app = Application::Get();
-	if (!app.IsInitialized() && !app.Init())
-		return;
-	
 #ifdef __linux__
 	vkCreateXlibSurfaceKHR = vkGetInstanceProcAddr(
 		*pInstance, "vkCreateXlibSurfaceKHR");

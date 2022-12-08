@@ -4,7 +4,9 @@
 using namespace Tether;
 using namespace Tether::Rendering;
 
-GraphicalWindow::GraphicalWindow()
+GraphicalWindow::GraphicalWindow(int width, int height, const char* title, bool visible)
+	:
+	SimpleWindow(width, height, title, visible)
 {}
 
 void GraphicalWindow::AddElement(Elements::Element* pElement, bool repaint)

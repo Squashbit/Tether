@@ -23,8 +23,6 @@ static const std::vector<const char*> deviceExtensions = {
 
 ErrorCode VulkanUIRenderer::Init(SimpleWindow* pWindow)
 {
-	TETHER_TRY_INIT_APP_RETURNVAL(ErrorCode::APP_INIT_FAILED);
-
 	RenderingModule& module = RenderingModule::Get();
 	if (!module.IsVulkanInitialized())
 		return ErrorCode::VULKAN_NOT_INITIALIZED;

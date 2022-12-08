@@ -26,14 +26,12 @@ namespace Tether
         friend Devices::DeviceManager;
     public:
         Application();
-        TETHER_DISPOSE_ON_DESTROY(Application);
-
-		bool Init();
-
+        
         Storage::AppVarStorage* GetStorage();
         std::vector<Module*>* GetModules();
         
         static Application& Get();
+        static void DisposeApplication();
     protected:
         void RegisterModule(Module* pModule);
 

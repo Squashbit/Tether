@@ -21,9 +21,6 @@ namespace Tether
     class TETHER_EXPORT IDisposable
     {
     public:
-        // Calls the Dispose function
-        ~IDisposable();
-
         /**
          * @returns True if the object is initialized; otherwise, false.
          */

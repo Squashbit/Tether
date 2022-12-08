@@ -37,6 +37,11 @@ Application& Application::Get()
 	return internal;
 }
 
+void Application::DisposeApplication()
+{
+	internal.Dispose();
+}
+
 void Application::OnDispose()
 {
 	// Dispose all modules

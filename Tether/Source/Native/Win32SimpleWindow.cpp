@@ -106,8 +106,6 @@ bool Win32SimpleWindow::OnInit(int width, int height, const char* title, bool vi
 	if (visible)
 		pWindow->SetVisible(true);
 
-	pWindow->OnInit();
-	
 	return true;
 }
 

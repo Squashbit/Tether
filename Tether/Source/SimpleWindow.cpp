@@ -11,22 +11,18 @@
 using namespace Tether;
 using namespace Storage;
 
-SimpleWindow::SimpleWindow()
+SimpleWindow::SimpleWindow(int width, int height, const char* title, bool visible)
 {
     app = &Application::Get();
     SetNative();
+
+    initialized = native->OnInit(width, height, title, visible);
 }
 
 SimpleWindow::~SimpleWindow()
 {
     Dispose();
     delete native;
-}
-
-bool SimpleWindow::Create(int width, int height, const char* title, bool visible)
-{
-    initialized = native->OnInit(width, height, title, visible);
-    return initialized;
 }
 
 bool SimpleWindow::Run()
