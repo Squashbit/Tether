@@ -11,7 +11,7 @@ namespace Tether::Rendering
 	class TETHER_EXPORT GraphicalWindow : public SimpleWindow
 	{
 	public:
-		GraphicalWindow() {}
+		GraphicalWindow();
 		TETHER_NO_COPY(GraphicalWindow);
 
 		/**

@@ -2,7 +2,6 @@
 
 #include <Tether/Application.hpp>
 #include <Tether/Common/IDisposable.hpp>
-#include <Tether/Common/WindowHint.hpp>
 #include <Tether/Common/Types.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Events/EventHandler.hpp>
@@ -30,25 +29,15 @@
 
 namespace Tether
 {
+	namespace Native
+	{
+		class SimpleWindowNative;
+	}
+
 	namespace Controls
 	{
 		class Control;
 	}
-
-	namespace Storage
-	{
-		struct VarStorage;
-	}
-
-#ifdef _WIN32
-	class SimpleWindow;
-	class TETHER_EXPORT WindowProcCaller
-	{
-	public:
-		int64_t HandleMessage(void* hWnd, Tether::SimpleWindow* pWnd,
-			uint32_t msg, uint64_t wParam, uint64_t lParam);
-	};
-#endif
 
 	// Note: Only works on Windows
 	enum class FullscreenFields
@@ -67,11 +56,14 @@ namespace Tether
 		uint64_t fields = 0;
 	};
 
+	struct ButtonStyleMask
+	{
+		static constexpr const uint8_t MINIMIZE_BUTTON = 1 << 0;
+		static constexpr const uint8_t MAXIMIZE_BUTTON = 1 << 1;
+	};
+
 	class TETHER_EXPORT SimpleWindow : public IDisposable
 	{
-	#ifdef _WIN32
-		friend WindowProcCaller;
-	#endif
 		friend Tether::Controls::Control;
 		friend Tether::Devices::DeviceManager;
 	public:
@@ -79,20 +71,10 @@ namespace Tether
 		~SimpleWindow();
 		TETHER_NO_COPY(SimpleWindow);
 
-		void Hint(HintType type, int64_t pValue);
+		bool Create(int width, int height, const char* title, bool visible = true);
 
-		/**
-		 * @brief Initializes the window.
-		 * 
-		 * @param width The width of the window
-		 * @param height The height of the window
-		 * @param title The title of the window.
-		 * 
-		 * @returns True if the window was successfully created. 
-		 *      Otherwise, false.
-		 */
-		bool Init(uint64_t width, uint64_t height, const char* title);
-		
+		bool Run();
+
 		void AddEventHandler(Events::EventHandler& handler, 
 			Events::EventType eventType);
 		void AddEventHandler(Events::EventHandler* handler, 
@@ -106,78 +88,42 @@ namespace Tether
 		void RemoveInputListener(Input::InputListener& listener);
 		void RemoveInputListener(Input::InputListener* listener);
 
-		void SetVisible(bool visibility);
 		bool IsVisible();
-
-		/**
-		 * @brief Sets the window's fullscreen state.
-		 * 
-		 * @param fullscreen True if the window should be fullscreen;
-		 *  otherwise, false.
-		 * @param settings The settings to change the monitor to. 
-		 * 	Note: Only works on Windows. On Linux, this parameter is ignored.
-		 * @param monitor The monitor to go fullscreen on. 
-		 * 	If this value is nullptr, fullscreen is on the first monitor.
-		 * 	Tether must be compiled with TETHER_MONITORS to use this parameter.
-		 */
-		void SetFullscreen(
-			bool fullscreen, 
-			FullscreenSettings* settings = nullptr,
-			Devices::Monitor* monitor = nullptr
-		);
-
+		void SetVisible(bool visibility);
 		void SetRawInputEnabled(bool enabled);
 		void SetCursorMode(CursorMode mode);
 		void SetCursorPos(int x, int y);
 		void SetCursorRootPos(int x, int y);
-		
-		void SetX(int64_t x);
-		void SetY(int64_t y);
-		void SetPosition(int64_t x, int64_t y);
-		void SetWidth(uint64_t width);
-		void SetHeight(uint64_t height);
-		void SetSize(uint64_t width, uint64_t height);
+		void SetX(int x);
+		void SetY(int y);
+		void SetPosition(int x, int y);
+		void SetWidth(int width);
+		void SetHeight(int height);
+		void SetSize(int width, int height);
 		void SetTitle(const char* title);
-		void SetDecorated(bool decorated);
-		void SetClosable(bool closable);
-		void SetResizable(bool resizable);
-		void SetMinimizeBox(bool enabled);
-		void SetMaximizeBox(bool enabled);
-		void SetMaximized(bool maximized);
 		void SetBoundsEnabled(bool enabled);
-		void SetBounds(int64_t minWidth, int64_t minHeight, int64_t maxWidth,
-			int64_t maxHeight);
-		
-		// GraphicalWindow X
-		int64_t GetX();
-		// GraphicalWindow Y
-		int64_t GetY();
-		int64_t GetMouseX();
-		int64_t GetMouseY();
-		int64_t GetRelativeMouseX();
-		int64_t GetRelativeMouseY();
-		uint64_t GetWidth();
-		uint64_t GetHeight();
-		
-		/**
-		 * @brief Processes all pending events for the window.
-		 */
+		void SetBounds(int minWidth, int minHeight, int maxWidth, int maxHeight);
+		void SetDecorated(bool enabled);
+		void SetResizable(bool resizable);
+		void SetClosable(bool closable);
+		void SetButtonStyleBitmask(uint8_t mask);
+		void SetMaximized(bool maximized);
+		void SetFullscreen(bool fullscreen, FullscreenSettings* settings,
+			Devices::Monitor* monitor);
 		void PollEvents();
-		
-	#ifdef __linux__
-		void SetPreferredResizeInc(int width, int height);
-	#endif
-
-	#ifdef _WIN32
-		unsigned long CalculateStyle();
-		void ReconstructStyle();
-	#endif
-
-		Storage::VarStorage* GetStorage();
+		int GetX();
+		int GetY();
+		int GetWidth();
+		int GetHeight();
+		int GetMouseX();
+		int GetMouseY();
+		int GetRelativeMouseX();
+		int GetRelativeMouseY();
+		bool IsFocused();
 
 		void SetCloseRequested(bool requested);
 		bool IsCloseRequested();
-	protected:
+
 		void SpawnEvent(
 			Events::EventType eventType,
 			std::function<void(Events::EventHandler*)> callEventFun
@@ -188,66 +134,16 @@ namespace Tether
 			std::function<void(Input::InputListener*)> callInputFun
 		);
 
-		void DispatchNoInit(std::string functionName);
-		void DispatchError(ErrorCode code, ErrorSeverity severity, 
-			std::string functionName);
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 
 		virtual void OnInit() {}
-		
-	#ifdef __linux__
-	#endif //__linux__
-	#ifdef _WIN32
-		int64_t HandleMessage(void* hWnd, uint32_t msg, uint32_t wParam, 
-			uint64_t lParam);
-	#endif // _WIN32
+		virtual void OnPollEvent() {}
 
-		Storage::VarStorage* storage = nullptr;
+		Native::SimpleWindowNative* GetWindowNative();
 	private:
-		bool LoadLibraries();
+		void SetNative();
 
 		void OnDispose();
-
-	#ifdef __linux__
-		void ProcessMwmFunctions();
-
-		uint64_t prevX = 0, prevY = 0;
-		uint64_t prevWidth = 0, prevHeight = 0;
-	#endif
-
-	#ifdef _WIN32
-		std::shared_ptr<wchar_t> ToWide(const char* str);
-		
-		bool decorated = true;
-		std::string className = "";
-	#endif
-
-		std::vector<WindowHint> hints;
-
-		// GraphicalWindow stuff
-		int64_t setX = 0;
-		int64_t setY = 0;
-		int64_t setWidth = 0;
-		int64_t setHeight = 0;
-		bool visible = false;
-		bool fullscreen = false;
-		bool closable = true;
-		bool resizable = true;
-		bool minimizeBox = true;
-		bool maximizeBox = true;
-		bool boundsEnabled = false;
-		int64_t minWidth = 0, minHeight = 0, maxWidth = 0, maxHeight = 0;
-
-		CursorMode cursorMode = CursorMode::NORMAL;
-
-		// Mouse stuff
-		bool prevReceivedMouseMove = false;
-		bool rawInputEnabled = false;
-		bool rawInputInitialized = false;
-		int64_t mouseX = -1;
-		int64_t mouseY = -1;
-		int64_t relMouseX = -1;
-		int64_t relMouseY = -1;
 
 		// Each event has a list of handlers to handle that specific event.
 		std::unordered_map<Events::EventType, 
@@ -255,9 +151,10 @@ namespace Tether
 
 		std::unordered_map<Input::InputType, 
 			std::vector<Input::InputListener*>> inputListeners;
-
-		Application* app;
 		
 		bool closeRequested = false;
+
+		Native::SimpleWindowNative* native = nullptr;
+		Application* app;
 	};
 }

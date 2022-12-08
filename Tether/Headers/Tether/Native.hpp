@@ -28,32 +28,11 @@ namespace Tether::Storage
 	};
 
 #ifdef _WIN32
-	struct VarStorage
-	{
-		HWND window = 0;
-		// There is only ever one hinstance but for simplicity it is stored in the
-		// window.
-		HINSTANCE hinst = nullptr;
-
-		WNDCLASSEX wndClass;
-	};
-
 	struct AppVarStorage
 	{
 		
 	};
 #elif __linux__
-	struct VarStorage
-	{
-		unsigned long window = 0;
-		int screen = 0;
-
-		XEvent event;
-
-		std::unordered_map<uint32_t, Time> pressTimes;
-		uint32_t lastPressed = UINT32_MAX;
-	};
-
 	typedef int (*PFN_XISelectEvents)(Display*,Window,XIEventMask*,int);
 	#define XISelectEvents(display, window, masks, numMasks) \
 		Application::Get().storage->xi.selectEvents(display, window, masks, numMasks)

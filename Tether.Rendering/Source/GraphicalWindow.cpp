@@ -4,6 +4,9 @@
 using namespace Tether;
 using namespace Tether::Rendering;
 
+GraphicalWindow::GraphicalWindow()
+{}
+
 void GraphicalWindow::AddElement(Elements::Element* pElement, bool repaint)
 {
 	elements.push_back(pElement);

@@ -4,45 +4,46 @@
 
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/Common/VectorUtils.hpp>
-#include <Tether/Native.hpp>
-
-#include <Tether/Controls/Control.hpp>
+#include <Tether/Native/SimpleWindowNative.hpp>
 
 #include <string.h>
 
 using namespace Tether;
-using namespace Tether::Storage;
+using namespace Storage;
 
-Tether::SimpleWindow::SimpleWindow()
+SimpleWindow::SimpleWindow()
 {
     app = &Application::Get();
-    storage = new VarStorage();
+	if (!app->IsInitialized() && !app->Init())
+		return;
+
+    SetNative();
 }
 
-Tether::SimpleWindow::~SimpleWindow()
+SimpleWindow::~SimpleWindow()
 {
-    delete storage;
+    Dispose();
+    delete native;
 }
 
-VarStorage* Tether::SimpleWindow::GetStorage()
+bool SimpleWindow::Create(int width, int height, const char* title, bool visible)
 {
-	return storage;
+    initialized = native->OnInit(width, height, title, visible);
+    return initialized;
 }
 
-void Tether::SimpleWindow::Hint(HintType type, int64_t pValue)
+bool SimpleWindow::Run()
 {
-    // Hints can only be set before the window is initialized.
-    if (!initialized)
-        hints.push_back({ type, pValue });
+    return native->Run();
 }
 
-void Tether::SimpleWindow::AddEventHandler(Events::EventHandler& handler, 
+void SimpleWindow::AddEventHandler(Events::EventHandler& handler, 
     Events::EventType eventType)
 {
     AddEventHandler(&handler, eventType);
 }
 
-void Tether::SimpleWindow::AddEventHandler(Events::EventHandler* handler,
+void SimpleWindow::AddEventHandler(Events::EventHandler* handler,
     Events::EventType eventType)
 {
     using namespace Events;
@@ -62,12 +63,12 @@ void Tether::SimpleWindow::AddEventHandler(Events::EventHandler* handler,
     handler->OnAdd(this);
 }
 
-void Tether::SimpleWindow::RemoveEventHandler(Events::EventHandler& handler)
+void SimpleWindow::RemoveEventHandler(Events::EventHandler& handler)
 {
     RemoveEventHandler(&handler);
 }
 
-void Tether::SimpleWindow::RemoveEventHandler(Events::EventHandler* handler)
+void SimpleWindow::RemoveEventHandler(Events::EventHandler* handler)
 {
     handler->OnRemove(this);
 
@@ -91,13 +92,13 @@ void Tether::SimpleWindow::RemoveEventHandler(Events::EventHandler* handler)
         handlers.erase(handlers.find(toErase[i]));
 }
 
-void Tether::SimpleWindow::AddInputListener(Input::InputListener& listener, 
+void SimpleWindow::AddInputListener(Input::InputListener& listener, 
 	Input::InputType inputType)
 {
     AddInputListener(&listener, inputType);
 }
 
-void Tether::SimpleWindow::AddInputListener(Input::InputListener* listener, 
+void SimpleWindow::AddInputListener(Input::InputListener* listener, 
 	Input::InputType inputType)
 {
     using namespace Input;
@@ -117,12 +118,12 @@ void Tether::SimpleWindow::AddInputListener(Input::InputListener* listener,
     listener->OnAdd(this);
 }
 
-void Tether::SimpleWindow::RemoveInputListener(Input::InputListener& listener)
+void SimpleWindow::RemoveInputListener(Input::InputListener& listener)
 {
     RemoveInputListener(&listener);
 }
 
-void Tether::SimpleWindow::RemoveInputListener(Input::InputListener* listener)
+void SimpleWindow::RemoveInputListener(Input::InputListener* listener)
 {
     listener->OnRemove(this);
 
@@ -146,37 +147,111 @@ void Tether::SimpleWindow::RemoveInputListener(Input::InputListener* listener)
         inputListeners.erase(inputListeners.find(toErase[i]));
 }
 
-int64_t Tether::SimpleWindow::GetMouseX()
-{
-    return mouseX;
-}
+void SimpleWindow::SetVisible(bool visibility) 
+{ native->SetVisible(visibility); }
 
-int64_t Tether::SimpleWindow::GetMouseY()
-{
-    return mouseY;
-}
+void SimpleWindow::SetRawInputEnabled(bool enabled) 
+{ native->SetRawInputEnabled(enabled); }
 
-int64_t Tether::SimpleWindow::GetRelativeMouseX()
-{
-    return relMouseX;
-}
+void SimpleWindow::SetCursorMode(CursorMode mode) 
+{ native->SetCursorMode(mode); }
 
-int64_t Tether::SimpleWindow::GetRelativeMouseY()
-{
-    return relMouseY;
-}
+void SimpleWindow::SetCursorPos(int x, int y) 
+{ native->SetCursorPos(x, y); }
 
-void Tether::SimpleWindow::SetCloseRequested(bool requested)
+void SimpleWindow::SetCursorRootPos(int x, int y) 
+{ native->SetCursorRootPos(x, y); }
+
+void SimpleWindow::SetX(int x) 
+{ native->SetX(x); }
+
+void SimpleWindow::SetY(int y) 
+{ native->SetY(y); }
+
+void SimpleWindow::SetPosition(int x, int y) 
+{ native->SetPosition(x, y); }
+
+void SimpleWindow::SetWidth(int width) 
+{ native->SetWidth(width); }
+
+void SimpleWindow::SetHeight(int height) 
+{ native->SetHeight(height); }
+
+void SimpleWindow::SetSize(int width, int height) 
+{ native->SetSize(width, height); }
+
+void SimpleWindow::SetTitle(const char* title) 
+{ native->SetTitle(title); }
+
+void SimpleWindow::SetBoundsEnabled(bool enabled) 
+{ native->SetBoundsEnabled(enabled); }
+
+void SimpleWindow::SetBounds(int minWidth, int minHeight, int maxWidth, int maxHeight) 
+{ native->SetBounds(minWidth, minHeight, maxWidth, maxHeight); }
+
+void SimpleWindow::SetDecorated(bool enabled) 
+{ native->SetDecorated(enabled); }
+
+void SimpleWindow::SetResizable(bool resizable) 
+{ native->SetResizable(resizable); }
+
+void SimpleWindow::SetClosable(bool closable) 
+{ native->SetClosable(closable); }
+
+void SimpleWindow::SetButtonStyleBitmask(uint8_t mask) 
+{ native->SetButtonStyleBitmask(mask); }
+
+void SimpleWindow::SetMaximized(bool maximized) 
+{ native->SetMaximized(maximized); }
+
+void SimpleWindow::SetFullscreen(bool fullscreen, FullscreenSettings* settings, 
+    Devices::Monitor* monitor) 
+{ native->SetFullscreen(fullscreen, settings, monitor); }
+
+void SimpleWindow::PollEvents() 
+{ native->PollEvents(); }
+
+bool SimpleWindow::IsVisible() 
+{ return native->IsVisible(); }
+
+int SimpleWindow::GetX() 
+{ return native->GetX(); }
+
+int SimpleWindow::GetY() 
+{ return native->GetY(); }
+
+int SimpleWindow::GetWidth() 
+{ return native->GetWidth(); }
+
+int SimpleWindow::GetHeight() 
+{ return native->GetHeight(); }
+
+int SimpleWindow::GetMouseX() 
+{ return native->GetMouseX(); }
+
+int SimpleWindow::GetMouseY() 
+{ return native->GetMouseY(); }
+
+int SimpleWindow::GetRelativeMouseX() 
+{ return native->GetRelativeMouseX(); }
+
+int SimpleWindow::GetRelativeMouseY() 
+{ return native->GetRelativeMouseY(); }
+
+bool SimpleWindow::IsFocused()
+{ return native->IsFocused(); }
+
+void SimpleWindow::SetCloseRequested(bool requested)
 {
     this->closeRequested = requested;
 }
 
-bool Tether::SimpleWindow::IsCloseRequested()
+bool SimpleWindow::IsCloseRequested()
 {
     return closeRequested;
 }
 
-void Tether::SimpleWindow::SpawnEvent(
+void SimpleWindow::SpawnEvent(
     Events::EventType eventType,
     std::function<void(Events::EventHandler*)> callEventFun
 )
@@ -189,7 +264,7 @@ void Tether::SimpleWindow::SpawnEvent(
     }
 }
 
-void Tether::SimpleWindow::SpawnInput(
+void SimpleWindow::SpawnInput(
     Input::InputType inputType,
 	std::function<void(Input::InputListener*)> callInputFun
 )
@@ -202,33 +277,28 @@ void Tether::SimpleWindow::SpawnInput(
     }
 }
 
-void Tether::SimpleWindow::DispatchNoInit(std::string functionName)
+void SimpleWindow::SpawnKeyInput(uint32_t scancode, uint32_t keycode,
+	bool pressed)
 {
-    SpawnEvent(Events::EventType::WINDOW_ERROR, 
-    [&](Events::EventHandler* pEventHandler)
-    {
-        Events::WindowErrorEvent error(
-            ErrorCode::NOT_INITIALIZED,
-            ErrorSeverity::LOW,
-            functionName
-        );
+	Input::KeyInfo event(
+		scancode,
+		keycode,
+		pressed
+		);
 
-        pEventHandler->OnWindowError(error);
-    });
+	SpawnInput(Input::InputType::KEY,
+		[&](Input::InputListener* pInputListener)
+		{
+			pInputListener->OnKey(event);
+		});
 }
 
-void Tether::SimpleWindow::DispatchError(ErrorCode code, ErrorSeverity severity, 
-    std::string functionName)
+Native::SimpleWindowNative* SimpleWindow::GetWindowNative()
 {
-    SpawnEvent(Events::EventType::WINDOW_ERROR, 
-    [&](Events::EventHandler* pEventHandler)
-    {
-        Events::WindowErrorEvent error(
-            code,
-            severity,
-            functionName
-        );
+    return native;
+}
 
-        pEventHandler->OnWindowError(error);
-    });
+void SimpleWindow::OnDispose()
+{
+    native->OnDispose();
 }

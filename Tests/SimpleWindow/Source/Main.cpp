@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include <Tether/Tether.hpp>
-#include <Tether/Module/Rendering/GraphicalWindow.hpp>
 
 #include <thread>
 #include <chrono>
@@ -10,7 +9,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Rendering::GraphicalWindow
+class TestWindow : public SimpleWindow
 {
 public:
 	class EventHandler : public Events::EventHandler
@@ -42,9 +41,9 @@ public:
 		{
 			std::cout << "window error: " << std::endl;
 			std::cout << "\tERROR    = " << (int)event.GetCode() << std::endl;
-			std::cout << "\tSEVERITY = " << (int)event.GetSeverity() 
+			std::cout << "\tSEVERITY = " << (int)event.GetSeverity()
 				<< std::endl;
-			std::cout << "\tFUNC_NAME = " << event.GetFunctionName() 
+			std::cout << "\tFUNC_NAME = " << event.GetFunctionName()
 				<< std::endl;
 		}
 	private:
@@ -57,10 +56,10 @@ public:
 		void OnMouseMove(Input::MouseMoveInfo& info)
 		{
 			std::cout << "Mouse move ("
-				<< "relX=" << info.GetRelativeX() << ", " 
-				<< "relY=" << info.GetRelativeY() 
-				<< ")" 
-			<< std::endl;
+				<< "relX=" << info.GetRelativeX() << ", "
+				<< "relY=" << info.GetRelativeY()
+				<< ")"
+				<< std::endl;
 		}
 
 		void OnRawMouseMove(Input::RawMouseMoveInfo& info)
@@ -77,12 +76,12 @@ public:
 			std::string tru = "true";
 			std::string fals = "false";
 
-			std::cout << "Key (pressed=" 
+			std::cout << "Key (pressed="
 				<< (info.IsPressed() ? tru : fals)
 				<< ", scancode=" << info.GetScancode()
-				<< ", key=" << info.GetKey() 
+				<< ", key=" << info.GetKey()
 				<< ")"
-			<< std::endl;
+				<< std::endl;
 		}
 
 		void OnKeyChar(Input::KeyCharInfo& info)
@@ -90,11 +89,11 @@ public:
 			std::string tru = "true";
 			std::string fals = "false";
 
-			std::cout << "Key char (repeat=" 
+			std::cout << "Key char (repeat="
 				<< (info.IsAutoRepeat() ? tru : fals)
-				<< ", key=" << info.GetKey() 
+				<< ", key=" << info.GetKey()
 				<< ")"
-			<< std::endl;
+				<< std::endl;
 		}
 	};
 
@@ -102,6 +101,8 @@ public:
 		:
 		handler(this)
 	{
+		Create(1280, 720, "sup", false);
+		Run();
 	}
 
 	~TestWindow()
@@ -122,8 +123,11 @@ public:
 		AddInputListener(listener, Input::InputType::KEY_CHAR);
 
 		SetRawInputEnabled(true);
-		
-		SetBackgroundColor(Color(0.1f, 0.1f, 0.1f));
+
+		SetX(120);
+		SetY(120);
+
+		SetVisible(true);
 	}
 private:
 	EventHandler handler;
@@ -133,20 +137,5 @@ private:
 int main()
 {
 	TestWindow window;
-	window.Hint(HintType::X, 120);
-	window.Hint(HintType::Y, 120);
-	if (!window.Init(1280, 720, "sup"))
-	{
-		std::cout << "Failed to initialize window" << std::endl;
-		return 1;
-	}
-	
-	while (!window.IsCloseRequested())
-	{
-		window.PollEvents();
-		std::this_thread::sleep_for(1ms);
-	}
-
-	window.Dispose();
 	return 0;
 }

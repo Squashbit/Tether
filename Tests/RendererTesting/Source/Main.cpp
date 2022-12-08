@@ -78,16 +78,13 @@ class RendererTestApp : public IDisposable
 public:
 	TETHER_DISPOSE_ON_DESTROY(RendererTestApp);
 	RendererTestApp()
+		:
+		window(1280, 720, "Renderer testing")
 	{
 		window.Hint(HintType::X, 120);
 		window.Hint(HintType::Y, 120);
 		window.Hint(HintType::VISIBLE, false);
-		if (!window.Init(1280, 720, "Renderer testing"))
-		{
-			std::cout << "Failed to initialize window" << std::endl;
-			return;
-		}
-
+		
 		if (!InitRenderer())
 		{
 			std::cout << "Failed to initialize renderer" << std::endl;
