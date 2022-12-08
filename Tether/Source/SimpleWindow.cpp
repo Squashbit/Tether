@@ -14,9 +14,6 @@ using namespace Storage;
 SimpleWindow::SimpleWindow()
 {
     app = &Application::Get();
-	if (!app->IsInitialized() && !app->Init())
-		return;
-
     SetNative();
 }
 

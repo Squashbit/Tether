@@ -464,11 +464,14 @@ int Win32SimpleWindow::GetRelativeMouseY()
 
 bool Win32SimpleWindow::IsFocused()
 {
-	return GetFocus() == window;
+	return GetForegroundWindow() == window;
 }
 
 void Win32SimpleWindow::PollEvents()
 {
+	if (!visible)
+		return;
+
 	MSG msg{};
 	while (PeekMessage(&msg, window, 0, 0, PM_REMOVE))
 	{

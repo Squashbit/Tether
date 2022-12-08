@@ -25,7 +25,7 @@ namespace Tether
         friend class SimpleWindow;
         friend Devices::DeviceManager;
     public:
-        Application() = default;
+        Application();
         TETHER_DISPOSE_ON_DESTROY(Application);
 
 		bool Init();
