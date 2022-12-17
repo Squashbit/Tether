@@ -2,6 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/IDisposable.hpp>
+#include <Tether/Common/Ref.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Common/PipelineInfo.hpp>
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
@@ -31,6 +32,9 @@ namespace Tether::Rendering::Vulkan
 		VkPipeline Get();
 		VkPipelineLayout GetLayout();
 	private:
+		Pipeline(VkDevice device, DeviceLoader* dloader, 
+			VkPipeline pipeline, VkPipelineLayout layout);
+
 		void OnDispose();
 
 		DeviceLoader* dloader = nullptr;

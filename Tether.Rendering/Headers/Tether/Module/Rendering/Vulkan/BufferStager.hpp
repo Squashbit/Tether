@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Tether/Common/IDisposable.hpp>
+#include <Tether/Common/Ref.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 
@@ -36,10 +37,16 @@ namespace Tether::Rendering::Vulkan
 		// Wait for data to finish uploading.
 		void Wait();
 	private:
-		void OnDispose();
+		BufferStager(
+			VmaAllocator allocator,
+			VkDevice device,
+			DeviceLoader* dloader,
+			VkCommandPool pool,
+			VkFence completedFence,
+			VkCommandBuffer commandBuffer
+		);
 
-		bool CreateCommandBuffer();
-		bool CreateFence();
+		void OnDispose();
 
 		bool CreateStagingBuffer(uint32_t uploadSize);
 		bool RecordCommandBuffer(uint32_t uploadSize);

@@ -10,7 +10,7 @@ namespace Tether::Native
 		SimpleWindowNative(SimpleWindow* pWindow);
 		virtual ~SimpleWindowNative() = default;
 
-		virtual bool OnInit(int width, int height, const char* title, bool visible) = 0;
+		virtual void OnInit(int width, int height, const char* title, bool visible) = 0;
 
 		virtual bool Run() = 0;
 

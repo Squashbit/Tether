@@ -1,5 +1,20 @@
 #pragma once
 
+#ifdef _DEBUG
+#define TETHER_LOG_INFO(text) \
+    Application::Get().GetLogger().Log(Logger::Type::INFO, text)
+#define TETHER_LOG_WARN(text) \
+    Application::Get().GetLogger().Log(Logger::Type::WARN, text)
+#define TETHER_LOG_ERROR(text) \
+    Application::Get().GetLogger().Log(Logger::Type::ERROR, text)
+#else
+#define TETHER_LOG_INFO(text)
+#define TETHER_LOG_WARN(text)
+#define TETHER_LOG_ERROR(text)
+#endif
+
+#define TETHER_THROW_ERROR(text) TETHER_LOG_ERROR(text); throw text
+
 #define TETHER_NO_COPY(typename) \
     typename(const typename&) = delete; \
 	typename(typename&&) = delete; \

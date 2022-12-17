@@ -21,9 +21,6 @@ namespace Tether
     class TETHER_EXPORT IDisposable
     {
     public:
-        /**
-         * @returns True if the object is initialized; otherwise, false.
-         */
         bool IsInitialized() const;
 
         /**
@@ -36,6 +33,6 @@ namespace Tether
 
         // This field must be set to true in order for OnDispose to be called.
         // After dispose is called, this field will automatically be set to false.
-        bool initialized = false;
+        bool initialized = true;
     };
 }

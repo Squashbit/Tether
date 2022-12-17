@@ -39,7 +39,6 @@ if (TETHER_RENDERING_VULKAN_API)
         ${SDIR}/Vulkan/Surface.cpp
         ${SDIR}/Vulkan/Pipeline.cpp
         ${SDIR}/Vulkan/Swapchain.cpp
-        ${SDIR}/Vulkan/ShaderModule.cpp
         ${SDIR}/Vulkan/VertexBuffer.cpp
         ${SDIR}/Vulkan/BufferStager.cpp
         ${SDIR}/Vulkan/VkUtils.cpp

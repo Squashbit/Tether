@@ -12,7 +12,7 @@ namespace Tether::Native
 	public:
 		Win32SimpleWindow(SimpleWindow* pWindow);
 
-		bool OnInit(int width, int height, const char* title, bool visible);
+		void OnInit(int width, int height, const char* title, bool visible);
 
 		bool Run();
 

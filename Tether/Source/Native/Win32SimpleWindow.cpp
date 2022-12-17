@@ -9,6 +9,8 @@
 #include <cmath>
 #include <string.h>
 
+#undef ERROR
+
 using namespace Tether::Storage;
 using namespace Tether::Native;
 
@@ -50,12 +52,10 @@ Win32SimpleWindow::Win32SimpleWindow(SimpleWindow* pWindow)
 	SimpleWindowNative(pWindow)
 {}
 
-bool Win32SimpleWindow::OnInit(int width, int height, const char* title, bool visible)
+void Win32SimpleWindow::OnInit(int width, int height, const char* title, bool visible)
 {
 	// Grab the hinstance
 	hinst = GetModuleHandle(NULL);
-	if (!hinst)
-		return false;
 	
 	this->setWidth = width;
 	this->setHeight = height;
@@ -79,8 +79,7 @@ bool Win32SimpleWindow::OnInit(int width, int height, const char* title, bool vi
 	wndClass.hInstance = hinst;
 	wndClass.lpfnWndProc = Tether_WindowProc;
 
-	if (!RegisterClassEx(&wndClass))
-		return false;
+	RegisterClassEx(&wndClass);
 	
 	// Create window
 	window = CreateWindowEx(
@@ -97,16 +96,9 @@ bool Win32SimpleWindow::OnInit(int width, int height, const char* title, bool vi
 		hinst,
 		this
 	);
-	if (!window)
-	{
-		pWindow->SetCloseRequested(true);
-		return false;
-	}
 	
 	if (visible)
 		pWindow->SetVisible(true);
-
-	return true;
 }
 
 bool Win32SimpleWindow::Run()

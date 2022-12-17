@@ -79,7 +79,8 @@ public:
 	TETHER_DISPOSE_ON_DESTROY(RendererTestApp);
 	RendererTestApp()
 		:
-		window(1280, 720, "Renderer testing")
+		window(1280, 720, "Renderer testing"),
+		renderer(pWindow)
 	{
 		if (!InitRenderer())
 		{
@@ -99,35 +100,14 @@ public:
 		while (!window.IsCloseRequested())
 		{
 			window.PollEvents();
-			renderer.RenderFrame();
+			renderer->RenderFrame();
 		}
 	}
 private:
 	bool InitRenderer()
 	{
-		Vulkan::ErrorCode error = renderer.Init(&window);
-		switch (error)
-		{
-			case Vulkan::ErrorCode::SUCCESS: break;
-
-			case Vulkan::ErrorCode::DEVICE_NOT_FOUND:
-			{
-				std::cout << "Failed to initialize Vulkan. No suitable device found."
-					<< std::endl;
-				return false;
-			}
-			break;
-
-			default:
-			{
-				std::cout << "Failed to initialize Vulkan Native. Error code = "
-					<< (int)error << std::endl;
-				return false;
-			}
-			break;
-		}
-
-		return true;
+		renderer = Vulkan::VulkanUIRenderer::Create(pWindow);
+		return renderer != nullptr;
 	}
 
 	void InitObjects()

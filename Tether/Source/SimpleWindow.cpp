@@ -16,7 +16,7 @@ SimpleWindow::SimpleWindow(int width, int height, const char* title, bool visibl
     app = &Application::Get();
     SetNative();
 
-    initialized = native->OnInit(width, height, title, visible);
+    native->OnInit(width, height, title, visible);
 }
 
 SimpleWindow::~SimpleWindow()

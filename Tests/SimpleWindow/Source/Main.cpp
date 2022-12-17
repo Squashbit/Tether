@@ -102,7 +102,7 @@ public:
 		SimpleWindow(1280, 720, "sup"),
 		handler(this)
 	{
-		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
+		/*AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
 		AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
 		AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
@@ -110,7 +110,7 @@ public:
 		AddInputListener(listener, Input::InputType::MOUSE_MOVE);
 		AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
 		AddInputListener(listener, Input::InputType::KEY);
-		AddInputListener(listener, Input::InputType::KEY_CHAR);
+		AddInputListener(listener, Input::InputType::KEY_CHAR);*/
 
 		SetRawInputEnabled(true);
 

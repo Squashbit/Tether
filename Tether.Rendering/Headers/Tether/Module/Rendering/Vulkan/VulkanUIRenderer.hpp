@@ -8,7 +8,6 @@
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
-#include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
@@ -24,10 +23,8 @@ namespace Tether::Rendering::Vulkan
 	public:
 		VulkanUIRenderer() = default;
 		TETHER_DISPOSE_ON_DESTROY(VulkanUIRenderer);
-		TETHER_NO_COPY(VulkanUIRenderer);
-
-		ErrorCode Init(SimpleWindow* pWindow);
-
+		VulkanUIRenderer(SimpleWindow* pWindow);
+		
 		bool RenderFrame();
 
 		VertexBuffer* GetRectangleBuffer();
@@ -37,17 +34,16 @@ namespace Tether::Rendering::Vulkan
 		void OnObjectAdd(Objects::Object* pObject);
 		void OnObjectRemove(Objects::Object* pObject);
 
-		bool CreateDevice();
-		bool CreateAllocator();
-		bool CreateSwapchain();
-		bool CreateRenderPass();
-		bool CreateShaders();
-		bool CreatePipeline();
-		bool CreateFramebuffers();
-		bool CreateSyncObjects();
-		bool CreateCommandPool();
-		bool CreateVertexBuffers();
-		bool CreateCommandBuffer();
+		void CreateDevice();
+		void CreateAllocator();
+		void CreateSwapchain();
+		void CreateRenderPass();
+		void CreatePipeline();
+		void CreateFramebuffers();
+		void CreateSyncObjects();
+		void CreateCommandPool();
+		void CreateVertexBuffers();
+		void CreateCommandBuffer();
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
@@ -56,6 +52,9 @@ namespace Tether::Rendering::Vulkan
 		bool RecreateSwapchain();
 		void DestroySwapchain();
 
+		bool IsDeviceSuitable(VkPhysicalDevice device);
+		bool PickDevice();
+
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 		uint32_t FindImageCount(SwapchainDetails details);
 
@@ -63,29 +62,22 @@ namespace Tether::Rendering::Vulkan
 
 		VmaAllocator allocator;
 
-		VertexBuffer square;
-
 		SimpleWindow* pWindow = nullptr;
-
 		InstanceLoader* iloader = nullptr;
 		Instance* instance = nullptr;
-
 		DeviceLoader* dloader = nullptr;
-		Device device;
 
-		Surface surface;
-		Swapchain swapchain;
-
+		Scope<Surface> surface;
+		Scope<Device> device;
+		Scope<Swapchain> swapchain;
+		Scope<Pipeline> pipeline;
+		Scope<VertexBuffer> square;
+		
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkPhysicalDevice physicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 		VkRenderPass renderPass;
-
-		Pipeline pipeline;
-
-		Vulkan::ShaderModule vertexModule;
-		Vulkan::ShaderModule fragmentModule;
 
 		VkCommandPool commandPool;
 
