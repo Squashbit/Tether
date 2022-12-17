@@ -32,11 +32,6 @@ std::vector<Module*>* Application::GetModules()
 	return &modules;
 }
 
-Logger& Application::GetLogger()
-{
-	return logger;
-}
-
 Application& Application::Get()
 {
 	return internal;

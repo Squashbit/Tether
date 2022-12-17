@@ -13,11 +13,11 @@ namespace Tether::Rendering::Vulkan
 {
 	struct VertexBufferInfo
 	{
-		VmaAllocator allocator;
-		VkDevice device;
-		DeviceLoader* dloader;
-		VkQueue graphicsQueue;
-		VkCommandPool pool;
+		VmaAllocator allocator = nullptr;
+		VkDevice device = nullptr;
+		DeviceLoader* dloader = nullptr;
+		VkQueue graphicsQueue = nullptr;
+		VkCommandPool pool = nullptr;
 	};
 
 	class TETHER_EXPORT VertexBuffer : public IDisposable

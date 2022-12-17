@@ -67,11 +67,11 @@ namespace Tether::Rendering::Vulkan
 		Instance* instance = nullptr;
 		DeviceLoader* dloader = nullptr;
 
-		Scope<Surface> surface;
-		Scope<Device> device;
-		Scope<Swapchain> swapchain;
-		Scope<Pipeline> pipeline;
-		Scope<VertexBuffer> square;
+		Surface surface;
+		Device device;
+		Swapchain swapchain;
+		Pipeline pipeline;
+		VertexBuffer square;
 		
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkPhysicalDevice physicalDevice;

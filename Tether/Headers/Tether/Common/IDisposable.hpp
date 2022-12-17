@@ -33,6 +33,6 @@ namespace Tether
 
         // This field must be set to true in order for OnDispose to be called.
         // After dispose is called, this field will automatically be set to false.
-        bool initialized = true;
+        bool initialized = false;
     };
 }

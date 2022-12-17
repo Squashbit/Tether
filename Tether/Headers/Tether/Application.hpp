@@ -4,7 +4,6 @@
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Types.hpp>
-#include <Tether/Common/Logger.hpp>
 
 #include <vector>
 #include <optional>
@@ -31,8 +30,7 @@ namespace Tether
         
         Storage::AppVarStorage* GetStorage();
         std::vector<Module*>* GetModules();
-        Logger& GetLogger();
-
+        
         static Application& Get();
         static void DisposeApplication();
     protected:
@@ -52,8 +50,7 @@ namespace Tether
         void OnDispose();
 
         std::vector<Module*> modules;
-        Logger logger;
-
+        
         static Application internal;
     };
 }

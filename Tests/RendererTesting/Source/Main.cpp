@@ -80,14 +80,8 @@ public:
 	RendererTestApp()
 		:
 		window(1280, 720, "Renderer testing"),
-		renderer(pWindow)
+		renderer(&window)
 	{
-		if (!InitRenderer())
-		{
-			std::cout << "Failed to initialize renderer" << std::endl;
-			return;
-		}
-
 		InitObjects();
 
 		window.SetVisible(true);
@@ -100,16 +94,10 @@ public:
 		while (!window.IsCloseRequested())
 		{
 			window.PollEvents();
-			renderer->RenderFrame();
+			renderer.RenderFrame();
 		}
 	}
 private:
-	bool InitRenderer()
-	{
-		renderer = Vulkan::VulkanUIRenderer::Create(pWindow);
-		return renderer != nullptr;
-	}
-
 	void InitObjects()
 	{
 		testRect = ScopeTools::Create<Objects::Rectangle>(&renderer);

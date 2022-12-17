@@ -38,9 +38,6 @@ VkResult Instance::Init(
 	bool debugMode
 )
 {
-	if (initialized)
-		return VK_ERROR_UNKNOWN;
-	
 	this->debugMode = debugMode;
 
 	// Most structures require an sType that specifies what this structure

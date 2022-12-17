@@ -37,16 +37,10 @@ namespace Tether::Rendering::Vulkan
 		// Wait for data to finish uploading.
 		void Wait();
 	private:
-		BufferStager(
-			VmaAllocator allocator,
-			VkDevice device,
-			DeviceLoader* dloader,
-			VkCommandPool pool,
-			VkFence completedFence,
-			VkCommandBuffer commandBuffer
-		);
-
 		void OnDispose();
+
+		bool CreateCommandBuffer();
+		bool CreateFence();
 
 		bool CreateStagingBuffer(uint32_t uploadSize);
 		bool RecordCommandBuffer(uint32_t uploadSize);
