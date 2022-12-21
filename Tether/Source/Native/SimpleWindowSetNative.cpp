@@ -1,6 +1,6 @@
 #include <Tether/SimpleWindow.hpp>
-#include <Tether/Native/Win32SimpleWindow.hpp>
-#include <Tether/Native/X11SimpleWindow.hpp>
+#include <Tether/Platform/Win32SimpleWindow.hpp>
+#include <Tether/Platform/X11SimpleWindow.hpp>
 
 void Tether::SimpleWindow::SetNative()
 {

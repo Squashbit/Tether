@@ -1,61 +1,17 @@
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
 
 using namespace Tether::Rendering::Vulkan;
 
-bool VertexBuffer::Init(VertexBufferInfo* pInfo)
+void VertexBuffer::Init(VertexBufferInfo* pInfo, size_t dataSize, size_t indexCount)
 {
-	if (initialized)
-		return false;
-
 	this->info = *pInfo;
 
-	initialized = true;
-	return true;
-}
-
-bool VertexBuffer::UploadData(void* data, size_t dataSize, uint32_t* pIndices, 
-	size_t indexCount)
-{
-	if (!initialized)
-		return false;
-
-	if (!UploadDataAsync(data, dataSize, pIndices, indexCount))
-		return false;
-
-	Wait();
-
-	return true;
-}
-
-bool VertexBuffer::UploadDataAsync(void* data, size_t dataSize, uint32_t* pIndices, 
-	size_t indexCount)
-{
-	if (!initialized)
-		return false;
-
-	uint32_t indexBufferSize = sizeof(uint32_t) * static_cast<uint32_t>(indexCount);
-
-	Wait();
-	if (!CreateVertexBuffer(static_cast<uint32_t>(dataSize)))
-		return false;
-	if (!CreateIndexBuffer(indexBufferSize))
-	{
-		vmaDestroyBuffer(info.allocator, vertexBuffer, vertexAllocation);
-		return false;
-	}
+	size_t indexBufferSize = sizeof(uint32_t) * indexCount;
 	
-	this->vertexCount = indexCount;
-
-	if (!UploadVertexData(data, dataSize) 
-		|| !UploadIndexData(pIndices, indexBufferSize))
-		return false;
-
-	buffersCreated = true;
-	return true;
-}
-
-bool VertexBuffer::UploadVertexData(void* data, size_t dataSize)
-{
+	CreateVertexBuffer(dataSize);
+	CreateIndexBuffer(indexBufferSize);
+	
 	BufferStagerInfo vertexInfo{};
 	vertexInfo.allocator = info.allocator;
 	vertexInfo.buffer = vertexBuffer;
@@ -63,24 +19,7 @@ bool VertexBuffer::UploadVertexData(void* data, size_t dataSize)
 	vertexInfo.device = info.device;
 	vertexInfo.dloader = info.dloader;
 	vertexInfo.pool = info.pool;
-
-	if (!vertexStager.Init(&vertexInfo))
-		return false;
-	if (!vertexStager.UploadDataAsync(data, dataSize))
-	{
-		vertexStager.Wait();
-		DestroyBuffers();
-
-		vertexStager.Dispose();
-
-		return false;
-	}
-
-	return true;
-}
-
-bool VertexBuffer::UploadIndexData(uint32_t* pIndices, size_t indexBufferSize)
-{
+	vertexInfo.bufferSize = dataSize;
 	
 	BufferStagerInfo indexInfo{};
 	indexInfo.allocator = info.allocator;
@@ -89,36 +28,51 @@ bool VertexBuffer::UploadIndexData(uint32_t* pIndices, size_t indexBufferSize)
 	indexInfo.device = info.device;
 	indexInfo.dloader = info.dloader;
 	indexInfo.pool = info.pool;
+	indexInfo.bufferSize = indexBufferSize;
 
-	if (!indexStager.Init(&indexInfo))
-		return false;
-	if (!indexStager.UploadDataAsync(pIndices, indexBufferSize))
-	{
-		vertexStager.Wait();
-		indexStager.Wait();
-		DestroyBuffers();
+	vertexStager.Init(&vertexInfo);
+	indexStager.Init(&indexInfo);
 
-		vertexStager.Dispose();
-		indexStager.Dispose();
+	this->vertexCount = indexCount;
 
-		return false;
-	}
+	initialized = true;
+}
 
-	return true;
+void VertexBuffer::UploadData(void* data, uint32_t* pIndices)
+{
+	UploadDataAsync(data, pIndices);
+	Wait();
+}
+
+void VertexBuffer::UploadDataAsync(void* data, uint32_t* pIndices)
+{
+	if (finishedUploading)
+		return;
+
+	vertexStager.UploadDataAsync(data);
+	indexStager.UploadDataAsync(pIndices);
 }
 
 void VertexBuffer::Wait()
 {
-	if (!buffersCreated || !initialized)
+	if (finishedUploading)
 		return;
 
 	vertexStager.Wait();
 	indexStager.Wait();
+}
+
+void VertexBuffer::FinishDataUpload()
+{
+	if (finishedUploading)
+		return;
+
+	Wait();
 
 	vertexStager.Dispose();
 	indexStager.Dispose();
 
-	buffersCreated = false;
+	finishedUploading = true;
 }
 
 size_t VertexBuffer::GetVertexCount()
@@ -138,11 +92,8 @@ VkBuffer VertexBuffer::GetIndexBuffer()
 	return indexBuffer;
 }
 
-bool VertexBuffer::CreateVertexBuffer(uint32_t size)
+void VertexBuffer::CreateVertexBuffer(size_t size)
 {
-	if (!initialized)
-		return false;
-
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size;
@@ -156,15 +107,13 @@ bool VertexBuffer::CreateVertexBuffer(uint32_t size)
 	allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
 
-	return vmaCreateBuffer(info.allocator, &bufferInfo,
-		&allocInfo, &vertexBuffer, &vertexAllocation, nullptr) == VK_SUCCESS;
+	if (vmaCreateBuffer(info.allocator, &bufferInfo,
+		&allocInfo, &vertexBuffer, &vertexAllocation, nullptr) != VK_SUCCESS)
+		throw RendererException("Failed to create vertex buffer");
 }
 
-bool VertexBuffer::CreateIndexBuffer(uint32_t size)
+void VertexBuffer::CreateIndexBuffer(size_t size)
 {
-	if (!initialized)
-		return false;
-
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = size;
@@ -178,8 +127,12 @@ bool VertexBuffer::CreateIndexBuffer(uint32_t size)
 	allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
 		VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
 
-	return vmaCreateBuffer(info.allocator, &bufferInfo,
-		&allocInfo, &indexBuffer, &indexAllocation, nullptr) == VK_SUCCESS;
+	if (vmaCreateBuffer(info.allocator, &bufferInfo,
+		&allocInfo, &indexBuffer, &indexAllocation, nullptr) != VK_SUCCESS)
+	{
+		vmaDestroyBuffer(info.allocator, vertexBuffer, vertexAllocation);
+		throw RendererException("Failed to create index buffer");
+	}
 }
 
 void VertexBuffer::OnDispose()
@@ -191,6 +144,9 @@ void VertexBuffer::OnDispose()
 void VertexBuffer::DestroyBuffers()
 {
 	info.dloader->vkDeviceWaitIdle(info.device);
+
+	vertexStager.Dispose();
+	indexStager.Dispose();
 
 	vmaDestroyBuffer(info.allocator, vertexBuffer, vertexAllocation);
 	vmaDestroyBuffer(info.allocator, indexBuffer, indexAllocation);

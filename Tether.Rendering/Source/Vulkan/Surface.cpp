@@ -1,13 +1,14 @@
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
-
 #include <Tether/Native.hpp>
-#include <Tether/Native/Win32SimpleWindow.hpp>
-#include <Tether/Native/X11SimpleWindow.hpp>
 
 #ifdef __linux__
+#include <Tether/Platform/X11SimpleWindow.hpp>
+
 #include <vulkan/vulkan_xlib.h>
 #elif _WIN32
+#include <Tether/Platform/Win32SimpleWindow.hpp>
+
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>

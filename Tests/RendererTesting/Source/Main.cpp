@@ -1,6 +1,6 @@
 #include <Tether/Tether.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
-
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
 #include <iostream>
@@ -48,24 +48,13 @@ bool InitVulkan()
 	// Initialize Vulkan. Doing so shouldn't be necessary since anything that needs
 	// Vulkan initializes itself internally, but doing that you usually don't get
 	// information about how it failed, so do it here instead.
-	Vulkan::ErrorCode error = rendering.InitVulkan(debug);
-	switch (error)
+	try
 	{
-		case Vulkan::ErrorCode::INCOMPATIBLE_DRIVER:
-		{
-			std::cerr << "Incompatible Vulkan driver" << std::endl;
-			return false;
-		}
-		break;
-
-		case Vulkan::ErrorCode::SUCCESS: break;
-		default:
-		{
-			std::cout << "Failed to initialize Vulkan. Error code = "
-				<< (int)error << std::endl;
-			return false;
-		}
-		break;
+		rendering.InitVulkan(debug);
+	}
+	catch (RendererException& e)
+	{
+		std::cout << "Failed to initialize Vulkan! " << e.what() << std::endl;
 	}
 
 	rendering.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
@@ -73,20 +62,30 @@ bool InitVulkan()
 	return true;
 }
 
-class RendererTestApp : public IDisposable
+class RendererTestApp
 {
 public:
-	TETHER_DISPOSE_ON_DESTROY(RendererTestApp);
 	RendererTestApp()
 		:
 		window(1280, 720, "Renderer testing"),
-		renderer(&window)
+		renderer(&window),
+		testRect(&renderer)
 	{
-		InitObjects();
+		testRect.SetX(100);
+		testRect.SetY(100);
+		testRect.SetWidth(100);
+		testRect.SetHeight(100);
+
+		renderer.AddObject(&testRect);
 
 		window.SetVisible(true);
+	}
 
-		initialized = true;
+	~RendererTestApp()
+	{
+		window.Dispose();
+		testRect.Dispose();
+		renderer.Dispose();
 	}
 
 	void Run()
@@ -98,23 +97,10 @@ public:
 		}
 	}
 private:
-	void InitObjects()
-	{
-		testRect = ScopeTools::Create<Objects::Rectangle>(&renderer);
-		renderer.AddObject(testRect.get());
-	}
-
-	void OnDispose()
-	{
-		window.Dispose();
-		testRect->Dispose();
-		renderer.Dispose();
-	}
-private:
 	SimpleWindow window;
 
 	Vulkan::VulkanUIRenderer renderer;
-	Scope<Objects::Rectangle> testRect;
+	Objects::Rectangle testRect;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)
@@ -131,13 +117,16 @@ int main()
 		return 1;
 	}
 
-	RendererTestApp testApp;
-	if (!testApp.IsInitialized())
-		return 2;
+	try
+	{
+		RendererTestApp testApp;
+		testApp.Run();
+	}
+	catch (RendererException& e)
+	{
+		std::cout << e.what() << std::endl;
+	}
 
-	testApp.Run();
-
-	testApp.Dispose();
 	Application::DisposeApplication();
 	return 0;
 }

@@ -1,6 +1,6 @@
 #ifdef _WIN32
 
-#include <Tether/Native/Win32SimpleWindow.hpp>
+#include <Tether/Platform/Win32SimpleWindow.hpp>
 
 #include <Tether/Common/StringTools.hpp>
 #include <Tether/Native.hpp>

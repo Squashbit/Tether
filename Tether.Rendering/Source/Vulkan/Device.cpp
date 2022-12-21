@@ -1,8 +1,9 @@
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 
 using namespace Tether::Rendering::Vulkan;
 
-bool Device::Init(
+void Device::Init(
     Instance* pInstance,
     VkPhysicalDevice physicalDevice,
     VkDeviceQueueCreateInfo* queueFamilies, 
@@ -12,9 +13,8 @@ bool Device::Init(
     uint32_t extentionCount
 )
 {
-    if (initialized || !pInstance || !queueFamilies)
-        return false;
-
+    TETHER_ASSERT(pInstance != nullptr);
+    
     this->pInstance = pInstance;
     this->iloader = pInstance->GetLoader();
     
@@ -40,12 +40,11 @@ bool Device::Init(
     // Create the device
     if (iloader->vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)
         != VK_SUCCESS)
-        return false;
+        throw RendererException("Device creation failed");
 
     loader.Load(iloader, &device);
     
     initialized = true;
-    return true;
 }
 
 VkQueue Device::GetDeviceQueue(uint32_t familyIndex, uint32_t queueIndex)

@@ -18,6 +18,7 @@ namespace Tether::Rendering::Vulkan
 		VkCommandPool pool;
 		VkBuffer buffer;
 		VkQueue bufferOwnerQueue;
+		size_t bufferSize;
 	};
 
 	class TETHER_EXPORT BufferStager : public IDisposable
@@ -27,32 +28,30 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DISPOSE_ON_DESTROY(BufferStager);
 		TETHER_NO_COPY(BufferStager);
 
-		bool Init(BufferStagerInfo* pInfo);
+		void Init(BufferStagerInfo* pInfo);
 
-		// Data size is in bytes
-		bool UploadData(void* data, size_t dataSize);
-		// Data size is in bytes
-		bool UploadDataAsync(void* data, size_t dataSize);
+		void UploadData(void* data);
+		void UploadDataAsync(void* data);
 
 		// Wait for data to finish uploading.
 		void Wait();
 	private:
 		void OnDispose();
 
-		bool CreateCommandBuffer();
-		bool CreateFence();
+		void CreateCommandBuffer();
+		void CreateFence();
 
-		bool CreateStagingBuffer(uint32_t uploadSize);
-		bool RecordCommandBuffer(uint32_t uploadSize);
-		void DestroyStagingBuffer();
+		void CreateStagingBuffer();
+		bool RecordCommandBuffer();
 
-		bool stagingBufferCreated = false;
-		VkBuffer stagingBuffer;
+		void DisposeStager();
+
 		VmaAllocationInfo stagingInfo;
-		VmaAllocation stagingAllocation;
-		VkCommandBuffer commandBuffer;
 
-		VkFence completedFence;
+		VkBuffer stagingBuffer = nullptr;
+		VmaAllocation stagingAllocation = nullptr;
+		VkCommandBuffer commandBuffer = nullptr;
+		VkFence completedFence = nullptr;
 
 		BufferStagerInfo info;
 	};

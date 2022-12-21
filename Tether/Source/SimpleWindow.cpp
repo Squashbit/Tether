@@ -4,7 +4,7 @@
 
 #include <Tether/SimpleWindow.hpp>
 #include <Tether/Common/VectorUtils.hpp>
-#include <Tether/Native/SimpleWindowNative.hpp>
+#include <Tether/Platform/SimpleWindowNative.hpp>
 
 #include <string.h>
 

@@ -27,17 +27,17 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DISPOSE_ON_DESTROY(VertexBuffer);
 		TETHER_NO_COPY(VertexBuffer);
 
-		bool Init(VertexBufferInfo* pInfo);
-
 		// Data size is in bytes
-		bool UploadData(void* data, size_t dataSize, uint32_t* pIndices, 
-			size_t indexCount);
-		// Data size is in bytes
-		bool UploadDataAsync(void* data, size_t dataSize, uint32_t* pIndices, 
-			size_t indexCount);
+		void Init(VertexBufferInfo* pInfo, size_t dataSize, size_t indexCount);
 
-		// Waits for the vertex data to finish uploading
+		void UploadData(void* data, uint32_t* pIndices);
+		void UploadDataAsync(void* data, uint32_t* pIndices);
+
 		void Wait();
+		
+		// This function frees the staging buffers, so that less memory is used.
+		// Once this is called, data can't be uploaded anymore.
+		void FinishDataUpload();
 
 		size_t GetVertexCount();
 		VkBuffer GetBuffer();
@@ -45,16 +45,15 @@ namespace Tether::Rendering::Vulkan
 	private:
 		void OnDispose();
 
-		bool CreateVertexBuffer(uint32_t size);
-		bool CreateIndexBuffer(uint32_t size);
-		bool UploadVertexData(void* data, size_t dataSize);
-		bool UploadIndexData(uint32_t* pIndices, size_t indexBufferSize);
-
+		void CreateVertexBuffer(size_t size);
+		void CreateIndexBuffer(size_t size);
+		
 		void DestroyBuffers();
 
 		size_t vertexCount = 0;
 
-		bool buffersCreated = false;
+		bool finishedUploading = false;
+
 		VkBuffer vertexBuffer;
 		VmaAllocation vertexAllocation;
 		VkBuffer indexBuffer;

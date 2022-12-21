@@ -1,20 +1,18 @@
-#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
-#include <set>
 
 #define TETHER_INCLUDE_VULKAN
+#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/VkUtils.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
-
 #include <Tether/Module/Rendering/Vulkan/ObjectNatives/VkObjectNative.hpp>
 #include <Tether/Module/Rendering/Vulkan/ObjectNatives/RectangleNative.hpp>
-
 #include <Tether/Module/Rendering/Common/VertexTypes.hpp>
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
 
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanException.hpp>
+#include <set>
 
 using namespace Tether::Rendering;
 using namespace Tether::Rendering::Vulkan;
@@ -31,7 +29,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	iloader = instance->GetLoader();
 
 	if (!surface.Init(instance, pWindow))
-		throw VulkanException("Surface creation failed");
+		throw RendererException("Surface creation failed");
 
 	PickDevice();
 
@@ -160,7 +158,7 @@ void VulkanUIRenderer::CreateDevice()
 
 	VkPhysicalDeviceFeatures features{};
 
-	if (!device.Init(
+	device.Init(
 		instance,
 		physicalDevice,
 		queueCreateInfos.data(),
@@ -168,8 +166,7 @@ void VulkanUIRenderer::CreateDevice()
 		features,
 		deviceExtensions.data(),
 		static_cast<uint32_t>(deviceExtensions.size())
-	))
-		throw VulkanException("Device creation failed");
+	);
 
 	dloader = device.GetLoader();
 
@@ -191,7 +188,7 @@ void VulkanUIRenderer::CreateAllocator()
 	createInfo.pVulkanFunctions = &funcs;
 
 	if (vmaCreateAllocator(&createInfo, &allocator) != VK_SUCCESS)
-		throw VulkanException("VMA allocator creation failed");
+		throw RendererException("VMA allocator creation failed");
 }
 
 void VulkanUIRenderer::CreateSwapchain()
@@ -229,7 +226,7 @@ void VulkanUIRenderer::CreateSwapchain()
 	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
 	{
 		if (!queueIndices.hasPresentFamily)
-			throw VulkanException("Device doesn't have a present family!");
+			throw RendererException("Device doesn't have a present family!");
 
 		uint32_t queueFamilyIndices[] =
 		{
@@ -244,12 +241,10 @@ void VulkanUIRenderer::CreateSwapchain()
 	else
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (!swapchain.Init(&surface, &device, details, &createInfo))
-		throw VulkanException("Swapchain creation failed");
+	swapchain.Init(&surface, &device, details, &createInfo);
 	
 	swapchainImages = swapchain.GetImages();
-	if (!swapchain.CreateImageViews(&swapchainImageViews))
-		throw VulkanException("Swapchain image view creation failed");
+	swapchain.CreateImageViews(&swapchainImageViews);
 }
 
 void VulkanUIRenderer::CreateRenderPass()
@@ -297,7 +292,7 @@ void VulkanUIRenderer::CreateRenderPass()
 
 	if (dloader->vkCreateRenderPass(device.Get(), &desc, nullptr, &renderPass)
 		!= VK_SUCCESS)
-		throw VulkanException("Render pass creation failed");
+		throw RendererException("Render pass creation failed");
 }
 
 void VulkanUIRenderer::CreatePipeline()
@@ -319,10 +314,10 @@ void VulkanUIRenderer::CreatePipeline()
 
 	if (dloader->vkCreateShaderModule(device.Get(), &vertexInfo, nullptr,
 		&vertex) != VK_SUCCESS)
-		throw VulkanException("Vertex shader creation failed");
+		throw RendererException("Vertex shader creation failed");
 	if (dloader->vkCreateShaderModule(device.Get(), &fragmentInfo, nullptr,
 		&fragment) != VK_SUCCESS)
-		throw VulkanException("Fragment shader creation failed");
+		throw RendererException("Fragment shader creation failed");
 
 	std::vector<VkVertexInputBindingDescription> bindingDescs;
 	std::vector<VkVertexInputAttributeDescription> attribDescs;
@@ -422,8 +417,7 @@ void VulkanUIRenderer::CreatePipeline()
 	info.pDynamicState = &dynamicState;
 	info.pVertexInputState = &vertexInputInfo;
 
-	if (!pipeline.Init(device.Get(), dloader, &info))
-		throw VulkanException("Pipeline creation failed");
+	pipeline.Init(device.Get(), dloader, &info);
 	
 	dloader->vkDestroyShaderModule(device.Get(), vertex, nullptr);
 	dloader->vkDestroyShaderModule(device.Get(), fragment, nullptr);
@@ -452,13 +446,13 @@ void VulkanUIRenderer::CreateFramebuffers()
 		createInfo.layers = 1;
 
 		if (dloader->vkCreateFramebuffer(device.Get(), &createInfo, nullptr,
-			&swapchainFramebuffers[i]))
+			&swapchainFramebuffers[i]) != VK_SUCCESS)
 		{
 			for (size_t i2 = 0; i2 < i + 1; i2++)
 				dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i2],
 					nullptr);
 
-			throw VulkanException("Framebuffer creation failed");
+			throw RendererException("Framebuffer creation failed");
 		}
 	}
 }
@@ -472,7 +466,7 @@ void VulkanUIRenderer::CreateCommandPool()
 
 	if (dloader->vkCreateCommandPool(device.Get(), &createInfo, nullptr,
 		&commandPool) != VK_SUCCESS)
-		throw VulkanException("Command pool creation failed");
+		throw RendererException("Command pool creation failed");
 }
 
 void VulkanUIRenderer::CreateCommandBuffer()
@@ -487,7 +481,7 @@ void VulkanUIRenderer::CreateCommandBuffer()
 
 	if (dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
 		commandBuffers.data()) != VK_SUCCESS)
-		throw VulkanException("Command buffer allocation failed");
+		throw RendererException("Command buffer allocation failed");
 }
 
 void VulkanUIRenderer::CreateSyncObjects()
@@ -507,15 +501,15 @@ void VulkanUIRenderer::CreateSyncObjects()
 	{
 		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
 			&imageAvailableSemaphores[i]) != VK_SUCCESS)
-			throw VulkanException("Semaphore creation failed");
+			throw RendererException("Semaphore creation failed");
 
 		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
 			&renderFinishedSemaphores[i]) != VK_SUCCESS)
-			throw VulkanException("Semaphore creation failed");
+			throw RendererException("Semaphore creation failed");
 
 		if (dloader->vkCreateFence(device.Get(), &fenceInfo, nullptr,
 			&inFlightFences[i]) != VK_SUCCESS)
-			throw VulkanException("Fence creation failed");
+			throw RendererException("Fence creation failed");
 	}
 }
 
@@ -541,13 +535,9 @@ void VulkanUIRenderer::CreateVertexBuffers()
 	info.graphicsQueue = graphicsQueue;
 	info.pool = commandPool;
 
-	if (!square.Init(&info))
-		throw VulkanException("Vertex buffer creation failed");
-
-	square.UploadData(
-		vertices, sizeof(vertices), 
-		indices, sizeof(indices) / sizeof(uint32_t)
-	);
+	square.Init(&info, sizeof(vertices), sizeof(indices) / sizeof(uint32_t));
+	square.UploadData(vertices, indices);
+	square.FinishDataUpload();
 }
 
 VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()

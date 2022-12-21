@@ -27,7 +27,7 @@ namespace Tether::Rendering::Vulkan
 		 *	override the default data set by this class in 
 		 *	VkGraphicsPipelineCreateInfo
 		 */
-		bool Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo);
+		void Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo);
 
 		VkPipeline Get();
 		VkPipelineLayout GetLayout();

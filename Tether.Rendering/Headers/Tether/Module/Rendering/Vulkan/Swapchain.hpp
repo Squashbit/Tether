@@ -28,7 +28,7 @@ namespace Tether::Rendering::Vulkan
          * 
          * @returns True if initialization was successful. Otherwise, false.
          */
-        bool Init(
+        void Init(
             Surface* pSurface,
             Device* pDevice,
             SwapchainDetails details,
@@ -64,7 +64,7 @@ namespace Tether::Rendering::Vulkan
         
         uint32_t GetImageCount();
         std::vector<VkImage> GetImages();
-        bool CreateImageViews(std::vector<VkImageView>* pVec);
+        void CreateImageViews(std::vector<VkImageView>* pVec);
 
         VkExtent2D GetExtent();
         VkFormat GetImageFormat();

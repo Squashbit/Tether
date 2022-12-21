@@ -1,3 +1,4 @@
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 
 #include <algorithm>
@@ -5,16 +6,13 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-bool Swapchain::Init(
+void Swapchain::Init(
 	Surface* pSurface,
 	Device* pDevice,
 	SwapchainDetails details,
 	VkSwapchainCreateInfoKHR* createInfo
 )
-{
-	if (initialized)
-		return false;
-	
+{	
 	this->pDevice = pDevice;
 	this->pLoader = pDevice->GetLoader();
 	this->imageFormat = createInfo->imageFormat;
@@ -23,10 +21,9 @@ bool Swapchain::Init(
 	
 	if (pLoader->vkCreateSwapchainKHR(pDevice->Get(), 
 		createInfo, nullptr, &swapchain))
-		return false;
+		throw RendererException("Swapchain creation failed");
 	
 	initialized = true;
-	return true;
 }
 
 uint32_t Swapchain::GetImageCount()
@@ -47,7 +44,7 @@ std::vector<VkImage> Swapchain::GetImages()
 	return swapchainImages;
 }
 
-bool Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
+void Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 {
 	std::vector<VkImage> images = GetImages();
 
@@ -73,10 +70,8 @@ bool Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 		
 		if (pLoader->vkCreateImageView(pDevice->Get(), &createInfo, nullptr,
 			&pVec->at(i)) != VK_SUCCESS)
-			return false;
+			throw RendererException("Swapchain image view creation failed");
 	}
-
-	return true;
 }
 
 VkExtent2D Swapchain::GetExtent()

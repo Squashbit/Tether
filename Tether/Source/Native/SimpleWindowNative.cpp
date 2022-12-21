@@ -1,4 +1,4 @@
-#include <Tether/Native/SimpleWindowNative.hpp>
+#include <Tether/Platform/SimpleWindowNative.hpp>
 
 using namespace Tether::Native;
 

@@ -1,11 +1,12 @@
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 
 using namespace Tether::Rendering::Vulkan;
 
-bool Pipeline::Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
+void Pipeline::Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
 {
-	if (!dloader || !pInfo || initialized)
-		return false;
+	TETHER_ASSERT(pInfo != nullptr);
+	TETHER_ASSERT(dloader != nullptr);
 
 	this->device = device;
 	this->dloader = dloader;
@@ -15,7 +16,7 @@ bool Pipeline::Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
 
 	if (dloader->vkCreatePipelineLayout(device, &pipelineLayoutDesc,
 		nullptr, &pipelineLayout) != VK_SUCCESS)
-		return false;
+		throw RendererException("Pipeline layout creation failed");
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -92,10 +93,9 @@ bool Pipeline::Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
 	
 	if (dloader->vkCreateGraphicsPipelines(device, VK_NULL_HANDLE,
 		1, &createInfo, nullptr, &pipeline) != VK_SUCCESS)
-		return false;
+		throw RendererException("Pipeline creation failed");
 
 	initialized = true;
-	return true;
 }
 
 VkPipeline Pipeline::Get()

@@ -1,7 +1,7 @@
 #pragma once
 #ifdef _WIN32
 
-#include <Tether/Native/SimpleWindowNative.hpp>
+#include <Tether/Platform/SimpleWindowNative.hpp>
 
 #include <Windows.h> // oh no
 

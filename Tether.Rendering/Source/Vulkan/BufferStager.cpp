@@ -1,56 +1,38 @@
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
 
 #include <cstring>
 
 using namespace Tether::Rendering::Vulkan;
 
-bool BufferStager::Init(BufferStagerInfo* pInfo)
+void BufferStager::Init(BufferStagerInfo* pInfo)
 {
-	if (initialized)
-		return false;
+	TETHER_ASSERT(pInfo != nullptr);
 
 	this->info = *pInfo;
 
-	if (!CreateCommandBuffer())
-		return false;
+	CreateCommandBuffer();	
+	CreateFence();
+	CreateStagingBuffer();
 
-	if (!CreateFence())
+	if (!RecordCommandBuffer())
 	{
-		info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
-		return false;
+		DisposeStager();
+		throw RendererException("Failed to record staging command buffer");
 	}
 
 	initialized = true;
-	return true;
 }
 
-bool BufferStager::UploadData(void* data, size_t dataSize)
+void BufferStager::UploadData(void* data)
 {
-	if (!UploadDataAsync(data, dataSize))
-		return false;
-
+	UploadDataAsync(data);
 	Wait();
-
-	return true;
 }
 
-bool BufferStager::UploadDataAsync(void* data, size_t dataSize)
+void BufferStager::UploadDataAsync(void* data)
 {
-	if (stagingBufferCreated)
-		return false;
-
-	uint32_t size32 = static_cast<uint32_t>(dataSize);
-
-	if (!CreateStagingBuffer(size32))
-		return false;
-
-	memcpy(stagingInfo.pMappedData, data, size32);
-
-	if (!RecordCommandBuffer(size32))
-	{
-		DestroyStagingBuffer();
-		return false;
-	}
+	memcpy(stagingInfo.pMappedData, data, info.bufferSize);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -59,9 +41,6 @@ bool BufferStager::UploadDataAsync(void* data, size_t dataSize)
 
 	info.dloader->vkResetFences(info.device, 1, &completedFence);
 	info.dloader->vkQueueSubmit(info.bufferOwnerQueue, 1, &submitInfo, completedFence);
-
-	stagingBufferCreated = true;
-	return true;
 }
 
 void BufferStager::Wait()
@@ -69,35 +48,7 @@ void BufferStager::Wait()
 	info.dloader->vkWaitForFences(info.device, 1, &completedFence, true, UINT64_MAX);
 }
 
-void BufferStager::OnDispose()
-{
-	Wait();
-	
-	if (stagingBufferCreated)
-	{
-		DestroyStagingBuffer();
-	}
-
-	info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
-	info.dloader->vkDestroyFence(info.device, completedFence, nullptr);
-}
-
-bool BufferStager::CreateStagingBuffer(uint32_t uploadSize)
-{
-	VkBufferCreateInfo bufferInfo{};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = uploadSize;
-	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-	VmaAllocationCreateInfo allocInfo{};
-	allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-	allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-
-	return vmaCreateBuffer(info.allocator, &bufferInfo,
-		&allocInfo, &stagingBuffer, &stagingAllocation, &stagingInfo) == VK_SUCCESS;
-}
-
-bool BufferStager::CreateCommandBuffer()
+void BufferStager::CreateCommandBuffer()
 {
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -105,21 +56,45 @@ bool BufferStager::CreateCommandBuffer()
 	allocInfo.commandPool = info.pool;
 	allocInfo.commandBufferCount = 1;
 
-	return info.dloader->vkAllocateCommandBuffers(info.device, &allocInfo, 
-		&commandBuffer) == VK_SUCCESS;
+	if (info.dloader->vkAllocateCommandBuffers(info.device, &allocInfo, 
+		&commandBuffer) != VK_SUCCESS)
+		throw RendererException("Failed to create staging command buffer");
 }
 
-bool BufferStager::CreateFence()
+void BufferStager::CreateStagingBuffer()
+{
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = info.bufferSize;
+	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+
+	VmaAllocationCreateInfo allocInfo{};
+	allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+	allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+	if (vmaCreateBuffer(info.allocator, &bufferInfo,
+		&allocInfo, &stagingBuffer, &stagingAllocation, &stagingInfo) != VK_SUCCESS)
+	{
+		info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
+		throw RendererException("Failed to create staging buffer");
+	}
+}
+
+void BufferStager::CreateFence()
 {
 	VkFenceCreateInfo fenceInfo{};
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	return info.dloader->vkCreateFence(info.device, &fenceInfo, nullptr,
-		&completedFence) == VK_SUCCESS;
+	if (info.dloader->vkCreateFence(info.device, &fenceInfo, nullptr,
+		&completedFence) != VK_SUCCESS)
+	{
+		info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
+		throw RendererException("Failed to create staging buffer fence");
+	}
 }
 
-bool BufferStager::RecordCommandBuffer(uint32_t uploadSize)
+bool BufferStager::RecordCommandBuffer()
 {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -129,7 +104,7 @@ bool BufferStager::RecordCommandBuffer(uint32_t uploadSize)
 		return false;
 	{
 		VkBufferCopy copyRegion{};
-		copyRegion.size = uploadSize;
+		copyRegion.size = info.bufferSize;
 
 		info.dloader->vkCmdCopyBuffer(commandBuffer, stagingBuffer, info.buffer,
 			1, &copyRegion);
@@ -140,8 +115,15 @@ bool BufferStager::RecordCommandBuffer(uint32_t uploadSize)
 	return true;
 }
 
-void BufferStager::DestroyStagingBuffer()
+void BufferStager::DisposeStager()
 {
 	vmaDestroyBuffer(info.allocator, stagingBuffer, stagingAllocation);
-	stagingBufferCreated = false;
+	info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
+	info.dloader->vkDestroyFence(info.device, completedFence, nullptr);
+}
+
+void BufferStager::OnDispose()
+{
+	Wait();
+	DisposeStager();
 }

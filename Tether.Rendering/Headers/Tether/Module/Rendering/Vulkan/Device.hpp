@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
     class TETHER_EXPORT Device : public IDisposable
     {
     public:
-        Device() 
+        Device()
             :
             IDisposable()
         {}
@@ -38,7 +38,7 @@ namespace Tether::Rendering::Vulkan
          * 
          * @returns True if initialization succeeded; otherwise, false.
          */
-        bool Init(
+        void Init(
             Instance* pInstance,
             VkPhysicalDevice physicalDevice,
             VkDeviceQueueCreateInfo* queueFamilies, 
