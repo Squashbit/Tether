@@ -38,9 +38,9 @@ namespace Tether::Rendering::Vulkan
 		);
 
 		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device,
-			Surface* pSurface);
+			VkSurfaceKHR surface);
 		SwapchainDetails QuerySwapchainSupport(VkPhysicalDevice device, 
-			Surface* pSurface);
+			VkSurfaceKHR surface);
 		bool CheckDeviceExtentionSupport(VkPhysicalDevice device, 
 			const char*const * deviceExtentions, uint64_t extentionCount);
 		

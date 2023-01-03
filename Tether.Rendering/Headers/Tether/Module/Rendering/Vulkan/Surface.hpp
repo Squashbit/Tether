@@ -14,18 +14,8 @@ namespace Tether::Rendering::Vulkan
     class TETHER_EXPORT Surface : public IDisposable
     {
     public:
-        Surface() {}
+        Surface(Instance* pInstance, SimpleWindow* window);
         TETHER_NO_COPY(Surface);
-
-        /**
-         * @brief Initializes the surface object.
-         * 
-         * @param pInstance A pointer to the Vulkan instance.
-         * @param window The window object.
-         * 
-         * @returns True if initialization succeeded. Otherwise, false.
-         */
-        bool Init(Instance* pInstance, SimpleWindow* window);
 
         VkSurfaceKHR Get();
     protected:

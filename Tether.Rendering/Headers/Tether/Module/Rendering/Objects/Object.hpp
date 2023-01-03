@@ -4,6 +4,7 @@
 #include <Tether/Common/Ref.hpp>
 #include <Tether/Common/HashedString.hpp>
 #include <Tether/Common/TypeTools.hpp>
+
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
 namespace Tether::Rendering
@@ -13,27 +14,22 @@ namespace Tether::Rendering
 
 namespace Tether::Rendering::Objects
 {
-	class TETHER_EXPORT ObjectNative : public IDisposable
+	class TETHER_EXPORT ObjectRenderer
 	{
 	public:
-		ObjectNative() = default;
-		virtual ~ObjectNative() {}
-		TETHER_NO_COPY(ObjectNative);
+		virtual ~ObjectRenderer() = default;
 	};
 
-	class TETHER_EXPORT Object : public IDisposable
+	class TETHER_EXPORT Object
 	{
 	public:
-		Object(UIRenderer* pContext);
-		TETHER_DISPOSE_ON_DESTROY(Object);
+		Object(UIRenderer* pRenderer, Scope<ObjectRenderer> pObjectRenderer);
 		TETHER_NO_COPY(Object);
 
-		void SetNative(Scope<ObjectNative>& native);
-
 		UIRenderer* GetUIRenderer();
-		ObjectNative* GetNative();
+		ObjectRenderer* GetObjectRenderer();
 	private:
 		UIRenderer* pRenderer = nullptr;
-		Scope<ObjectNative> pNative;
+		Scope<ObjectRenderer> pObjectRenderer;
 	};
 }

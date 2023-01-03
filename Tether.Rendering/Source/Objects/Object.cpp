@@ -1,27 +1,20 @@
 #include <Tether/Module/Rendering/Objects/Object.hpp>
-#include <memory>
 
 using namespace Tether::Rendering;
 using namespace Tether::Rendering::Objects;
 
-Object::Object(UIRenderer* pRenderer)
+Object::Object(UIRenderer* pRenderer, Scope<ObjectRenderer> pObjectRenderer)
 	:
-	pRenderer(pRenderer)
-{
-	initialized = pRenderer != nullptr;
-}
-
-void Object::SetNative(Scope<ObjectNative>& native)
-{
-	this->pNative = std::move(native);
-}
+	pRenderer(pRenderer),
+	pObjectRenderer(std::move(pObjectRenderer))
+{}
 
 UIRenderer* Object::GetUIRenderer()
 {
 	return pRenderer;
 }
 
-ObjectNative* Object::GetNative()
+ObjectRenderer* Object::GetObjectRenderer()
 {
-	return pNative.get();
+	return pObjectRenderer.get();
 }

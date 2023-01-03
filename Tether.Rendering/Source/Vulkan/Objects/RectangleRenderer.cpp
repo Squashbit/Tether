@@ -1,19 +1,17 @@
-#include <Tether/Module/Rendering/Vulkan/ObjectNatives/RectangleNative.hpp>
+#include <Tether/Module/Rendering/Vulkan/Objects/RectangleRenderer.hpp>
 
-using namespace Tether::Rendering::Vulkan::Natives;
+using namespace Tether::Rendering::Vulkan;
 
-RectangleNative::RectangleNative(VulkanUIRenderer* pVkRenderer)
+RectangleRenderer::RectangleRenderer(VulkanUIRenderer* pVkRenderer)
 	:
-	VkObjectNative(pVkRenderer)
+	ObjectRenderer(pVkRenderer)
 {
-	if (pVkRenderer->IsInitialized() != true)
-		return;
-
 	this->dloader = pVkRenderer->GetDeviceLoader();
 	this->pRectBuffer = pVkRenderer->GetRectangleBuffer();
 }
 
-void RectangleNative::AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index)
+void RectangleRenderer::AddToCommandBuffer(VkCommandBuffer commandBuffer,
+	uint32_t index)
 {
 	VkBuffer vbuffers[] = { pRectBuffer->GetBuffer() };
 	VkDeviceSize offsets[] = { 0 };

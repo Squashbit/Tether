@@ -3,7 +3,7 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-void Pipeline::Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
+Pipeline::Pipeline(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
 {
 	TETHER_ASSERT(pInfo != nullptr);
 	TETHER_ASSERT(dloader != nullptr);

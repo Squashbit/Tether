@@ -1,3 +1,4 @@
+#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Native.hpp>
@@ -20,11 +21,8 @@
 using namespace Tether::Rendering::Vulkan;
 using namespace Tether;
 
-bool Surface::Init(Instance* pInstance, Tether::SimpleWindow* window)
+Surface::Surface(Instance* pInstance, Tether::SimpleWindow* window)
 {
-	if (initialized)
-		return false;
-	
 	this->pInstance = pInstance;
 	this->pLoader = pInstance->GetLoader();
 
@@ -54,10 +52,9 @@ bool Surface::Init(Instance* pInstance, Tether::SimpleWindow* window)
 
 	if (func(pInstance->Get(), &createInfo, nullptr,
 		&surface) != VK_SUCCESS)
-		return false;
+		throw RendererException("Surface creation failed");
 	
 	initialized = true;
-	return true;
 }
 
 VkSurfaceKHR Surface::Get()

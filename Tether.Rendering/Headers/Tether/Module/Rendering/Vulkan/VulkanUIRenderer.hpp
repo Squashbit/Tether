@@ -13,6 +13,8 @@
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
 
+#include <optional>
+
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
@@ -21,18 +23,21 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VulkanUIRenderer : public Rendering::UIRenderer
 	{
 	public:
-		VulkanUIRenderer() = default;
-		TETHER_DISPOSE_ON_DESTROY(VulkanUIRenderer);
 		VulkanUIRenderer(SimpleWindow* pWindow);
+		~VulkanUIRenderer();
 		
 		bool RenderFrame();
 
 		VertexBuffer* GetRectangleBuffer();
 		DeviceLoader* GetDeviceLoader();
 	private:
-		bool OnObjectCreate(HashedString& typeName, Objects::Object* pObject);
-		void OnObjectAdd(Objects::Object* pObject);
-		void OnObjectRemove(Objects::Object* pObject);
+		Scope<Objects::ObjectRenderer> OnObjectCreateRenderer(
+			HashedString& typeName, 
+			Objects::Object* pObject
+		) override;
+
+		void OnObjectAdd(Objects::Object* pObject) override;
+		void OnObjectRemove(Objects::Object* pObject) override;
 
 		void CreateDevice();
 		void CreateAllocator();
@@ -55,10 +60,9 @@ namespace Tether::Rendering::Vulkan
 		bool IsDeviceSuitable(VkPhysicalDevice device);
 		bool PickDevice();
 
+		VkExtent2D ChooseExtent(VkSurfaceCapabilitiesKHR& capabilities);
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 		uint32_t FindImageCount(SwapchainDetails details);
-
-		void OnRendererDispose();
 
 		VmaAllocator allocator;
 
@@ -67,11 +71,11 @@ namespace Tether::Rendering::Vulkan
 		Instance* instance = nullptr;
 		DeviceLoader* dloader = nullptr;
 
-		Surface surface;
-		Device device;
-		Swapchain swapchain;
-		Pipeline pipeline;
-		VertexBuffer square;
+		std::optional<Surface> surface;
+		std::optional<Device> device;
+		std::optional<Swapchain> swapchain;
+		std::optional<Pipeline> pipeline;
+		std::optional<VertexBuffer> square;
 		
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkPhysicalDevice physicalDevice;

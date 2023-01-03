@@ -10,25 +10,20 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	struct BufferStagerInfo
-	{
-		VmaAllocator allocator;
-		VkDevice device;
-		DeviceLoader* dloader;
-		VkCommandPool pool;
-		VkBuffer buffer;
-		VkQueue bufferOwnerQueue;
-		size_t bufferSize;
-	};
-
 	class TETHER_EXPORT BufferStager : public IDisposable
 	{
 	public:
-		BufferStager() = default;
+		BufferStager(
+			VmaAllocator allocator,
+			VkDevice device,
+			DeviceLoader* dloader,
+			VkCommandPool pool,
+			VkQueue bufferOwnerQueue,
+			VkBuffer buffer,
+			size_t bufferSize
+		);
 		TETHER_DISPOSE_ON_DESTROY(BufferStager);
 		TETHER_NO_COPY(BufferStager);
-
-		void Init(BufferStagerInfo* pInfo);
 
 		void UploadData(void* data);
 		void UploadDataAsync(void* data);
@@ -53,6 +48,15 @@ namespace Tether::Rendering::Vulkan
 		VkCommandBuffer commandBuffer = nullptr;
 		VkFence completedFence = nullptr;
 
-		BufferStagerInfo info;
+		VkBuffer buffer = nullptr;
+		size_t bufferSize = 0;
+
+		VkDevice device = nullptr;
+		VkQueue bufferOwnerQueue = nullptr;
+		DeviceLoader* dloader = nullptr;
+
+		VkCommandPool pool = nullptr;
+
+		VmaAllocator allocator = nullptr;
 	};
 }

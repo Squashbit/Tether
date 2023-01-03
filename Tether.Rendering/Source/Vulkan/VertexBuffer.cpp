@@ -3,36 +3,35 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-void VertexBuffer::Init(VertexBufferInfo* pInfo, size_t dataSize, size_t indexCount)
+VertexBuffer::VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, size_t indexCount)
 {
 	this->info = *pInfo;
 
 	size_t indexBufferSize = sizeof(uint32_t) * indexCount;
 	
-	CreateVertexBuffer(dataSize);
+	CreateVertexBuffer(vertexBufferSize);
 	CreateIndexBuffer(indexBufferSize);
 	
-	BufferStagerInfo vertexInfo{};
-	vertexInfo.allocator = info.allocator;
-	vertexInfo.buffer = vertexBuffer;
-	vertexInfo.bufferOwnerQueue = info.graphicsQueue;
-	vertexInfo.device = info.device;
-	vertexInfo.dloader = info.dloader;
-	vertexInfo.pool = info.pool;
-	vertexInfo.bufferSize = dataSize;
+	vertexStager.emplace(
+		info.allocator,
+		info.device,
+		info.dloader,
+		info.pool,
+		info.graphicsQueue,
+		vertexBuffer,
+		vertexBufferSize
+	);
+
+	indexStager.emplace(
+		info.allocator,
+		info.device,
+		info.dloader,
+		info.pool,
+		info.graphicsQueue,
+		indexBuffer,
+		indexBufferSize
+	);
 	
-	BufferStagerInfo indexInfo{};
-	indexInfo.allocator = info.allocator;
-	indexInfo.buffer = indexBuffer;
-	indexInfo.bufferOwnerQueue = info.graphicsQueue;
-	indexInfo.device = info.device;
-	indexInfo.dloader = info.dloader;
-	indexInfo.pool = info.pool;
-	indexInfo.bufferSize = indexBufferSize;
-
-	vertexStager.Init(&vertexInfo);
-	indexStager.Init(&indexInfo);
-
 	this->vertexCount = indexCount;
 
 	initialized = true;
@@ -49,8 +48,8 @@ void VertexBuffer::UploadDataAsync(void* data, uint32_t* pIndices)
 	if (finishedUploading)
 		return;
 
-	vertexStager.UploadDataAsync(data);
-	indexStager.UploadDataAsync(pIndices);
+	vertexStager->UploadDataAsync(data);
+	indexStager->UploadDataAsync(pIndices);
 }
 
 void VertexBuffer::Wait()
@@ -58,8 +57,8 @@ void VertexBuffer::Wait()
 	if (finishedUploading)
 		return;
 
-	vertexStager.Wait();
-	indexStager.Wait();
+	vertexStager->Wait();
+	indexStager->Wait();
 }
 
 void VertexBuffer::FinishDataUpload()
@@ -69,8 +68,8 @@ void VertexBuffer::FinishDataUpload()
 
 	Wait();
 
-	vertexStager.Dispose();
-	indexStager.Dispose();
+	vertexStager->Dispose();
+	indexStager->Dispose();
 
 	finishedUploading = true;
 }
@@ -145,8 +144,8 @@ void VertexBuffer::DestroyBuffers()
 {
 	info.dloader->vkDeviceWaitIdle(info.device);
 
-	vertexStager.Dispose();
-	indexStager.Dispose();
+	vertexStager->Dispose();
+	indexStager->Dispose();
 
 	vmaDestroyBuffer(info.allocator, vertexBuffer, vertexAllocation);
 	vmaDestroyBuffer(info.allocator, indexBuffer, indexAllocation);

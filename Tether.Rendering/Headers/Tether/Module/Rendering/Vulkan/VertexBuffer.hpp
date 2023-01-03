@@ -6,6 +6,8 @@
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
 
+#include <optional>
+
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
@@ -23,12 +25,9 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VertexBuffer : public IDisposable
 	{
 	public:
-		VertexBuffer() = default;
+		VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, size_t indexCount);
 		TETHER_DISPOSE_ON_DESTROY(VertexBuffer);
 		TETHER_NO_COPY(VertexBuffer);
-
-		// Data size is in bytes
-		void Init(VertexBufferInfo* pInfo, size_t dataSize, size_t indexCount);
 
 		void UploadData(void* data, uint32_t* pIndices);
 		void UploadDataAsync(void* data, uint32_t* pIndices);
@@ -59,8 +58,8 @@ namespace Tether::Rendering::Vulkan
 		VkBuffer indexBuffer;
 		VmaAllocation indexAllocation;
 
-		BufferStager vertexStager;
-		BufferStager indexStager;
+		std::optional<BufferStager> vertexStager;
+		std::optional<BufferStager> indexStager;
 		
 		VertexBufferInfo info;
 	};

@@ -16,38 +16,30 @@ namespace Tether::Rendering::Vulkan
     class TETHER_EXPORT Device : public IDisposable
     {
     public:
-        Device()
-            :
-            IDisposable()
-        {}
+        /**
+        * @param pInstance A pointer to the Vulkan instance.
+        * @param physicalDevice The physical device.
+        * @param queueFamilies An array of VkDeviceQueueCreateInfo specifying
+        *  the queue families that this device should use and describing them.
+        * @param queueFamilyCount The number of VkDeviceQueueCreateInfo
+        *  in the array.
+        * @param features The features that this device should use.
+        * @param extentions An array of extentions for this device to use.
+        * @param extentionCount The number of extentions.
+        *
+        * @returns True if initialization succeeded; otherwise, false.
+        */
+        Device(
+			Instance* pInstance,
+			VkPhysicalDevice physicalDevice,
+			VkDeviceQueueCreateInfo* queueFamilies,
+			uint32_t queueFamilyCount,
+			VkPhysicalDeviceFeatures features,
+			const char* const* extentions = nullptr,
+			uint32_t extentionCount = 0
+        );
         TETHER_NO_COPY(Device);
         
-        /**
-         * @brief 
-         * Initializes the device.
-         * 
-         * @param pInstance A pointer to the Vulkan instance.
-         * @param physicalDevice The physical device.
-         * @param queueFamilies An array of VkDeviceQueueCreateInfo specifying
-         *  the queue families that this device should use and describing them.
-         * @param queueFamilyCount The number of VkDeviceQueueCreateInfo
-         *  in the array.
-         * @param features The features that this device should use.
-         * @param extentions An array of extentions for this device to use.
-         * @param extentionCount The number of extentions.
-         * 
-         * @returns True if initialization succeeded; otherwise, false.
-         */
-        void Init(
-            Instance* pInstance,
-            VkPhysicalDevice physicalDevice,
-            VkDeviceQueueCreateInfo* queueFamilies, 
-            uint32_t queueFamilyCount,
-            VkPhysicalDeviceFeatures features,
-            const char *const * extentions = nullptr,
-            uint32_t extentionCount = 0
-        );
-
         /**
          * @brief Get the device queue at the specified index.
          * 
@@ -73,6 +65,6 @@ namespace Tether::Rendering::Vulkan
 
         DeviceLoader loader;
 
-        VkDevice device;
+        VkDevice device = nullptr;
     };
 }

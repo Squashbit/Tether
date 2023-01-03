@@ -8,9 +8,8 @@ namespace Tether::Rendering::Objects
 	class TETHER_EXPORT Rectangle : public Object
 	{
 	public:
-		Rectangle(UIRenderer* pContext);
-		TETHER_NO_COPY(Rectangle);
-
+		Rectangle(UIRenderer* pRenderer);
+		
 		void SetX(float value);
 		void SetY(float value);
 		void SetWidth(float value);

@@ -6,7 +6,7 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-void Swapchain::Init(
+Swapchain::Swapchain(
 	Surface* pSurface,
 	Device* pDevice,
 	SwapchainDetails details,

@@ -14,27 +14,23 @@ namespace Tether::Rendering::Vulkan
     class TETHER_EXPORT Swapchain : public IDisposable
     {
     public:
-        Swapchain() {}
-        TETHER_NO_COPY(Swapchain);
-
         /**
-         * @brief Initializes the swapchain.
-         * 
          * @param pSurface A pointer to the surface object to tie the
          *  swapchain to.
          * @param pDevice A pointer to the device to the the swapchain to.
          * @param createInfo A pointer to a VkSwapchainCreateInfoKHR struct
          *  describing how to set up the swapchain.
-         * 
+         *
          * @returns True if initialization was successful. Otherwise, false.
          */
-        void Init(
-            Surface* pSurface,
-            Device* pDevice,
-            SwapchainDetails details,
-            VkSwapchainCreateInfoKHR* createInfo
+        Swapchain(
+			Surface* pSurface,
+			Device* pDevice,
+			SwapchainDetails details,
+			VkSwapchainCreateInfoKHR* createInfo
         );
-        
+        TETHER_NO_COPY(Swapchain);
+
         /**
          * @brief If vsync is true, this function returns FIFO. 
          *  If vsync is false, mailbox is preferred, but immediate is 

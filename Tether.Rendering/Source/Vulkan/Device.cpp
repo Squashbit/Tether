@@ -3,7 +3,7 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-void Device::Init(
+Device::Device(
     Instance* pInstance,
     VkPhysicalDevice physicalDevice,
     VkDeviceQueueCreateInfo* queueFamilies, 

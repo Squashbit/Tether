@@ -14,20 +14,14 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT Pipeline : public IDisposable
 	{
 	public:
-		Pipeline() = default;
-		TETHER_DISPOSE_ON_DESTROY(Pipeline);
-		TETHER_NO_COPY(Pipeline);
-
 		/**
-		 * @brief
-		 * Initializes the Pipeline with shader stages and pInfo which is used to 
-		 * specify custom information about the Pipeline.
-		 * 
 		 * @param pInfo Any data in this structure that isn't 0 or nullptr will
-		 *	override the default data set by this class in 
+		 *	override the default data set by this class in
 		 *	VkGraphicsPipelineCreateInfo
 		 */
-		void Init(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo);
+		Pipeline(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo);
+		TETHER_DISPOSE_ON_DESTROY(Pipeline);
+		TETHER_NO_COPY(Pipeline);
 
 		VkPipeline Get();
 		VkPipelineLayout GetLayout();

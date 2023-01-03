@@ -4,17 +4,17 @@ using namespace Tether::Rendering;
 
 UIRenderer::UIRenderer()
 {
-	initialized = true;
+	
 }
 
 UIRenderer::~UIRenderer()
 {
-	Dispose();
+	objects.clear();
 }
 
 void UIRenderer::AddObject(Objects::Object* pObject)
 {
-	if (!pObject->IsInitialized() || pObject->GetUIRenderer() != this)
+	if (pObject->GetUIRenderer() != this)
 		return;
 
 	objects.push_back(pObject);
@@ -23,7 +23,7 @@ void UIRenderer::AddObject(Objects::Object* pObject)
 
 bool UIRenderer::RemoveObject(Objects::Object* pObject)
 {
-	if (!pObject->IsInitialized() || pObject->GetUIRenderer() != this)
+	if (pObject->GetUIRenderer() != this)
 		return false;
 
 	for (size_t i = 0; i < objects.size(); i++)
@@ -58,13 +58,4 @@ void UIRenderer::ClearObjects()
 const std::vector<Objects::Object*>& UIRenderer::GetObjects() const
 {
 	return objects;
-}
-
-void UIRenderer::OnDispose()
-{
-	for (size_t i = 0; i < objects.size(); i++)
-		objects[i]->Dispose();
-	objects.clear();
-
-	OnRendererDispose();
 }

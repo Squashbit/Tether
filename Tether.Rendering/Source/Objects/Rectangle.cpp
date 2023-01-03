@@ -5,10 +5,8 @@ using namespace Tether::Rendering::Objects;
 
 Rectangle::Rectangle(UIRenderer* pRenderer)
 	:
-	Object(pRenderer)
-{
-	pRenderer->CreateObject(this);
-}
+	Object(pRenderer, pRenderer->CreateObjectRenderer(this))
+{}
 
 void Rectangle::SetX(float value)
 {

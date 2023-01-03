@@ -12,7 +12,7 @@
 
 namespace Tether::Rendering
 {
-	class TETHER_EXPORT UIRenderer : public IDisposable
+	class TETHER_EXPORT UIRenderer
 	{
 	public:
 		UIRenderer();
@@ -27,22 +27,21 @@ namespace Tether::Rendering
 		virtual bool RenderFrame() { return true; }
 
 		template<typename T>
-		bool CreateObject(T* pObject)
+		Scope<Objects::ObjectRenderer> CreateObjectRenderer(T* pObject)
 		{
 			HashedString typeHash(TypeTools::GetTypeName<T>());
-			return OnObjectCreate(typeHash, pObject);
+			return OnObjectCreateRenderer(typeHash, pObject);
 		}
 
 		const std::vector<Objects::Object*>& GetObjects() const;
 	protected:
 		virtual void OnObjectAdd(Objects::Object* pObject) {}
 		virtual void OnObjectRemove(Objects::Object* pObject) {}
-		virtual bool OnObjectCreate(HashedString& typeName, Objects::Object* pObject)
-		{ return true; }
+		virtual Scope<Objects::ObjectRenderer> OnObjectCreateRenderer(
+			HashedString& typeName,
+			Objects::Object* pObject
+		) = 0;
 
 		std::vector<Objects::Object*> objects;
-	private:
-		void OnDispose();
-		virtual void OnRendererDispose() {}
 	};
 }

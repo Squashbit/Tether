@@ -124,14 +124,14 @@ VkResult Instance::Init(
 }
 
 QueueFamilyIndices Instance::FindQueueFamilies(
-	VkPhysicalDevice device, Surface* pSurface)
+	VkPhysicalDevice device, VkSurfaceKHR surface)
 {
 	QueueFamilyIndices queueFamilies;
 
 	uint32_t familyCount = 0;
 	loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
 
-	if (familyCount == 0 || !pSurface)
+	if (familyCount == 0)
 		return queueFamilies;
 
 	std::vector<VkQueueFamilyProperties> families(familyCount);
@@ -149,8 +149,8 @@ QueueFamilyIndices Instance::FindQueueFamilies(
 		}
 
 		VkBool32 presentSupport = false;
-		loader.vkGetPhysicalDeviceSurfaceSupportKHR(device, i,
-			pSurface->Get(), &presentSupport);
+		loader.vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, 
+			&presentSupport);
 		if (presentSupport && !queueFamilies.hasPresentFamily)
 		{
 			queueFamilies.hasPresentFamily = true;
@@ -167,10 +167,8 @@ QueueFamilyIndices Instance::FindQueueFamilies(
 }
 
 SwapchainDetails Instance::QuerySwapchainSupport(
-	VkPhysicalDevice device, Surface* pSurface)
+	VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-	VkSurfaceKHR surface = pSurface->Get();
-
 	SwapchainDetails details;
 	loader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface,
 		&details.capabilities);

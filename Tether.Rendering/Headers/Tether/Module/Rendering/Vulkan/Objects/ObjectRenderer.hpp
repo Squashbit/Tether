@@ -6,15 +6,14 @@
 
 #include <vulkan/vulkan.h>
 
-namespace Tether::Rendering::Vulkan::Natives
+namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VkObjectNative : public Objects::ObjectNative
+	class TETHER_EXPORT ObjectRenderer : public Objects::ObjectRenderer
 	{
 	public:
-		VkObjectNative(VulkanUIRenderer* pVkRenderer);
-		virtual ~VkObjectNative() = default;
-		TETHER_NO_COPY(VkObjectNative);
-
+		ObjectRenderer(VulkanUIRenderer* pVkRenderer);
+		virtual ~ObjectRenderer() = default;
+		
 		virtual void AddToCommandBuffer(VkCommandBuffer commandBuffer,
 			uint32_t index) {}
 	protected:

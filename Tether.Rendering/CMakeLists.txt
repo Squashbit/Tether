@@ -29,8 +29,8 @@ add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
     set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
-        ${SDIR}/Vulkan/ObjectNatives/RectangleNative.cpp
-        ${SDIR}/Vulkan/ObjectNatives/VkObjectNative.cpp
+        ${SDIR}/Vulkan/Objects/RectangleRenderer.cpp
+        ${SDIR}/Vulkan/Objects/ObjectRenderer.cpp
         ${SDIR}/Vulkan/Device.cpp
         ${SDIR}/Vulkan/DeviceLoader.cpp
         ${SDIR}/Vulkan/Instance.cpp
@@ -41,7 +41,6 @@ if (TETHER_RENDERING_VULKAN_API)
         ${SDIR}/Vulkan/Swapchain.cpp
         ${SDIR}/Vulkan/VertexBuffer.cpp
         ${SDIR}/Vulkan/BufferStager.cpp
-        ${SDIR}/Vulkan/VkUtils.cpp
         ${SDIR}/Vulkan/VmaImplementation.cpp
         ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
     )

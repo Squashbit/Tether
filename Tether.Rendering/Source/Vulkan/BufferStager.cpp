@@ -5,11 +5,30 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-void BufferStager::Init(BufferStagerInfo* pInfo)
+BufferStager::BufferStager(
+	VmaAllocator allocator,
+	VkDevice device,
+	DeviceLoader* dloader,
+	VkCommandPool pool,
+	VkQueue bufferOwnerQueue,
+	VkBuffer buffer,
+	size_t bufferSize
+)
 {
-	TETHER_ASSERT(pInfo != nullptr);
+	TETHER_ASSERT(allocator != nullptr);
+	TETHER_ASSERT(device != nullptr);
+	TETHER_ASSERT(dloader != nullptr);
+	TETHER_ASSERT(pool != nullptr);
+	TETHER_ASSERT(buffer != nullptr);
+	TETHER_ASSERT(bufferOwnerQueue != nullptr);
 
-	this->info = *pInfo;
+	this->allocator = allocator;
+	this->device = device;
+	this->dloader = dloader;
+	this->pool = pool;
+	this->bufferOwnerQueue = bufferOwnerQueue;
+	this->buffer = buffer;
+	this->bufferSize = bufferSize;
 
 	CreateCommandBuffer();	
 	CreateFence();
@@ -32,20 +51,20 @@ void BufferStager::UploadData(void* data)
 
 void BufferStager::UploadDataAsync(void* data)
 {
-	memcpy(stagingInfo.pMappedData, data, info.bufferSize);
+	memcpy(stagingInfo.pMappedData, data, bufferSize);
 
 	VkSubmitInfo submitInfo{};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	info.dloader->vkResetFences(info.device, 1, &completedFence);
-	info.dloader->vkQueueSubmit(info.bufferOwnerQueue, 1, &submitInfo, completedFence);
+	dloader->vkResetFences(device, 1, &completedFence);
+	dloader->vkQueueSubmit(bufferOwnerQueue, 1, &submitInfo, completedFence);
 }
 
 void BufferStager::Wait()
 {
-	info.dloader->vkWaitForFences(info.device, 1, &completedFence, true, UINT64_MAX);
+	dloader->vkWaitForFences(device, 1, &completedFence, true, UINT64_MAX);
 }
 
 void BufferStager::CreateCommandBuffer()
@@ -53,10 +72,10 @@ void BufferStager::CreateCommandBuffer()
 	VkCommandBufferAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = info.pool;
+	allocInfo.commandPool = pool;
 	allocInfo.commandBufferCount = 1;
 
-	if (info.dloader->vkAllocateCommandBuffers(info.device, &allocInfo, 
+	if (dloader->vkAllocateCommandBuffers(device, &allocInfo, 
 		&commandBuffer) != VK_SUCCESS)
 		throw RendererException("Failed to create staging command buffer");
 }
@@ -65,17 +84,17 @@ void BufferStager::CreateStagingBuffer()
 {
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = info.bufferSize;
+	bufferInfo.size = bufferSize;
 	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
 	VmaAllocationCreateInfo allocInfo{};
 	allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 	allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-	if (vmaCreateBuffer(info.allocator, &bufferInfo,
+	if (vmaCreateBuffer(allocator, &bufferInfo,
 		&allocInfo, &stagingBuffer, &stagingAllocation, &stagingInfo) != VK_SUCCESS)
 	{
-		info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
+		dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
 		throw RendererException("Failed to create staging buffer");
 	}
 }
@@ -86,10 +105,10 @@ void BufferStager::CreateFence()
 	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	if (info.dloader->vkCreateFence(info.device, &fenceInfo, nullptr,
+	if (dloader->vkCreateFence(device, &fenceInfo, nullptr,
 		&completedFence) != VK_SUCCESS)
 	{
-		info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
+		dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
 		throw RendererException("Failed to create staging buffer fence");
 	}
 }
@@ -100,16 +119,16 @@ bool BufferStager::RecordCommandBuffer()
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	if (info.dloader->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+	if (dloader->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
 		return false;
 	{
 		VkBufferCopy copyRegion{};
-		copyRegion.size = info.bufferSize;
+		copyRegion.size = bufferSize;
 
-		info.dloader->vkCmdCopyBuffer(commandBuffer, stagingBuffer, info.buffer,
+		dloader->vkCmdCopyBuffer(commandBuffer, stagingBuffer, buffer,
 			1, &copyRegion);
 	}
-	if (info.dloader->vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+	if (dloader->vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
 		return false;
 
 	return true;
@@ -117,9 +136,9 @@ bool BufferStager::RecordCommandBuffer()
 
 void BufferStager::DisposeStager()
 {
-	vmaDestroyBuffer(info.allocator, stagingBuffer, stagingAllocation);
-	info.dloader->vkFreeCommandBuffers(info.device, info.pool, 1, &commandBuffer);
-	info.dloader->vkDestroyFence(info.device, completedFence, nullptr);
+	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+	dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
+	dloader->vkDestroyFence(device, completedFence, nullptr);
 }
 
 void BufferStager::OnDispose()

@@ -45,9 +45,6 @@ bool InitVulkan()
 	bool debug = true;
 #endif
 
-	// Initialize Vulkan. Doing so shouldn't be necessary since anything that needs
-	// Vulkan initializes itself internally, but doing that you usually don't get
-	// information about how it failed, so do it here instead.
 	try
 	{
 		rendering.InitVulkan(debug);
@@ -83,9 +80,7 @@ public:
 
 	~RendererTestApp()
 	{
-		window.Dispose();
-		testRect.Dispose();
-		renderer.Dispose();
+		
 	}
 
 	void Run()
@@ -98,8 +93,8 @@ public:
 	}
 private:
 	SimpleWindow window;
-
 	Vulkan::VulkanUIRenderer renderer;
+
 	Objects::Rectangle testRect;
 };
 
