@@ -13,15 +13,14 @@ file(GLOB_RECURSE HEADERS
     "Headers/*.hpp" "Headers/*.h" 
 )
 
-set(SDIR Source)
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     ${HEADERS}
 
-    ${SDIR}/Objects/Object.cpp 
-    ${SDIR}/Objects/Rectangle.cpp 
-    ${SDIR}/GraphicalWindow.cpp 
-    ${SDIR}/UIRenderer.cpp
-    ${SDIR}/RenderingModule.cpp
+    Source/Objects/Object.cpp 
+    Source/Objects/Rectangle.cpp 
+    Source/GraphicalWindow.cpp 
+    Source/UIRenderer.cpp
+    Source/RenderingModule.cpp
 )
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
@@ -29,20 +28,21 @@ add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
     set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
-        ${SDIR}/Vulkan/Objects/RectangleRenderer.cpp
-        ${SDIR}/Vulkan/Objects/ObjectRenderer.cpp
-        ${SDIR}/Vulkan/Device.cpp
-        ${SDIR}/Vulkan/DeviceLoader.cpp
-        ${SDIR}/Vulkan/Instance.cpp
-        ${SDIR}/Vulkan/InstanceLoader.cpp
-        ${SDIR}/Vulkan/VulkanUIRenderer.cpp
-        ${SDIR}/Vulkan/Surface.cpp
-        ${SDIR}/Vulkan/Pipeline.cpp
-        ${SDIR}/Vulkan/Swapchain.cpp
-        ${SDIR}/Vulkan/VertexBuffer.cpp
-        ${SDIR}/Vulkan/BufferStager.cpp
-        ${SDIR}/Vulkan/VmaImplementation.cpp
-        ${SDIR}/Vulkan/Vulkan_RenderingModule.cpp
+        Source/Vulkan/Common/TypeNames.cpp
+        Source/Vulkan/Objects/RectangleRenderer.cpp
+        Source/Vulkan/Objects/ObjectRenderer.cpp
+        Source/Vulkan/Device.cpp
+        Source/Vulkan/DeviceLoader.cpp
+        Source/Vulkan/Instance.cpp
+        Source/Vulkan/InstanceLoader.cpp
+        Source/Vulkan/VulkanUIRenderer.cpp
+        Source/Vulkan/Surface.cpp
+        Source/Vulkan/Pipeline.cpp
+        Source/Vulkan/Swapchain.cpp
+        Source/Vulkan/VertexBuffer.cpp
+        Source/Vulkan/BufferStager.cpp
+        Source/Vulkan/VmaImplementation.cpp
+        Source/Vulkan/Vulkan_RenderingModule.cpp
     )
 endif()
 

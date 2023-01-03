@@ -56,29 +56,27 @@ namespace Tether::Rendering::Vulkan
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();
-
-		bool IsDeviceSuitable(VkPhysicalDevice device);
-		bool PickDevice();
-
+		
 		VkExtent2D ChooseExtent(VkSurfaceCapabilitiesKHR& capabilities);
 		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 		uint32_t FindImageCount(SwapchainDetails details);
 
-		VmaAllocator allocator;
 
 		SimpleWindow* pWindow = nullptr;
-		InstanceLoader* iloader = nullptr;
 		Instance* instance = nullptr;
+		InstanceLoader* iloader = nullptr;
 		DeviceLoader* dloader = nullptr;
 
-		std::optional<Surface> surface;
+		Surface surface;
+		
+		VmaAllocator allocator;
+
 		std::optional<Device> device;
 		std::optional<Swapchain> swapchain;
 		std::optional<Pipeline> pipeline;
 		std::optional<VertexBuffer> square;
 		
 		Vulkan::QueueFamilyIndices queueIndices;
-		VkPhysicalDevice physicalDevice;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 		VkRenderPass renderPass;

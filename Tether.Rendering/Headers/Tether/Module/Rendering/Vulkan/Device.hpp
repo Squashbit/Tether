@@ -31,12 +31,7 @@ namespace Tether::Rendering::Vulkan
         */
         Device(
 			Instance* pInstance,
-			VkPhysicalDevice physicalDevice,
-			VkDeviceQueueCreateInfo* queueFamilies,
-			uint32_t queueFamilyCount,
-			VkPhysicalDeviceFeatures features,
-			const char* const* extentions = nullptr,
-			uint32_t extentionCount = 0
+            VkSurfaceKHR surface
         );
         TETHER_NO_COPY(Device);
         
@@ -56,15 +51,23 @@ namespace Tether::Rendering::Vulkan
         void WaitIdle();
         
         VkDevice Get();
+        VkPhysicalDevice GetPhysicalDevice();
         DeviceLoader* GetLoader();
     protected:
         void OnDispose();
     private:
-        Instance* pInstance = nullptr;
+        void PickDevice();
+		bool IsDeviceSuitable(VkPhysicalDevice device);
+		bool CheckDeviceExtentionSupport(VkPhysicalDevice device,
+			const char* const* deviceExtentions, uint64_t extentionCount);
+
+        Instance* instance = nullptr;
         InstanceLoader* iloader = nullptr;
+        VkSurfaceKHR surface = nullptr;
 
         DeviceLoader loader;
 
+        VkPhysicalDevice physicalDevice = nullptr;
         VkDevice device = nullptr;
     };
 }

@@ -1,7 +1,9 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+
+#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
 
 #include <iostream>
 #include <vector>
@@ -12,6 +14,7 @@
 
 using namespace Tether;
 using namespace Rendering;
+using namespace Vulkan;
 
 class DebugLogger : public Rendering::Vulkan::DebugCallback
 {

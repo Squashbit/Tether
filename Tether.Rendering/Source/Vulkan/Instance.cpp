@@ -267,32 +267,6 @@ void Instance::OnDispose()
 	loader.vkDestroyInstance(instance, nullptr);
 }
 
-bool Instance::CheckDeviceExtentionSupport(VkPhysicalDevice device, 
-	const char*const * deviceExtentions, uint64_t extentionCount)
-{
-	// The device requires some extentions (such as the swap chain)
-	// We need to check for those here before we can use the device.
-
-	uint32_t count;
-	loader.vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
-		nullptr);
-	
-	std::vector<VkExtensionProperties> availableExtentions(count);
-	loader.vkEnumerateDeviceExtensionProperties(device, nullptr, &count,
-		availableExtentions.data());
-	
-	std::vector<std::string> requiredExtentions(extentionCount);
-	for (uint64_t i = 0; i < extentionCount; i++)
-		requiredExtentions[i] = std::string(deviceExtentions[i]);
-	std::set<std::string> requiredExtentionSet(requiredExtentions.begin(),
-		requiredExtentions.end());
-	
-	for (VkExtensionProperties extention : availableExtentions)
-		requiredExtentionSet.erase(extention.extensionName);
-	
-	return requiredExtentionSet.empty();
-}
-
 bool Instance::CheckValidationLayerSupport(std::vector<const char*> layers)
 {
 	/*uint32_t layerCount;

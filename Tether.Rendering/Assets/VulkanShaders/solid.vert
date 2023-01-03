@@ -6,8 +6,18 @@ layout(location = 1) in vec3 color;
 
 layout(location = 0) out vec3 fragColor;
 
+//layout(binding = 0) uniform Transform
+//{
+//    vec2 position;
+//    vec2 scale;
+//} trans;
+
 void main() 
 {
-    gl_Position = vec4(position.xy * 0.5, 0.0, 1.0);
+    vec2 vertexPosition = position.xy;
+//    vertexPosition *= trans.scale.xy;
+//    vertexPosition += trans.position.xy;
+
     fragColor = color;
+    gl_Position = vec4(vertexPosition, 0.0, 1.0);
 }

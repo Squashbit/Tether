@@ -16,26 +16,13 @@ using namespace Tether;
 using namespace Rendering;
 using namespace Vulkan;
 
-static const std::vector<const char*> deviceExtensions = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
-
 VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	:
-	pWindow(pWindow)
+	pWindow(pWindow),
+	instance(&RenderingModule::Get().GetVulkanNative()->instance),
+	iloader(instance->GetLoader()),
+	surface(instance, pWindow)
 {
-	RenderingModule& rendering = RenderingModule::Get();
-	Storage::VulkanNative* pVulkanNative = rendering.GetVulkanNative();
-
-	instance = &pVulkanNative->instance;
-	iloader = instance->GetLoader();
-
-	surface.emplace(instance, pWindow);
-
-	PickDevice();
-
-	queueIndices = instance->FindQueueFamilies(physicalDevice, surface->Get());
-
 	CreateDevice();
 	CreateAllocator();
 	CreateSwapchain();
@@ -75,7 +62,7 @@ VulkanUIRenderer::~VulkanUIRenderer()
 	vmaDestroyAllocator(allocator);
 
 	device->Dispose();
-	surface->Dispose();
+	surface.Dispose();
 }
 
 Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
@@ -166,34 +153,9 @@ bool VulkanUIRenderer::RenderFrame()
 
 void VulkanUIRenderer::CreateDevice()
 {
-	std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-	std::set<uint32_t> uniqueQueueFamilies = {
-		queueIndices.graphicsFamilyIndex,
-		queueIndices.presentFamilyIndex
-	};
-
-	float queuePriority = 1.0f;
-	for (uint32_t queueFamily : uniqueQueueFamilies)
-	{
-		VkDeviceQueueCreateInfo queueCreateInfo{};
-		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfo.queueFamilyIndex = queueFamily;
-		queueCreateInfo.queueCount = 1;
-		queueCreateInfo.pQueuePriorities = &queuePriority;
-
-		queueCreateInfos.push_back(queueCreateInfo);
-	}
-
-	VkPhysicalDeviceFeatures features{};
-
 	device.emplace(
 		instance,
-		physicalDevice,
-		queueCreateInfos.data(),
-		static_cast<uint32_t>(queueCreateInfos.size()),
-		features,
-		deviceExtensions.data(),
-		static_cast<uint32_t>(deviceExtensions.size())
+		surface.Get()
 	);
 
 	dloader = device->GetLoader();
@@ -210,7 +172,7 @@ void VulkanUIRenderer::CreateAllocator()
 
 	VmaAllocatorCreateInfo createInfo{};
 	createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-	createInfo.physicalDevice = physicalDevice;
+	createInfo.physicalDevice = device->GetPhysicalDevice();
 	createInfo.device = device->Get();
 	createInfo.instance = instance->Get();
 	createInfo.pVulkanFunctions = &funcs;
@@ -222,13 +184,13 @@ void VulkanUIRenderer::CreateAllocator()
 void VulkanUIRenderer::CreateSwapchain()
 {
 	Vulkan::SwapchainDetails details =
-		instance->QuerySwapchainSupport(physicalDevice, surface->Get());
+		instance->QuerySwapchainSupport(device->GetPhysicalDevice(), surface.Get());
 	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(details);
 	uint32_t imageCount = FindImageCount(details);
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = surface->Get();
+	createInfo.surface = surface.Get();
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = surfaceFormat.format;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -249,7 +211,8 @@ void VulkanUIRenderer::CreateSwapchain()
 	createInfo.clipped = true;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	queueIndices = instance->FindQueueFamilies(physicalDevice, surface->Get());
+	queueIndices = instance->FindQueueFamilies(device->GetPhysicalDevice(), 
+		surface.Get());
 	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
 	{
 		if (!queueIndices.hasPresentFamily)
@@ -270,7 +233,7 @@ void VulkanUIRenderer::CreateSwapchain()
 
 
 	swapchain.emplace(
-		&surface.value(), &device.value(), details, &createInfo
+		&surface, &device.value(), details, &createInfo
 	);
 
 	swapchainImages = swapchain->GetImages();
@@ -727,55 +690,4 @@ void VulkanUIRenderer::DestroySwapchain()
 		dloader->vkDestroyImageView(device->Get(), imageView, nullptr);
 
 	swapchain->Dispose();
-}
-
-bool VulkanUIRenderer::IsDeviceSuitable(VkPhysicalDevice device)
-{
-	VkPhysicalDeviceProperties deviceProperties;
-	VkPhysicalDeviceFeatures deviceFeatures;
-	iloader->vkGetPhysicalDeviceProperties(device, &deviceProperties);
-	iloader->vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
-
-	QueueFamilyIndices families = instance->FindQueueFamilies(device, surface->Get());
-
-	bool extentionsSupported = instance->CheckDeviceExtentionSupport(device,
-		deviceExtensions.data(), deviceExtensions.size());
-
-	bool swapChainGood = false;
-	if (extentionsSupported)
-	{
-		SwapchainDetails details = instance->QuerySwapchainSupport(device, 
-			surface->Get());
-		swapChainGood = !details.formats.empty()
-			&& !details.presentModes.empty();
-	}
-
-	return
-		deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
-		&& deviceFeatures.geometryShader
-		&& families.hasGraphicsFamily
-		&& families.hasPresentFamily
-		&& swapChainGood
-		&& extentionsSupported;
-}
-
-bool VulkanUIRenderer::PickDevice()
-{
-	uint32_t deviceCount = 0;
-	iloader->vkEnumeratePhysicalDevices(instance->Get(), &deviceCount, nullptr);
-	if (deviceCount == 0)
-		return false;
-
-	std::vector<VkPhysicalDevice> devices(deviceCount);
-	iloader->vkEnumeratePhysicalDevices(instance->Get(), &deviceCount,
-		devices.data());
-
-	for (VkPhysicalDevice device : devices)
-		if (IsDeviceSuitable(device))
-		{
-			physicalDevice = device;
-			return true;
-		}
-
-	return false;
 }
