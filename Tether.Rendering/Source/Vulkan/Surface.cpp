@@ -53,16 +53,14 @@ Surface::Surface(Instance* pInstance, Tether::SimpleWindow* window)
 	if (func(pInstance->Get(), &createInfo, nullptr,
 		&surface) != VK_SUCCESS)
 		throw RendererException("Surface creation failed");
-	
-	initialized = true;
+}
+
+Surface::~Surface()
+{
+	pLoader->vkDestroySurfaceKHR(pInstance->Get(), surface, nullptr);
 }
 
 VkSurfaceKHR Surface::Get()
 {
 	return surface;
-}
-
-void Surface::OnDispose()
-{
-	pLoader->vkDestroySurfaceKHR(pInstance->Get(), surface, nullptr);
 }

@@ -11,7 +11,7 @@ static const std::vector<const char*> deviceExtensions =
 };
 
 Device::Device(
-    Instance* instance,
+	Instance* instance,
 	VkSurfaceKHR surface
 )
 	:
@@ -19,9 +19,9 @@ Device::Device(
 	iloader(instance->GetLoader()),
 	surface(surface)
 {
-    TETHER_ASSERT(instance != nullptr);
+	TETHER_ASSERT(instance != nullptr);
 
-    PickDevice();
+	PickDevice();
 
 	QueueFamilyIndices queueIndices = 
 		instance->FindQueueFamilies(physicalDevice, surface);
@@ -46,51 +46,54 @@ Device::Device(
 
 	VkPhysicalDeviceFeatures features{};
 
-    VkDeviceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	VkDeviceCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pEnabledFeatures = &features;
+	createInfo.pQueueCreateInfos = queueCreateInfos.data();
+	createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+	createInfo.pEnabledFeatures = &features;
 
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+	createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-    if (instance->IsDebugMode())
-    {
-        // Enable validation layers
+	if (instance->IsDebugMode())
+	{
+		// Enable validation layers
 
-        createInfo.enabledLayerCount   = 
-            static_cast<uint32_t>(instance->validationLayers.size());
-        createInfo.ppEnabledLayerNames = instance->validationLayers.data();
-    }
-    
-    // Create the device
-    if (iloader->vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)
-        != VK_SUCCESS)
-        throw RendererException("Device creation failed");
+		createInfo.enabledLayerCount   = 
+			static_cast<uint32_t>(instance->validationLayers.size());
+		createInfo.ppEnabledLayerNames = instance->validationLayers.data();
+	}
+	
+	// Create the device
+	if (iloader->vkCreateDevice(physicalDevice, &createInfo, nullptr, &device)
+		!= VK_SUCCESS)
+		throw RendererException("Device creation failed");
 
-    loader.Load(iloader, &device);
-    
-    initialized = true;
+	loader.Load(iloader, &device);
+}
+
+Device::~Device()
+{
+	loader.vkDestroyDevice(device, nullptr);
 }
 
 VkQueue Device::GetDeviceQueue(uint32_t familyIndex, uint32_t queueIndex)
 {
-    VkQueue queue;
-    loader.vkGetDeviceQueue(device, familyIndex, queueIndex, &queue);
+	VkQueue queue;
+	loader.vkGetDeviceQueue(device, familyIndex, queueIndex, &queue);
 
-    return queue;
+	return queue;
 }
 
 void Device::WaitIdle()
 {
-    loader.vkDeviceWaitIdle(device);
+	loader.vkDeviceWaitIdle(device);
 }
 
 VkDevice Device::Get()
 {
-    return device;
+	return device;
 }
 
 VkPhysicalDevice Device::GetPhysicalDevice()
@@ -101,11 +104,6 @@ VkPhysicalDevice Device::GetPhysicalDevice()
 DeviceLoader* Device::GetLoader()
 {
 	return &loader;
-}
-
-void Device::OnDispose()
-{
-    loader.vkDestroyDevice(device, nullptr);
 }
 
 void Device::PickDevice()

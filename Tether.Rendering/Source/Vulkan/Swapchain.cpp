@@ -7,38 +7,148 @@
 using namespace Tether::Rendering::Vulkan;
 
 Swapchain::Swapchain(
-	Surface* pSurface,
-	Device* pDevice,
-	SwapchainDetails details,
-	VkSwapchainCreateInfoKHR* createInfo
+	Instance* instance,
+	Device* device,
+	VkSurfaceKHR surface,
+	uint32_t width, uint32_t height,
+	bool vsync
 )
 {	
-	this->pDevice = pDevice;
-	this->pLoader = pDevice->GetLoader();
-	this->imageFormat = createInfo->imageFormat;
-	this->extent = createInfo->imageExtent;
-	this->imageCount = createInfo->minImageCount;
-	
-	if (pLoader->vkCreateSwapchainKHR(pDevice->Get(), 
-		createInfo, nullptr, &swapchain))
+	this->instance = instance;
+	this->iloader = iloader;
+	this->device = device;
+	this->dloader = device->GetLoader();
+
+	VkPhysicalDevice physicalDevice = device->GetPhysicalDevice();
+	SwapchainDetails details = instance->QuerySwapchainSupport(physicalDevice, surface);
+	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(details);
+
+	imageCount = FindImageCount(details);
+	imageExtent = ChooseExtent(details.capabilities, width, height);
+	imageFormat = surfaceFormat.format;
+
+	VkSwapchainCreateInfoKHR createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	createInfo.surface = surface;
+	createInfo.imageColorSpace = surfaceFormat.colorSpace;
+	createInfo.minImageCount = imageCount;
+	createInfo.imageFormat = imageFormat;
+	createInfo.imageExtent = imageExtent;
+	createInfo.imageArrayLayers = 1;
+	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	createInfo.preTransform = details.capabilities.currentTransform;
+	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	createInfo.presentMode = ChoosePresentMode(details.presentModes, vsync);
+	createInfo.clipped = true;
+	createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+	QueueFamilyIndices queueIndices = instance->FindQueueFamilies(physicalDevice,
+		surface);
+	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
+	{
+		if (!queueIndices.hasPresentFamily)
+			throw RendererException("Device doesn't have a present family!");
+
+		uint32_t queueFamilyIndices[] =
+		{
+			queueIndices.graphicsFamilyIndex,
+			queueIndices.presentFamilyIndex
+		};
+		
+		createInfo.queueFamilyIndexCount = sizeof(queueFamilyIndices) / sizeof(uint32_t);
+		createInfo.pQueueFamilyIndices = queueFamilyIndices;
+		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+	}
+	else
+		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (dloader->vkCreateSwapchainKHR(device->Get(), &createInfo, nullptr, 
+		&swapchain) != VK_SUCCESS)
 		throw RendererException("Swapchain creation failed");
-	
-	initialized = true;
 }
 
-uint32_t Swapchain::GetImageCount()
+Swapchain::~Swapchain()
 {
+	dloader->vkDestroySwapchainKHR(device->Get(), swapchain, nullptr);
+}
+
+VkPresentModeKHR Swapchain::ChoosePresentMode(
+	std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
+{
+	// Fifo is used for vsync. Fifo relaxed might work too.
+	// An option to use fifo relaxed may be added later.
+	if (vsync)
+		return VK_PRESENT_MODE_FIFO_KHR;
+
+	// Mailbox is preferred for vsync disabled, but immediate works too.
+	// If neither are supported, fifo is used.
+
+	bool immediateSupported = false;
+	for (const auto& availablePresentMode : availablePresentModes)
+	{
+		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+			return availablePresentMode;
+
+		if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			immediateSupported = true;
+	}
+
+	if (immediateSupported)
+		return VK_PRESENT_MODE_IMMEDIATE_KHR;
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D Swapchain::ChooseExtent(
+	VkSurfaceCapabilitiesKHR& capabilities,
+	uint64_t width, uint64_t height)
+{
+	if (capabilities.currentExtent.width != UINT32_MAX)
+		return capabilities.currentExtent;
+
+	VkExtent2D extent =
+	{
+		std::clamp((uint32_t)width,
+			capabilities.minImageExtent.width,
+			capabilities.maxImageExtent.width
+		),
+		std::clamp((uint32_t)height,
+			capabilities.minImageExtent.height,
+			capabilities.maxImageExtent.height
+		)
+	};
+
+	return extent;
+}
+
+VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormat(SwapchainDetails details)
+{
+	for (VkSurfaceFormatKHR availableFormat : details.formats)
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
+			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			return availableFormat;
+
+	return details.formats[0];
+}
+
+uint32_t Swapchain::FindImageCount(SwapchainDetails details)
+{
+	uint32_t imageCount = details.capabilities.minImageCount + 1;
+	if (details.capabilities.maxImageCount > 0 &&
+		imageCount > details.capabilities.maxImageCount)
+		imageCount = details.capabilities.maxImageCount;
+
 	return imageCount;
 }
 
 std::vector<VkImage> Swapchain::GetImages()
 {
 	uint32_t numImages;
-	pLoader->vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
+	dloader->vkGetSwapchainImagesKHR(device->Get(), swapchain, &numImages,
 		nullptr);
 	
 	std::vector<VkImage> swapchainImages(numImages);
-	pLoader->vkGetSwapchainImagesKHR(pDevice->Get(), swapchain, &numImages,
+	dloader->vkGetSwapchainImagesKHR(device->Get(), swapchain, &numImages,
 		swapchainImages.data());
 
 	return swapchainImages;
@@ -68,15 +178,20 @@ void Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 		
-		if (pLoader->vkCreateImageView(pDevice->Get(), &createInfo, nullptr,
+		if (dloader->vkCreateImageView(device->Get(), &createInfo, nullptr,
 			&pVec->at(i)) != VK_SUCCESS)
 			throw RendererException("Swapchain image view creation failed");
 	}
 }
 
+uint32_t Swapchain::GetImageCount()
+{
+	return imageCount;
+}
+
 VkExtent2D Swapchain::GetExtent()
 {
-	return extent;
+	return imageExtent;
 }
 
 VkFormat Swapchain::GetImageFormat()
@@ -89,56 +204,34 @@ VkSwapchainKHR Swapchain::Get()
 	return swapchain;
 }
 
-void Swapchain::OnDispose()
+SwapchainDetails Swapchain::QuerySwapchainSupport(VkPhysicalDevice physicalDevice, 
+	VkSurfaceKHR surface)
 {
-	pLoader->vkDestroySwapchainKHR(pDevice->Get(), swapchain, nullptr);
-}
+	SwapchainDetails details;
+	iloader->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
+		&details.capabilities);
 
-VkPresentModeKHR Swapchain::ChoosePresentMode(
-	std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync) 
-{
-	// Fifo is used for vsync. Fifo relaxed might work too.
-	// An option to use fifo relaxed may be added later.
-	if (vsync)
-		return VK_PRESENT_MODE_FIFO_KHR;
+	uint32_t formatCount;
+	iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount,
+		nullptr);
 
-	// Mailbox is preferred for vsync disabled, but immediate works too.
-	// If neither are supported, fifo is used.
-
-	bool immediateSupported = false;
-	for (const auto& availablePresentMode : availablePresentModes)
+	if (formatCount != 0)
 	{
-		if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-			return availablePresentMode;
-		
-		if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR)
-			immediateSupported = true;
+		details.formats.resize(formatCount);
+		iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, 
+			&formatCount, details.formats.data());
 	}
 
-	if (immediateSupported)
-		return VK_PRESENT_MODE_IMMEDIATE_KHR;
+	uint32_t presentModeCount;
+	iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
+		&presentModeCount, details.presentModes.data());
 
-    return VK_PRESENT_MODE_FIFO_KHR;
-}
+	if (presentModeCount != 0)
+	{
+		details.presentModes.resize(presentModeCount);
+		iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
+			&presentModeCount, details.presentModes.data());
+	}
 
-VkExtent2D Swapchain::ChooseExtent(
-	VkSurfaceCapabilitiesKHR& capabilities,
-	uint64_t width, uint64_t height) 
-{
-	if (capabilities.currentExtent.width != UINT32_MAX)
-		return capabilities.currentExtent;
-		
-	VkExtent2D extent = 
-	{ 
-		std::clamp((uint32_t)width, 
-			capabilities.minImageExtent.width, 
-			capabilities.maxImageExtent.width
-		),
-		std::clamp((uint32_t)height, 
-			capabilities.minImageExtent.height, 
-			capabilities.maxImageExtent.height
-		)
-	};
-
-	return extent;
+	return details;
 }

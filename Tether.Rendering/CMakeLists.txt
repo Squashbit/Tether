@@ -43,6 +43,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/BufferStager.cpp
         Source/Vulkan/VmaImplementation.cpp
         Source/Vulkan/Vulkan_RenderingModule.cpp
+        Source/Vulkan/Allocator.cpp
     )
 endif()
 

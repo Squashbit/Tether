@@ -21,10 +21,15 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	pWindow(pWindow),
 	instance(&RenderingModule::Get().GetVulkanNative()->instance),
 	iloader(instance->GetLoader()),
-	surface(instance, pWindow)
+	surface(instance, pWindow),
+	device(instance, surface.Get()),
+	allocator(instance->Get(), device.Get(), device.GetPhysicalDevice(), iloader)
 {
-	CreateDevice();
-	CreateAllocator();
+	dloader = device.GetLoader();
+
+	graphicsQueue = device.GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
+	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
+
 	CreateSwapchain();
 	CreateRenderPass();
 	CreatePipeline();
@@ -39,30 +44,25 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 
 VulkanUIRenderer::~VulkanUIRenderer()
 {
-	device->WaitIdle();
+	device.WaitIdle();
 
 	square->Dispose();
 
 	pipeline->Dispose();
 
-	dloader->vkDestroyRenderPass(device->Get(), renderPass, nullptr);
-	dloader->vkDestroyCommandPool(device->Get(), commandPool, nullptr);
+	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
+	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		dloader->vkDestroySemaphore(device->Get(), imageAvailableSemaphores[i],
+		dloader->vkDestroySemaphore(device.Get(), imageAvailableSemaphores[i],
 			nullptr);
-		dloader->vkDestroySemaphore(device->Get(), renderFinishedSemaphores[i],
+		dloader->vkDestroySemaphore(device.Get(), renderFinishedSemaphores[i],
 			nullptr);
-		dloader->vkDestroyFence(device->Get(), inFlightFences[i], nullptr);
+		dloader->vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
 	}
 
 	DestroySwapchain();
-
-	vmaDestroyAllocator(allocator);
-
-	device->Dispose();
-	surface.Dispose();
 }
 
 Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
@@ -94,10 +94,10 @@ bool VulkanUIRenderer::RenderFrame()
 		shouldRecreateSwapchain = false;
 	}
 
-	dloader->vkWaitForFences(device->Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+	dloader->vkWaitForFences(device.Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
 	uint32_t imageIndex = 0;
-	VkResult imageResult = dloader->vkAcquireNextImageKHR(device->Get(), 
+	VkResult imageResult = dloader->vkAcquireNextImageKHR(device.Get(), 
 		swapchain->Get(), UINT64_MAX, imageAvailableSemaphores[currentFrame], 
 		VK_NULL_HANDLE, &imageIndex);
 
@@ -114,7 +114,7 @@ bool VulkanUIRenderer::RenderFrame()
 		shouldRecreateCommandBuffers = false;
 	}
 
-	dloader->vkResetFences(device->Get(), 1, &inFlightFences[currentFrame]);
+	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
@@ -151,89 +151,12 @@ bool VulkanUIRenderer::RenderFrame()
 	return true;
 }
 
-void VulkanUIRenderer::CreateDevice()
-{
-	device.emplace(
-		instance,
-		surface.Get()
-	);
-
-	dloader = device->GetLoader();
-
-	graphicsQueue = device->GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
-	presentQueue = device->GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
-}
-
-void VulkanUIRenderer::CreateAllocator()
-{
-	VmaVulkanFunctions funcs{};
-	funcs.vkGetInstanceProcAddr = TETHER_APP_VK->GetInstanceProcAddr;
-	funcs.vkGetDeviceProcAddr = iloader->vkGetDeviceProcAddr;
-
-	VmaAllocatorCreateInfo createInfo{};
-	createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-	createInfo.physicalDevice = device->GetPhysicalDevice();
-	createInfo.device = device->Get();
-	createInfo.instance = instance->Get();
-	createInfo.pVulkanFunctions = &funcs;
-
-	if (vmaCreateAllocator(&createInfo, &allocator) != VK_SUCCESS)
-		throw RendererException("VMA allocator creation failed");
-}
-
 void VulkanUIRenderer::CreateSwapchain()
 {
-	Vulkan::SwapchainDetails details =
-		instance->QuerySwapchainSupport(device->GetPhysicalDevice(), surface.Get());
-	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(details);
-	uint32_t imageCount = FindImageCount(details);
-
-	VkSwapchainCreateInfoKHR createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = surface.Get();
-	createInfo.minImageCount = imageCount;
-	createInfo.imageFormat = surfaceFormat.format;
-	createInfo.imageColorSpace = surfaceFormat.colorSpace;
-	createInfo.imageExtent = ChooseExtent(details.capabilities);
-	createInfo.imageArrayLayers = 1;
-
-	// This will probably be changed later on to take in a parameter in this
-	// function.
-	// This parameter in the swapchain specifies what the images in the
-	// swapchain are used for.
-	// This may seem familiar if you have done computer graphics before,
-	// as this is only the color attachment. There are others too, such as
-	// the depth buffer.
-	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-	createInfo.preTransform = details.capabilities.currentTransform;
-	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
-	createInfo.clipped = true;
-	createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-	queueIndices = instance->FindQueueFamilies(device->GetPhysicalDevice(), 
-		surface.Get());
-	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
-	{
-		if (!queueIndices.hasPresentFamily)
-			throw RendererException("Device doesn't have a present family!");
-
-		uint32_t queueFamilyIndices[] =
-		{
-			queueIndices.graphicsFamilyIndex,
-			queueIndices.presentFamilyIndex
-		};
-
-		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		createInfo.queueFamilyIndexCount = 2;
-		createInfo.pQueueFamilyIndices = queueFamilyIndices;
-	}
-	else
-		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-
 	swapchain.emplace(
-		&surface, &device.value(), details, &createInfo
+		instance, &device, surface.Get(),
+		pWindow->GetWidth(), pWindow->GetHeight(), 
+		true
 	);
 
 	swapchainImages = swapchain->GetImages();
@@ -283,7 +206,7 @@ void VulkanUIRenderer::CreateRenderPass()
 	desc.dependencyCount = 1;
 	desc.pDependencies = &dependency;
 
-	if (dloader->vkCreateRenderPass(device->Get(), &desc, nullptr, &renderPass)
+	if (dloader->vkCreateRenderPass(device.Get(), &desc, nullptr, &renderPass)
 		!= VK_SUCCESS)
 		throw RendererException("Render pass creation failed");
 }
@@ -305,10 +228,10 @@ void VulkanUIRenderer::CreatePipeline()
 	fragmentInfo.pCode = (uint32_t*)VulkanShaders::_binary_solid_frag_spv;
 	fragmentInfo.codeSize = sizeof(VulkanShaders::_binary_solid_frag_spv);
 
-	if (dloader->vkCreateShaderModule(device->Get(), &vertexInfo, nullptr,
+	if (dloader->vkCreateShaderModule(device.Get(), &vertexInfo, nullptr,
 		&vertex) != VK_SUCCESS)
 		throw RendererException("Vertex shader creation failed");
-	if (dloader->vkCreateShaderModule(device->Get(), &fragmentInfo, nullptr,
+	if (dloader->vkCreateShaderModule(device.Get(), &fragmentInfo, nullptr,
 		&fragment) != VK_SUCCESS)
 		throw RendererException("Fragment shader creation failed");
 
@@ -410,10 +333,10 @@ void VulkanUIRenderer::CreatePipeline()
 	info.pDynamicState = &dynamicState;
 	info.pVertexInputState = &vertexInputInfo;
 
-	pipeline.emplace(device->Get(), dloader, &info);
+	pipeline.emplace(device.Get(), dloader, &info);
 	
-	dloader->vkDestroyShaderModule(device->Get(), vertex, nullptr);
-	dloader->vkDestroyShaderModule(device->Get(), fragment, nullptr);
+	dloader->vkDestroyShaderModule(device.Get(), vertex, nullptr);
+	dloader->vkDestroyShaderModule(device.Get(), fragment, nullptr);
 }
 
 void VulkanUIRenderer::CreateFramebuffers()
@@ -438,11 +361,11 @@ void VulkanUIRenderer::CreateFramebuffers()
 		createInfo.height = swapchainExtent.height;
 		createInfo.layers = 1;
 
-		if (dloader->vkCreateFramebuffer(device->Get(), &createInfo, nullptr,
+		if (dloader->vkCreateFramebuffer(device.Get(), &createInfo, nullptr,
 			&swapchainFramebuffers[i]) != VK_SUCCESS)
 		{
 			for (size_t i2 = 0; i2 < i + 1; i2++)
-				dloader->vkDestroyFramebuffer(device->Get(), swapchainFramebuffers[i2],
+				dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i2],
 					nullptr);
 
 			throw RendererException("Framebuffer creation failed");
@@ -457,7 +380,7 @@ void VulkanUIRenderer::CreateCommandPool()
 	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	createInfo.queueFamilyIndex = queueIndices.graphicsFamilyIndex;
 
-	if (dloader->vkCreateCommandPool(device->Get(), &createInfo, nullptr,
+	if (dloader->vkCreateCommandPool(device.Get(), &createInfo, nullptr,
 		&commandPool) != VK_SUCCESS)
 		throw RendererException("Command pool creation failed");
 }
@@ -472,7 +395,7 @@ void VulkanUIRenderer::CreateCommandBuffer()
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 	allocInfo.commandBufferCount = static_cast<uint32_t>(swapchainFramebuffers.size());
 
-	if (dloader->vkAllocateCommandBuffers(device->Get(), &allocInfo, 
+	if (dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
 		commandBuffers.data()) != VK_SUCCESS)
 		throw RendererException("Command buffer allocation failed");
 }
@@ -492,15 +415,15 @@ void VulkanUIRenderer::CreateSyncObjects()
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		if (dloader->vkCreateSemaphore(device->Get(), &semaphoreInfo, nullptr,
+		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
 			&imageAvailableSemaphores[i]) != VK_SUCCESS)
 			throw RendererException("Semaphore creation failed");
 
-		if (dloader->vkCreateSemaphore(device->Get(), &semaphoreInfo, nullptr,
+		if (dloader->vkCreateSemaphore(device.Get(), &semaphoreInfo, nullptr,
 			&renderFinishedSemaphores[i]) != VK_SUCCESS)
 			throw RendererException("Semaphore creation failed");
 
-		if (dloader->vkCreateFence(device->Get(), &fenceInfo, nullptr,
+		if (dloader->vkCreateFence(device.Get(), &fenceInfo, nullptr,
 			&inFlightFences[i]) != VK_SUCCESS)
 			throw RendererException("Fence creation failed");
 	}
@@ -522,8 +445,8 @@ void VulkanUIRenderer::CreateVertexBuffers()
 	};
 
 	VertexBufferInfo info{};
-	info.allocator = allocator;
-	info.device = device->Get();
+	info.allocator = allocator.Get();
+	info.device = device.Get();
 	info.dloader = dloader;
 	info.graphicsQueue = graphicsQueue;
 	info.pool = commandPool;
@@ -546,7 +469,7 @@ DeviceLoader* VulkanUIRenderer::GetDeviceLoader()
 bool VulkanUIRenderer::PopulateCommandBuffers()
 {
 	for (size_t i = 0; i < inFlightFences.size(); i++)
-		dloader->vkWaitForFences(device->Get(), 1,
+		dloader->vkWaitForFences(device.Get(), 1,
 			&inFlightFences[i], VK_TRUE, UINT64_MAX);
 
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
@@ -623,49 +546,9 @@ void VulkanUIRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 	}
 }
 
-VkExtent2D VulkanUIRenderer::ChooseExtent(VkSurfaceCapabilitiesKHR& capabilities)
-{
-	if (capabilities.currentExtent.width != UINT32_MAX)
-		return capabilities.currentExtent;
-
-	VkExtent2D extent =
-	{
-		std::clamp((uint32_t)pWindow->GetWidth(),
-			capabilities.minImageExtent.width,
-			capabilities.maxImageExtent.width
-		),
-		std::clamp((uint32_t)pWindow->GetHeight(),
-			capabilities.minImageExtent.height,
-			capabilities.maxImageExtent.height
-		)
-	};
-
-	return extent;
-}
-
-VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat(SwapchainDetails details)
-{
-	for (VkSurfaceFormatKHR availableFormat : details.formats)
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
-				&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-			return availableFormat;
-
-	return details.formats[0];
-}
-
-uint32_t VulkanUIRenderer::FindImageCount(SwapchainDetails details)
-{
-	uint32_t imageCount = details.capabilities.minImageCount + 1;
-	if (details.capabilities.maxImageCount > 0 &&
-		imageCount > details.capabilities.maxImageCount)
-		imageCount = details.capabilities.maxImageCount;
-
-	return imageCount;
-}
-
 bool VulkanUIRenderer::RecreateSwapchain()
 {
-	device->WaitIdle();
+	device.WaitIdle();
 
 	if (pWindow->GetWidth() == 0 || pWindow->GetHeight() == 0)
 		return true;
@@ -683,11 +566,9 @@ bool VulkanUIRenderer::RecreateSwapchain()
 void VulkanUIRenderer::DestroySwapchain()
 {
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
-		dloader->vkDestroyFramebuffer(device->Get(), swapchainFramebuffers[i],
+		dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i],
 			nullptr);
 
 	for (VkImageView imageView : swapchainImageViews)
-		dloader->vkDestroyImageView(device->Get(), imageView, nullptr);
-
-	swapchain->Dispose();
+		dloader->vkDestroyImageView(device.Get(), imageView, nullptr);
 }

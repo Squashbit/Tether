@@ -13,26 +13,14 @@
 namespace Tether::Rendering::Vulkan
 {
     class Instance;
-    class TETHER_EXPORT Device : public IDisposable
+    class TETHER_EXPORT Device
     {
     public:
-        /**
-        * @param pInstance A pointer to the Vulkan instance.
-        * @param physicalDevice The physical device.
-        * @param queueFamilies An array of VkDeviceQueueCreateInfo specifying
-        *  the queue families that this device should use and describing them.
-        * @param queueFamilyCount The number of VkDeviceQueueCreateInfo
-        *  in the array.
-        * @param features The features that this device should use.
-        * @param extentions An array of extentions for this device to use.
-        * @param extentionCount The number of extentions.
-        *
-        * @returns True if initialization succeeded; otherwise, false.
-        */
         Device(
 			Instance* pInstance,
             VkSurfaceKHR surface
         );
+        ~Device();
         TETHER_NO_COPY(Device);
         
         /**

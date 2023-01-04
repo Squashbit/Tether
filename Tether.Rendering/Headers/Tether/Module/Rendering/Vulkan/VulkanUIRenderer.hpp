@@ -8,15 +8,15 @@
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
-#include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
+#include <Tether/Module/Rendering/Vulkan/Allocator.hpp>
+#include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
 
 #include <optional>
 
 #include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -39,8 +39,6 @@ namespace Tether::Rendering::Vulkan
 		void OnObjectAdd(Objects::Object* pObject) override;
 		void OnObjectRemove(Objects::Object* pObject) override;
 
-		void CreateDevice();
-		void CreateAllocator();
 		void CreateSwapchain();
 		void CreateRenderPass();
 		void CreatePipeline();
@@ -57,21 +55,14 @@ namespace Tether::Rendering::Vulkan
 		bool RecreateSwapchain();
 		void DestroySwapchain();
 		
-		VkExtent2D ChooseExtent(VkSurfaceCapabilitiesKHR& capabilities);
-		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
-		uint32_t FindImageCount(SwapchainDetails details);
-
-
 		SimpleWindow* pWindow = nullptr;
 		Instance* instance = nullptr;
 		InstanceLoader* iloader = nullptr;
-		DeviceLoader* dloader = nullptr;
-
 		Surface surface;
-		
-		VmaAllocator allocator;
+		Device device;
+		DeviceLoader* dloader = nullptr;
+		Allocator allocator;
 
-		std::optional<Device> device;
 		std::optional<Swapchain> swapchain;
 		std::optional<Pipeline> pipeline;
 		std::optional<VertexBuffer> square;
