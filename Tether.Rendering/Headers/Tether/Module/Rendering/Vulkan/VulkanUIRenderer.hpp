@@ -70,15 +70,15 @@ namespace Tether::Rendering::Vulkan
 		VkSurfaceFormatKHR surfaceFormat;
 		RenderPass renderPass;
 
+		Vulkan::QueueFamilyIndices queueIndices;
+		VkQueue graphicsQueue;
+		VkQueue presentQueue;
+
 		std::optional<Pipeline> pipeline;
 		std::optional<VertexBuffer> square;
 
 		std::optional<Swapchain> swapchain;
 		
-		Vulkan::QueueFamilyIndices queueIndices;
-		VkQueue graphicsQueue;
-		VkQueue presentQueue;
-
 		VkCommandPool commandPool;
 
 		std::vector<VkImage> swapchainImages;

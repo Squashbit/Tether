@@ -29,7 +29,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	surfaceFormat(ChooseSurfaceFormat()),
 	renderPass(device.Get(), dloader, surfaceFormat.format)
 {
-	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(), 
+	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(),
 		surface.Get());
 	
 	graphicsQueue = device.GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
@@ -91,6 +91,9 @@ void VulkanUIRenderer::OnObjectRemove(Objects::Object* pObject)
 
 VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat()
 {
+	if (swapchainDetails.formats.size() == 0)
+		throw RendererException("No available swapchain image formats");
+
 	for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
 		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
 			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
