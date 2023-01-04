@@ -31,7 +31,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 {
 	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(),
 		surface.Get());
-	
+
 	graphicsQueue = device.GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
 	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
@@ -205,7 +205,7 @@ void VulkanUIRenderer::CreateSwapchain()
 {
 	swapchain.emplace(
 		instance, &device,
-		queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
+		queueIndices, QuerySwapchainSupport(), surfaceFormat, surface.Get(),
 		pWindow->GetWidth(), pWindow->GetHeight(), 
 		true
 	);

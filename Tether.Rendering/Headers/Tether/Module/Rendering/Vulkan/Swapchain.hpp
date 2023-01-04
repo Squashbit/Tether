@@ -41,7 +41,7 @@ namespace Tether::Rendering::Vulkan
 		
 		VkSwapchainKHR Get();
 	private:
-		uint32_t FindImageCount(SwapchainDetails details);
+		uint32_t FindImageCount(const SwapchainDetails& details);
 
 		Instance* instance = nullptr;
 		InstanceLoader* iloader = nullptr;

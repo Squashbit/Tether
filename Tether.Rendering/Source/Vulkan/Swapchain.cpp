@@ -118,7 +118,7 @@ VkExtent2D Swapchain::ChooseExtent(
 	return extent;
 }
 
-uint32_t Swapchain::FindImageCount(SwapchainDetails details)
+uint32_t Swapchain::FindImageCount(const SwapchainDetails& details)
 {
 	uint32_t imageCount = details.capabilities.minImageCount + 1;
 	if (details.capabilities.maxImageCount > 0 &&
