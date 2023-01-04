@@ -18,6 +18,9 @@ namespace Tether::Rendering::Vulkan
 		Swapchain(
 			Instance* instance,
 			Device* device,
+			const QueueFamilyIndices& queueIndices,
+			const SwapchainDetails& details,
+			VkSurfaceFormatKHR format,
 			VkSurfaceKHR surface,
 			uint32_t width, uint32_t height,
 			bool vsync
@@ -25,9 +28,9 @@ namespace Tether::Rendering::Vulkan
 		~Swapchain();
 		TETHER_NO_COPY(Swapchain);
 
-		VkPresentModeKHR ChoosePresentMode(std::vector<VkPresentModeKHR>& presentModes,
+		VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes,
 			bool vsync);
-		VkExtent2D ChooseExtent(VkSurfaceCapabilitiesKHR& capabilities,
+		VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities,
 			uint64_t width, uint64_t height);
 
 		std::vector<VkImage> GetImages();
@@ -35,13 +38,9 @@ namespace Tether::Rendering::Vulkan
 
 		uint32_t GetImageCount();
 		VkExtent2D GetExtent();
-		VkFormat GetImageFormat();
 		
 		VkSwapchainKHR Get();
 	private:
-		SwapchainDetails QuerySwapchainSupport(VkPhysicalDevice physicalDevice, 
-			VkSurfaceKHR surface);
-		VkSurfaceFormatKHR ChooseSurfaceFormat(SwapchainDetails details);
 		uint32_t FindImageCount(SwapchainDetails details);
 
 		Instance* instance = nullptr;

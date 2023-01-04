@@ -9,6 +9,9 @@ using namespace Tether::Rendering::Vulkan;
 Swapchain::Swapchain(
 	Instance* instance,
 	Device* device,
+	const QueueFamilyIndices& queueIndices,
+	const SwapchainDetails& details,
+	VkSurfaceFormatKHR surfaceFormat,
 	VkSurfaceKHR surface,
 	uint32_t width, uint32_t height,
 	bool vsync
@@ -18,10 +21,6 @@ Swapchain::Swapchain(
 	this->iloader = iloader;
 	this->device = device;
 	this->dloader = device->GetLoader();
-
-	VkPhysicalDevice physicalDevice = device->GetPhysicalDevice();
-	SwapchainDetails details = instance->QuerySwapchainSupport(physicalDevice, surface);
-	VkSurfaceFormatKHR surfaceFormat = ChooseSurfaceFormat(details);
 
 	imageCount = FindImageCount(details);
 	imageExtent = ChooseExtent(details.capabilities, width, height);
@@ -42,8 +41,6 @@ Swapchain::Swapchain(
 	createInfo.clipped = true;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	QueueFamilyIndices queueIndices = instance->FindQueueFamilies(physicalDevice,
-		surface);
 	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
 	{
 		if (!queueIndices.hasPresentFamily)
@@ -73,7 +70,7 @@ Swapchain::~Swapchain()
 }
 
 VkPresentModeKHR Swapchain::ChoosePresentMode(
-	std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
+	const std::vector<VkPresentModeKHR>& availablePresentModes, bool vsync)
 {
 	// Fifo is used for vsync. Fifo relaxed might work too.
 	// An option to use fifo relaxed may be added later.
@@ -100,7 +97,7 @@ VkPresentModeKHR Swapchain::ChoosePresentMode(
 }
 
 VkExtent2D Swapchain::ChooseExtent(
-	VkSurfaceCapabilitiesKHR& capabilities,
+	const VkSurfaceCapabilitiesKHR& capabilities,
 	uint64_t width, uint64_t height)
 {
 	if (capabilities.currentExtent.width != UINT32_MAX)
@@ -119,16 +116,6 @@ VkExtent2D Swapchain::ChooseExtent(
 	};
 
 	return extent;
-}
-
-VkSurfaceFormatKHR Swapchain::ChooseSurfaceFormat(SwapchainDetails details)
-{
-	for (VkSurfaceFormatKHR availableFormat : details.formats)
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
-			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-			return availableFormat;
-
-	return details.formats[0];
 }
 
 uint32_t Swapchain::FindImageCount(SwapchainDetails details)
@@ -194,44 +181,7 @@ VkExtent2D Swapchain::GetExtent()
 	return imageExtent;
 }
 
-VkFormat Swapchain::GetImageFormat()
-{
-	return imageFormat;
-}
-
 VkSwapchainKHR Swapchain::Get()
 {
 	return swapchain;
-}
-
-SwapchainDetails Swapchain::QuerySwapchainSupport(VkPhysicalDevice physicalDevice, 
-	VkSurfaceKHR surface)
-{
-	SwapchainDetails details;
-	iloader->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface,
-		&details.capabilities);
-
-	uint32_t formatCount;
-	iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount,
-		nullptr);
-
-	if (formatCount != 0)
-	{
-		details.formats.resize(formatCount);
-		iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, 
-			&formatCount, details.formats.data());
-	}
-
-	uint32_t presentModeCount;
-	iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
-		&presentModeCount, details.presentModes.data());
-
-	if (presentModeCount != 0)
-	{
-		details.presentModes.resize(presentModeCount);
-		iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surface,
-			&presentModeCount, details.presentModes.data());
-	}
-
-	return details;
 }

@@ -10,6 +10,7 @@
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Allocator.hpp>
+#include <Tether/Module/Rendering/Vulkan/RenderPass.hpp>
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
@@ -39,8 +40,10 @@ namespace Tether::Rendering::Vulkan
 		void OnObjectAdd(Objects::Object* pObject) override;
 		void OnObjectRemove(Objects::Object* pObject) override;
 
+		VkSurfaceFormatKHR ChooseSurfaceFormat();
+		SwapchainDetails QuerySwapchainSupport();
+
 		void CreateSwapchain();
-		void CreateRenderPass();
 		void CreatePipeline();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
@@ -63,14 +66,18 @@ namespace Tether::Rendering::Vulkan
 		DeviceLoader* dloader = nullptr;
 		Allocator allocator;
 
-		std::optional<Swapchain> swapchain;
+		SwapchainDetails swapchainDetails;
+		VkSurfaceFormatKHR surfaceFormat;
+		RenderPass renderPass;
+
 		std::optional<Pipeline> pipeline;
 		std::optional<VertexBuffer> square;
+
+		std::optional<Swapchain> swapchain;
 		
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
-		VkRenderPass renderPass;
 
 		VkCommandPool commandPool;
 

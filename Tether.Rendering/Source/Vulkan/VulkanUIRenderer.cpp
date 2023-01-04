@@ -23,15 +23,19 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	iloader(instance->GetLoader()),
 	surface(instance, pWindow),
 	device(instance, surface.Get()),
-	allocator(instance->Get(), device.Get(), device.GetPhysicalDevice(), iloader)
+	dloader(device.GetLoader()),
+	allocator(instance->Get(), device.Get(), device.GetPhysicalDevice(), iloader),
+	swapchainDetails(QuerySwapchainSupport()),
+	surfaceFormat(ChooseSurfaceFormat()),
+	renderPass(device.Get(), dloader, surfaceFormat.format)
 {
-	dloader = device.GetLoader();
-
+	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(), 
+		surface.Get());
+	
 	graphicsQueue = device.GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
 	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
 	CreateSwapchain();
-	CreateRenderPass();
 	CreatePipeline();
 	CreateFramebuffers();
 	CreateSyncObjects();
@@ -49,8 +53,7 @@ VulkanUIRenderer::~VulkanUIRenderer()
 	square->Dispose();
 
 	pipeline->Dispose();
-
-	dloader->vkDestroyRenderPass(device.Get(), renderPass, nullptr);
+	
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -84,6 +87,50 @@ void VulkanUIRenderer::OnObjectAdd(Objects::Object* pObject)
 void VulkanUIRenderer::OnObjectRemove(Objects::Object* pObject)
 {
 	shouldRecreateCommandBuffers = true;
+}
+
+VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat()
+{
+	for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
+			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			return availableFormat;
+
+	return swapchainDetails.formats[0];
+}
+
+SwapchainDetails VulkanUIRenderer::QuerySwapchainSupport()
+{
+	VkPhysicalDevice physicalDevice = device.GetPhysicalDevice();
+	VkSurfaceKHR surfacekhr = surface.Get();
+
+	SwapchainDetails details;
+	iloader->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surfacekhr,
+		&details.capabilities);
+
+	uint32_t formatCount;
+	iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr, &formatCount,
+		nullptr);
+
+	if (formatCount != 0)
+	{
+		details.formats.resize(formatCount);
+		iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr,
+			&formatCount, details.formats.data());
+	}
+
+	uint32_t presentModeCount;
+	iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
+		&presentModeCount, details.presentModes.data());
+
+	if (presentModeCount != 0)
+	{
+		details.presentModes.resize(presentModeCount);
+		iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
+			&presentModeCount, details.presentModes.data());
+	}
+
+	return details;
 }
 
 bool VulkanUIRenderer::RenderFrame()
@@ -154,61 +201,14 @@ bool VulkanUIRenderer::RenderFrame()
 void VulkanUIRenderer::CreateSwapchain()
 {
 	swapchain.emplace(
-		instance, &device, surface.Get(),
+		instance, &device,
+		queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 		pWindow->GetWidth(), pWindow->GetHeight(), 
 		true
 	);
 
 	swapchainImages = swapchain->GetImages();
 	swapchain->CreateImageViews(&swapchainImageViews);
-}
-
-void VulkanUIRenderer::CreateRenderPass()
-{
-	VkAttachmentDescription colorAttachment{};
-	colorAttachment.format = swapchain->GetImageFormat();
-	colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-	VkAttachmentReference colorAttachmentReference{};
-	colorAttachmentReference.attachment = 0;
-	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpass{};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttachmentReference;
-	
-	VkSubpassDependency dependency{};
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-	VkAttachmentDescription attachments[] =
-	{
-		colorAttachment,
-	};
-
-	VkRenderPassCreateInfo desc{};
-	desc.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	desc.attachmentCount = 1;
-	desc.pAttachments = attachments;
-	desc.subpassCount = 1;
-	desc.pSubpasses = &subpass;
-	desc.dependencyCount = 1;
-	desc.pDependencies = &dependency;
-
-	if (dloader->vkCreateRenderPass(device.Get(), &desc, nullptr, &renderPass)
-		!= VK_SUCCESS)
-		throw RendererException("Render pass creation failed");
 }
 
 void VulkanUIRenderer::CreatePipeline()
@@ -329,7 +329,7 @@ void VulkanUIRenderer::CreatePipeline()
 	info.stageCount = sizeof(stages) / sizeof(stages[0]);
 	info.pStages = stages;
 	info.pViewportState = &viewportState;
-	info.renderPass = renderPass;
+	info.renderPass = renderPass.Get();
 	info.pDynamicState = &dynamicState;
 	info.pVertexInputState = &vertexInputInfo;
 
@@ -354,7 +354,7 @@ void VulkanUIRenderer::CreateFramebuffers()
 
 		VkFramebufferCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		createInfo.renderPass = renderPass;
+		createInfo.renderPass = renderPass.Get();
 		createInfo.attachmentCount = 1;
 		createInfo.pAttachments = attachments;
 		createInfo.width = swapchainExtent.width;
@@ -494,7 +494,7 @@ bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass;
+		renderPassInfo.renderPass = renderPass.Get();
 		renderPassInfo.framebuffer = swapchainFramebuffers[index];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = swapchain->GetExtent();
