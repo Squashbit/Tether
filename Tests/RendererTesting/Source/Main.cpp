@@ -1,4 +1,5 @@
 #include <Tether/Tether.hpp>
+#include <Tether/Common/Stopwatch.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
@@ -90,11 +91,33 @@ public:
 	{
 		while (!window.IsCloseRequested())
 		{
+			float delta = deltaTimer.GetElapsedSeconds();
+			deltaTimer.Set();
+
+			time += delta;
+			frames++;
+
+			if (fpsTimer.GetElapsedSeconds() >= 3.0f)
+			{
+				std::cout << "FPS = " << 1.0f / (time / frames) << std::endl;
+
+				time = 0;
+				frames = 0;
+
+				fpsTimer.Set();
+			}
+
 			window.PollEvents();
 			renderer.RenderFrame();
 		}
 	}
 private:
+	Stopwatch fpsTimer;
+	Stopwatch deltaTimer;
+
+	size_t frames = 0;
+	float time = 0.0f;
+
 	SimpleWindow window;
 	Vulkan::VulkanUIRenderer renderer;
 

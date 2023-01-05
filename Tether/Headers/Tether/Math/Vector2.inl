@@ -1,4 +1,4 @@
-namespace LegendEngine
+namespace Tether::Math
 {
 	template<typename T>
 	TETHER_MATH_FUNC Vector2<T>::Vector2()

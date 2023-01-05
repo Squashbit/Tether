@@ -14,6 +14,7 @@ namespace Tether::Rendering::Vulkan
 		ObjectRenderer(VulkanUIRenderer* pVkRenderer);
 		virtual ~ObjectRenderer() = default;
 		
+		virtual void OnRenderFrame(uint32_t currentFrame) {}
 		virtual void AddToCommandBuffer(VkCommandBuffer commandBuffer,
 			uint32_t index) {}
 	protected:

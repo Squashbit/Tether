@@ -28,15 +28,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	allocator(instance->Get(), device.Get(), device.GetPhysicalDevice(), iloader),
 	swapchainDetails(QuerySwapchainSupport()),
 	surfaceFormat(ChooseSurfaceFormat()),
-	renderPass(device.Get(), dloader, surfaceFormat.format),
-	pipeline(
-		&device, renderPass.Get(),
-		swapchain->GetExtent(), 0,
-		(uint32_t*)VulkanShaders::_binary_solid_vert_spv,
-		sizeof(VulkanShaders::_binary_solid_vert_spv),
-		(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
-		sizeof(VulkanShaders::_binary_solid_frag_spv)
-	)
+	renderPass(device.Get(), dloader, surfaceFormat.format)
 {
 	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(),
 		surface.Get());
@@ -45,6 +37,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
 	CreateSwapchain();
+	CreateShaders();
 	CreateFramebuffers();
 	CreateSyncObjects();
 	CreateCommandPool();
@@ -56,7 +49,7 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 
 VulkanUIRenderer::~VulkanUIRenderer()
 {
-	device.WaitIdle();
+	DestroySwapchain();
 
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
@@ -69,7 +62,7 @@ VulkanUIRenderer::~VulkanUIRenderer()
 		dloader->vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
 	}
 
-	DestroySwapchain();
+	dloader->vkDestroyDescriptorSetLayout(device.Get(), descriptorSetLayout, nullptr);
 }
 
 bool VulkanUIRenderer::RenderFrame()
@@ -101,6 +94,14 @@ bool VulkanUIRenderer::RenderFrame()
 	}
 
 	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
+
+	for (size_t i = 0; i < objects.size(); i++)
+	{
+		Objects::Object* pObject = objects[i];
+		ObjectRenderer* pRenderer = (ObjectRenderer*)pObject->GetObjectRenderer();
+
+		pRenderer->OnRenderFrame(currentFrame);
+	}
 
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
@@ -137,14 +138,41 @@ bool VulkanUIRenderer::RenderFrame()
 	return true;
 }
 
+void VulkanUIRenderer::WaitForCommandBuffers()
+{
+	for (size_t i = 0; i < inFlightFences.size(); i++)
+		dloader->vkWaitForFences(device.Get(), 1,
+			&inFlightFences[i], VK_TRUE, UINT64_MAX);
+}
+
+uint32_t VulkanUIRenderer::GetSwapchainImageCount()
+{
+	return swapchain->GetImageCount();
+}
+
+Device* VulkanUIRenderer::GetDevice()
+{
+	return &device;
+}
+
+Pipeline* VulkanUIRenderer::GetPipeline()
+{
+	return &pipeline.value();
+}
+
+VkDescriptorSetLayout VulkanUIRenderer::GetDescriptorSetLayout()
+{
+	return descriptorSetLayout;
+}
+
 VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()
 {
 	return &square.value();
 }
 
-DeviceLoader* VulkanUIRenderer::GetDeviceLoader()
+VmaAllocator VulkanUIRenderer::GetAllocator()
 {
-	return dloader;
+	return allocator.Get();
 }
 
 Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
@@ -168,53 +196,6 @@ void VulkanUIRenderer::OnObjectRemove(Objects::Object* pObject)
 	shouldRecreateCommandBuffers = true;
 }
 
-VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat()
-{
-	if (swapchainDetails.formats.size() == 0)
-		throw RendererException("No available swapchain image formats");
-
-	for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
-		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
-			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-			return availableFormat;
-
-	return swapchainDetails.formats[0];
-}
-
-SwapchainDetails VulkanUIRenderer::QuerySwapchainSupport()
-{
-	VkPhysicalDevice physicalDevice = device.GetPhysicalDevice();
-	VkSurfaceKHR surfacekhr = surface.Get();
-
-	SwapchainDetails details;
-	iloader->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surfacekhr,
-		&details.capabilities);
-
-	uint32_t formatCount;
-	iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr, &formatCount,
-		nullptr);
-
-	if (formatCount != 0)
-	{
-		details.formats.resize(formatCount);
-		iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr,
-			&formatCount, details.formats.data());
-	}
-
-	uint32_t presentModeCount;
-	iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
-		&presentModeCount, details.presentModes.data());
-
-	if (presentModeCount != 0)
-	{
-		details.presentModes.resize(presentModeCount);
-		iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
-			&presentModeCount, details.presentModes.data());
-	}
-
-	return details;
-}
-
 void VulkanUIRenderer::CreateSwapchain()
 {
 	swapchain.emplace(
@@ -226,6 +207,39 @@ void VulkanUIRenderer::CreateSwapchain()
 
 	swapchainImages = swapchain->GetImages();
 	swapchain->CreateImageViews(&swapchainImageViews);
+}
+
+void VulkanUIRenderer::CreateShaders()
+{
+	VkDescriptorSetLayoutBinding uboLayoutBinding{};
+	uboLayoutBinding.binding = 0;
+	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	uboLayoutBinding.descriptorCount = 1;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	VkDescriptorSetLayoutCreateInfo layoutInfo{};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = 1;
+	layoutInfo.pBindings = &uboLayoutBinding;
+
+	if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
+		&descriptorSetLayout) != VK_SUCCESS)
+		throw RendererException("Failed to create descriptor set layout");
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo.setLayoutCount = 1;
+	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+
+	pipeline.emplace(
+		&device, renderPass.Get(),
+		swapchain->GetExtent(), 0,
+		(uint32_t*)VulkanShaders::_binary_solid_vert_spv,
+		sizeof(VulkanShaders::_binary_solid_vert_spv),
+		(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
+		sizeof(VulkanShaders::_binary_solid_frag_spv),
+		&pipelineLayoutInfo
+	);
 }
 
 void VulkanUIRenderer::CreateFramebuffers()
@@ -345,6 +359,53 @@ void VulkanUIRenderer::CreateVertexBuffers()
 	square->FinishDataUpload();
 }
 
+VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat()
+{
+	if (swapchainDetails.formats.size() == 0)
+		throw RendererException("No available swapchain image formats");
+
+	for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
+		if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
+			&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			return availableFormat;
+
+	return swapchainDetails.formats[0];
+}
+
+SwapchainDetails VulkanUIRenderer::QuerySwapchainSupport()
+{
+	VkPhysicalDevice physicalDevice = device.GetPhysicalDevice();
+	VkSurfaceKHR surfacekhr = surface.Get();
+
+	SwapchainDetails details;
+	iloader->vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surfacekhr,
+		&details.capabilities);
+
+	uint32_t formatCount;
+	iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr, &formatCount,
+		nullptr);
+
+	if (formatCount != 0)
+	{
+		details.formats.resize(formatCount);
+		iloader->vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surfacekhr,
+			&formatCount, details.formats.data());
+	}
+
+	uint32_t presentModeCount;
+	iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
+		&presentModeCount, details.presentModes.data());
+
+	if (presentModeCount != 0)
+	{
+		details.presentModes.resize(presentModeCount);
+		iloader->vkGetPhysicalDeviceSurfacePresentModesKHR(physicalDevice, surfacekhr,
+			&presentModeCount, details.presentModes.data());
+	}
+
+	return details;
+}
+
 bool VulkanUIRenderer::PopulateCommandBuffers()
 {
 	for (size_t i = 0; i < inFlightFences.size(); i++)
@@ -402,7 +463,7 @@ bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 		dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			pipeline.Get());
+			pipeline->Get());
 
 		AddObjectsToCommandBuffer(commandBuffer, index);
 
@@ -428,8 +489,6 @@ void VulkanUIRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 
 bool VulkanUIRenderer::RecreateSwapchain()
 {
-	device.WaitIdle();
-
 	if (pWindow->GetWidth() == 0 || pWindow->GetHeight() == 0)
 		return true;
 	
@@ -449,6 +508,8 @@ bool VulkanUIRenderer::RecreateSwapchain()
 
 void VulkanUIRenderer::DestroySwapchain()
 {
+	device.WaitIdle();
+
 	for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
 		dloader->vkDestroyFramebuffer(device.Get(), swapchainFramebuffers[i],
 			nullptr);

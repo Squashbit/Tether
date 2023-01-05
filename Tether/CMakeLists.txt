@@ -6,7 +6,7 @@ file(GLOB_RECURSE SOURCES
 	"Headers/*.hpp" "Headers/*.h" 
 )
 
-add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} ${SOURCES})
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} ${SOURCES} "Source/Common/Stopwatch.cpp")
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 

@@ -13,9 +13,12 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 
 	TETHER_DEVICE_FUNC(AcquireNextImageKHR);
 	TETHER_DEVICE_FUNC(AllocateCommandBuffers);
+	TETHER_DEVICE_FUNC(AllocateDescriptorSets);
 	TETHER_DEVICE_FUNC(BeginCommandBuffer);
 	TETHER_DEVICE_FUNC(CreateBuffer);
 	TETHER_DEVICE_FUNC(CreateCommandPool);
+	TETHER_DEVICE_FUNC(CreateDescriptorPool);
+	TETHER_DEVICE_FUNC(CreateDescriptorSetLayout);
 	TETHER_DEVICE_FUNC(CreateFence);
 	TETHER_DEVICE_FUNC(CreateFramebuffer);
 	TETHER_DEVICE_FUNC(CreateGraphicsPipelines);
@@ -26,6 +29,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(CreateShaderModule);
 	TETHER_DEVICE_FUNC(CreateSwapchainKHR);
 	TETHER_DEVICE_FUNC(CmdBeginRenderPass);
+	TETHER_DEVICE_FUNC(CmdBindDescriptorSets);
 	TETHER_DEVICE_FUNC(CmdBindPipeline);
 	TETHER_DEVICE_FUNC(CmdBindIndexBuffer);
 	TETHER_DEVICE_FUNC(CmdBindVertexBuffers);
@@ -37,6 +41,8 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(CmdSetViewport);
 	TETHER_DEVICE_FUNC(DestroyBuffer);
 	TETHER_DEVICE_FUNC(DestroyCommandPool);
+	TETHER_DEVICE_FUNC(DestroyDescriptorPool);
+	TETHER_DEVICE_FUNC(DestroyDescriptorSetLayout);
 	TETHER_DEVICE_FUNC(DestroyDevice);
 	TETHER_DEVICE_FUNC(DestroyImageView);
 	TETHER_DEVICE_FUNC(DestroyFramebuffer);
@@ -50,11 +56,13 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(DeviceWaitIdle);
 	TETHER_DEVICE_FUNC(EndCommandBuffer);
 	TETHER_DEVICE_FUNC(FreeCommandBuffers);
+	TETHER_DEVICE_FUNC(FreeDescriptorSets);
 	TETHER_DEVICE_FUNC(GetDeviceQueue);
 	TETHER_DEVICE_FUNC(GetSwapchainImagesKHR);
-	TETHER_DEVICE_FUNC(ResetCommandBuffer);
-	TETHER_DEVICE_FUNC(ResetFences);
 	TETHER_DEVICE_FUNC(QueuePresentKHR);
 	TETHER_DEVICE_FUNC(QueueSubmit);
+	TETHER_DEVICE_FUNC(ResetCommandBuffer);
+	TETHER_DEVICE_FUNC(ResetFences);
+	TETHER_DEVICE_FUNC(UpdateDescriptorSets);
 	TETHER_DEVICE_FUNC(WaitForFences);
 }

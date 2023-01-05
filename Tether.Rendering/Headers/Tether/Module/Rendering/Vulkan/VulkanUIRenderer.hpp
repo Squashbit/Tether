@@ -29,8 +29,16 @@ namespace Tether::Rendering::Vulkan
 		
 		bool RenderFrame();
 
+		void WaitForCommandBuffers();
+
+		uint32_t GetSwapchainImageCount();
+		Device* GetDevice();
+		Pipeline* GetPipeline();
+		VkDescriptorSetLayout GetDescriptorSetLayout();
 		VertexBuffer* GetRectangleBuffer();
-		DeviceLoader* GetDeviceLoader();
+		VmaAllocator GetAllocator();
+
+		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	private:
 		Scope<Objects::ObjectRenderer> OnObjectCreateRenderer(
 			HashedString& typeName, 
@@ -40,15 +48,16 @@ namespace Tether::Rendering::Vulkan
 		void OnObjectAdd(Objects::Object* pObject) override;
 		void OnObjectRemove(Objects::Object* pObject) override;
 
-		VkSurfaceFormatKHR ChooseSurfaceFormat();
-		SwapchainDetails QuerySwapchainSupport();
-
 		void CreateSwapchain();
+		void CreateShaders();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandPool();
 		void CreateCommandBuffer();
 		void CreateVertexBuffers();
+
+		VkSurfaceFormatKHR ChooseSurfaceFormat();
+		SwapchainDetails QuerySwapchainSupport();
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
@@ -64,22 +73,21 @@ namespace Tether::Rendering::Vulkan
 		Device device;
 		DeviceLoader* dloader = nullptr;
 		Allocator allocator;
-
 		SwapchainDetails swapchainDetails;
 		VkSurfaceFormatKHR surfaceFormat;
 		RenderPass renderPass;
-		Pipeline pipeline;
+		VkCommandPool commandPool;
+
+		VkDescriptorSetLayout descriptorSetLayout;
+
+		std::optional<Pipeline> pipeline;
+		std::optional<VertexBuffer> square;
+		std::optional<Swapchain> swapchain;
 
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
-
-		std::optional<VertexBuffer> square;
-
-		std::optional<Swapchain> swapchain;
 		
-		VkCommandPool commandPool;
-
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;
 		std::vector<VkFramebuffer> swapchainFramebuffers;
@@ -92,6 +100,5 @@ namespace Tether::Rendering::Vulkan
 		bool shouldRecreateCommandBuffers = false;
 
 		uint32_t currentFrame = 0;
-		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	};
 }

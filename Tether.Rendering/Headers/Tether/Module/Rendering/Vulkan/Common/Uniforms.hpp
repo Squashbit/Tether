@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Math/Vector2.hpp>
+#include <Tether/Math/Types.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
 	struct Transform
 	{
-		Vector2 position;
-		Vector2 scale;
+		Math::Vector2f position;
+		alignas(16) Math::Vector2f scale;
 	};
 }
