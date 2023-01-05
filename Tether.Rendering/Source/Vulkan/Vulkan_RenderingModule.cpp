@@ -1,6 +1,7 @@
 #include <Tether/Application.hpp>
 #include <Tether/Common/LibraryLoader.hpp>
 #include <Tether/Module/Rendering/RenderingModule.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
@@ -11,7 +12,7 @@ using namespace Tether::Rendering;
 bool RenderingModule::LoadVulkan()
 {
 	if (vulkan)
-		return false;
+		return true;
 
 	void* vulkanLibrary;
 #if defined(_WIN32)
@@ -25,7 +26,7 @@ bool RenderingModule::LoadVulkan()
 	if (!vulkanLibrary)
 		return false;
 
-	vulkan = new(std::nothrow) Storage::VulkanNative();
+	vulkan = new(std::nothrow) Vulkan::VulkanNative();
 	if (!vulkan)
 	{
 		LibraryLoader::FreeLibrary(vulkanLibrary);
@@ -43,32 +44,16 @@ bool RenderingModule::LoadVulkan()
 	return true;
 }
 
-Vulkan::ErrorCode RenderingModule::InitVulkan(bool validationlayers)
+void RenderingModule::InitVulkan(bool validationlayers)
 {
 	if (!LoadVulkan())
-		return Vulkan::ErrorCode::VULKAN_LIB_NOT_FOUND;
+		throw RendererException("Vulkan library not found");
 
-	VkResult result = vulkan->instance.Init("TetherApp", "Tether",
-		validationlayers);
-	switch (result)
-	{
-		case VK_ERROR_INCOMPATIBLE_DRIVER:
-			return Vulkan::ErrorCode::INCOMPATIBLE_DRIVER;
-		break;
-
-		case VK_ERROR_LAYER_NOT_PRESENT:
-			return Vulkan::ErrorCode::LAYER_NOT_PRESENT;
-		break;
-
-		case VK_SUCCESS: break;
-		default: return Vulkan::ErrorCode::UNKNOWN; break;
-	}
-
+	vulkan->instance.emplace("TetherApp", "Tether", validationlayers);
 	vulkan->initialized = true;
-	return Vulkan::ErrorCode::SUCCESS;
 }
 
-Rendering::Storage::VulkanNative* RenderingModule::GetVulkanNative()
+Rendering::Vulkan::VulkanNative* RenderingModule::GetVulkanNative()
 {
 	return vulkan;
 }
@@ -92,12 +77,8 @@ void RenderingModule::DisposeVulkan()
 		return;
 
 	if (vulkan->initialized)
-	{
-		// Then dispose the instance
-		vulkan->instance.Dispose();
-	}
+		vulkan->instance.reset();
 
-	// Dispose loaded stuff
 	LibraryLoader::FreeLibrary(vulkan->handle);
 
 	delete vulkan;

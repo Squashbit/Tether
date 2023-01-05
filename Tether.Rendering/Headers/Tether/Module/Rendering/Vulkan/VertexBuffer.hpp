@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Tether/Common/Defs.hpp>
-#include <Tether/Common/IDisposable.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
@@ -22,11 +21,11 @@ namespace Tether::Rendering::Vulkan
 		VkCommandPool pool = nullptr;
 	};
 
-	class TETHER_EXPORT VertexBuffer : public IDisposable
+	class TETHER_EXPORT VertexBuffer
 	{
 	public:
 		VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, size_t indexCount);
-		TETHER_DISPOSE_ON_DESTROY(VertexBuffer);
+		~VertexBuffer();
 		TETHER_NO_COPY(VertexBuffer);
 
 		void UploadData(void* data, uint32_t* pIndices);
@@ -42,8 +41,6 @@ namespace Tether::Rendering::Vulkan
 		VkBuffer GetBuffer();
 		VkBuffer GetIndexBuffer();
 	private:
-		void OnDispose();
-
 		void CreateVertexBuffer(size_t size);
 		void CreateIndexBuffer(size_t size);
 		

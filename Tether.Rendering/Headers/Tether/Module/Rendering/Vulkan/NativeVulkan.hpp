@@ -14,9 +14,10 @@
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 
+#include <optional>
 #include <vulkan/vulkan.h>
 
-namespace Tether::Rendering::Storage
+namespace Tether::Rendering::Vulkan
 {
 #define vkCreateInstance(createInfo, pAllocator, pInstance) \
 	TETHER_APP_VK->CreateInstance(createInfo, pAllocator, pInstance)
@@ -39,7 +40,7 @@ namespace Tether::Rendering::Storage
 		bool initialized = false;
 		// Everything below has to have InitVulkan called to use
 
-		Vulkan::Instance instance;
+		std::optional<Vulkan::Instance> instance;
 	};
 }
 

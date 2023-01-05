@@ -10,7 +10,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT BufferStager : public IDisposable
+	class TETHER_EXPORT BufferStager
 	{
 	public:
 		BufferStager(
@@ -22,7 +22,7 @@ namespace Tether::Rendering::Vulkan
 			VkBuffer buffer,
 			size_t bufferSize
 		);
-		TETHER_DISPOSE_ON_DESTROY(BufferStager);
+		~BufferStager();
 		TETHER_NO_COPY(BufferStager);
 
 		void UploadData(void* data);
@@ -31,8 +31,6 @@ namespace Tether::Rendering::Vulkan
 		// Wait for data to finish uploading.
 		void Wait();
 	private:
-		void OnDispose();
-
 		void CreateCommandBuffer();
 		void CreateFence();
 

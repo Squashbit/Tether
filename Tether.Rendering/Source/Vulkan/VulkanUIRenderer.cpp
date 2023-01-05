@@ -20,7 +20,7 @@ using namespace Vulkan;
 VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	:
 	pWindow(pWindow),
-	instance(&RenderingModule::Get().GetVulkanNative()->instance),
+	instance(&RenderingModule::Get().GetVulkanNative()->instance.value()),
 	iloader(instance->GetLoader()),
 	surface(instance, pWindow),
 	device(instance, surface.Get()),
@@ -58,8 +58,6 @@ VulkanUIRenderer::~VulkanUIRenderer()
 {
 	device.WaitIdle();
 
-	square->Dispose();
-
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -72,6 +70,81 @@ VulkanUIRenderer::~VulkanUIRenderer()
 	}
 
 	DestroySwapchain();
+}
+
+bool VulkanUIRenderer::RenderFrame()
+{
+	if (shouldRecreateSwapchain)
+	{
+		RecreateSwapchain();
+		shouldRecreateSwapchain = false;
+	}
+
+	dloader->vkWaitForFences(device.Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+	uint32_t imageIndex = 0;
+	VkResult imageResult = dloader->vkAcquireNextImageKHR(device.Get(),
+		swapchain->Get(), UINT64_MAX, imageAvailableSemaphores[currentFrame],
+		VK_NULL_HANDLE, &imageIndex);
+
+	if (imageResult != VK_SUCCESS)
+	{
+		shouldRecreateSwapchain = true;
+		return imageResult == VK_ERROR_OUT_OF_DATE_KHR ||
+			imageResult == VK_SUBOPTIMAL_KHR;
+	}
+
+	if (shouldRecreateCommandBuffers)
+	{
+		PopulateCommandBuffers();
+		shouldRecreateCommandBuffers = false;
+	}
+
+	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
+	VkPipelineStageFlags waitStages[] = {
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkSubmitInfo submitInfo{};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	if (dloader->vkQueueSubmit(graphicsQueue, 1, &submitInfo,
+		inFlightFences[currentFrame])
+		!= VK_SUCCESS)
+		return false;
+
+	VkSwapchainKHR swapchains[] = { swapchain->Get() };
+	VkPresentInfoKHR presentInfo{};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapchains;
+	presentInfo.pImageIndices = &imageIndex;
+
+	if (dloader->vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS)
+		return false;
+
+	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	return true;
+}
+
+VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()
+{
+	return &square.value();
+}
+
+DeviceLoader* VulkanUIRenderer::GetDeviceLoader()
+{
+	return dloader;
 }
 
 Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
@@ -142,71 +215,6 @@ SwapchainDetails VulkanUIRenderer::QuerySwapchainSupport()
 	return details;
 }
 
-bool VulkanUIRenderer::RenderFrame()
-{
-	if (shouldRecreateSwapchain)
-	{
-		RecreateSwapchain();
-		shouldRecreateSwapchain = false;
-	}
-
-	dloader->vkWaitForFences(device.Get(), 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
-
-	uint32_t imageIndex = 0;
-	VkResult imageResult = dloader->vkAcquireNextImageKHR(device.Get(), 
-		swapchain->Get(), UINT64_MAX, imageAvailableSemaphores[currentFrame], 
-		VK_NULL_HANDLE, &imageIndex);
-
-	if (imageResult != VK_SUCCESS)
-	{
-		shouldRecreateSwapchain = true;
-		return imageResult == VK_ERROR_OUT_OF_DATE_KHR || 
-			   imageResult == VK_SUBOPTIMAL_KHR;
-	}
-
-	if (shouldRecreateCommandBuffers)
-	{
-		PopulateCommandBuffers();
-		shouldRecreateCommandBuffers = false;
-	}
-
-	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
-
-	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
-	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
-	VkPipelineStageFlags waitStages[] = {
-		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
-	submitInfo.signalSemaphoreCount = 1;
-	submitInfo.pSignalSemaphores = signalSemaphores;
-
-	if (dloader->vkQueueSubmit(graphicsQueue, 1, &submitInfo, 
-		inFlightFences[currentFrame])
-			!= VK_SUCCESS)
-		return false;
-
-	VkSwapchainKHR swapchains[] = { swapchain->Get()};
-	VkPresentInfoKHR presentInfo{};
-	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-	presentInfo.waitSemaphoreCount = 1;
-	presentInfo.pWaitSemaphores = signalSemaphores;
-	presentInfo.swapchainCount = 1;
-	presentInfo.pSwapchains = swapchains;
-	presentInfo.pImageIndices = &imageIndex;
-
-	if (dloader->vkQueuePresentKHR(presentQueue, &presentInfo) != VK_SUCCESS)
-		return false;
-
-	currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-	return true;
-}
-
 void VulkanUIRenderer::CreateSwapchain()
 {
 	swapchain.emplace(
@@ -254,33 +262,6 @@ void VulkanUIRenderer::CreateFramebuffers()
 	}
 }
 
-void VulkanUIRenderer::CreateCommandPool()
-{
-	VkCommandPoolCreateInfo createInfo{};
-	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-	createInfo.queueFamilyIndex = queueIndices.graphicsFamilyIndex;
-
-	if (dloader->vkCreateCommandPool(device.Get(), &createInfo, nullptr,
-		&commandPool) != VK_SUCCESS)
-		throw RendererException("Command pool creation failed");
-}
-
-void VulkanUIRenderer::CreateCommandBuffer()
-{
-	commandBuffers.resize(swapchainFramebuffers.size());
-
-	VkCommandBufferAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.commandPool = commandPool;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = static_cast<uint32_t>(swapchainFramebuffers.size());
-
-	if (dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
-		commandBuffers.data()) != VK_SUCCESS)
-		throw RendererException("Command buffer allocation failed");
-}
-
 void VulkanUIRenderer::CreateSyncObjects()
 {
 	imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -310,6 +291,33 @@ void VulkanUIRenderer::CreateSyncObjects()
 	}
 }
 
+void VulkanUIRenderer::CreateCommandPool()
+{
+	VkCommandPoolCreateInfo createInfo{};
+	createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	createInfo.queueFamilyIndex = queueIndices.graphicsFamilyIndex;
+
+	if (dloader->vkCreateCommandPool(device.Get(), &createInfo, nullptr,
+		&commandPool) != VK_SUCCESS)
+		throw RendererException("Command pool creation failed");
+}
+
+void VulkanUIRenderer::CreateCommandBuffer()
+{
+	commandBuffers.resize(swapchainFramebuffers.size());
+
+	VkCommandBufferAllocateInfo allocInfo{};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.commandPool = commandPool;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandBufferCount = static_cast<uint32_t>(swapchainFramebuffers.size());
+
+	if (dloader->vkAllocateCommandBuffers(device.Get(), &allocInfo, 
+		commandBuffers.data()) != VK_SUCCESS)
+		throw RendererException("Command buffer allocation failed");
+}
+
 void VulkanUIRenderer::CreateVertexBuffers()
 {
 	VertexTypes::Vertex2 vertices[] =
@@ -335,16 +343,6 @@ void VulkanUIRenderer::CreateVertexBuffers()
 	square.emplace(&info, sizeof(vertices), sizeof(indices) / sizeof(uint32_t));
 	square->UploadData(vertices, indices);
 	square->FinishDataUpload();
-}
-
-VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()
-{
-	return &square.value();
-}
-
-DeviceLoader* VulkanUIRenderer::GetDeviceLoader()
-{
-	return dloader;
 }
 
 bool VulkanUIRenderer::PopulateCommandBuffers()

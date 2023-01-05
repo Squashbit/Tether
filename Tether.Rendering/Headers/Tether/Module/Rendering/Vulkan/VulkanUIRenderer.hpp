@@ -47,8 +47,8 @@ namespace Tether::Rendering::Vulkan
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandPool();
-		void CreateVertexBuffers();
 		void CreateCommandBuffer();
+		void CreateVertexBuffers();
 
 		bool PopulateCommandBuffers();
 		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);

@@ -1,7 +1,7 @@
 #pragma once
 
 #define TETHER_VULKAN_FUNC_VAR(name) PFN_vk##name name
-#define TETHER_INSTANCE_FUNC_VAR(name) PFN_vk##name vk##name
+#define TETHER_INSTANCE_FUNC_VAR(name) PFN_vk##name vk##name = nullptr;
 #define TETHER_DEVICE_FUNC_VAR(name) TETHER_INSTANCE_FUNC_VAR(name)
 
 #define TETHER_VULKAN_FUNC(name) \

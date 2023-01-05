@@ -57,7 +57,7 @@ bool InitVulkan()
 		std::cout << "Failed to initialize Vulkan! " << e.what() << std::endl;
 	}
 
-	rendering.GetVulkanNative()->instance.AddDebugMessenger(&vulkanLogger);
+	rendering.GetVulkanNative()->instance->AddDebugMessenger(&vulkanLogger);
 
 	return true;
 }

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Tether/Common/Defs.hpp>
-#include <Tether/Common/IDisposable.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>

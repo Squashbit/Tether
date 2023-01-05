@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Common/IDisposable.hpp>
 
 #include <vulkan/vulkan.h>
 

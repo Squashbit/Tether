@@ -33,8 +33,12 @@ VertexBuffer::VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, siz
 	);
 	
 	this->vertexCount = indexCount;
+}
 
-	initialized = true;
+VertexBuffer::~VertexBuffer()
+{
+	Wait();
+	DestroyBuffers();
 }
 
 void VertexBuffer::UploadData(void* data, uint32_t* pIndices)
@@ -68,8 +72,8 @@ void VertexBuffer::FinishDataUpload()
 
 	Wait();
 
-	vertexStager->Dispose();
-	indexStager->Dispose();
+	vertexStager.reset();
+	indexStager.reset();
 
 	finishedUploading = true;
 }
@@ -134,18 +138,12 @@ void VertexBuffer::CreateIndexBuffer(size_t size)
 	}
 }
 
-void VertexBuffer::OnDispose()
-{
-	Wait();
-	DestroyBuffers();
-}
-
 void VertexBuffer::DestroyBuffers()
 {
 	info.dloader->vkDeviceWaitIdle(info.device);
 
-	vertexStager->Dispose();
-	indexStager->Dispose();
+	vertexStager.reset();
+	indexStager.reset();
 
 	vmaDestroyBuffer(info.allocator, vertexBuffer, vertexAllocation);
 	vmaDestroyBuffer(info.allocator, indexBuffer, indexAllocation);

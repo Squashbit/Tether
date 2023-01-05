@@ -1,5 +1,6 @@
 #include <Tether/Native.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 
 #include <iostream>
 #include <string>
@@ -32,7 +33,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan_DebugCallback(
 	return false;
 }
 
-VkResult Instance::Init(
+Instance::Instance(
 	const char* applicationName,
 	const char* engineName,
 	bool debugMode
@@ -77,7 +78,7 @@ VkResult Instance::Init(
 		// Initialize validation layers
 
 		if (!CheckValidationLayerSupport(validationLayers))
-			return VK_ERROR_UNKNOWN;
+			throw RendererException("Validation layers not supported");
 		
 		createInfo.enabledLayerCount = 
 			static_cast<uint32_t>(validationLayers.size());
@@ -103,8 +104,19 @@ VkResult Instance::Init(
 	}
 	
 	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-	if (result != VK_SUCCESS)
-		return result;
+	switch (result)
+	{
+		case VK_SUCCESS: break;
+
+		case VK_ERROR_INCOMPATIBLE_DRIVER:
+			throw RendererException("Incompatible Vulkan driver");
+
+		case VK_ERROR_LAYER_NOT_PRESENT:
+			throw RendererException("Vulkan validation layers not present");
+
+		default:
+			throw RendererException("Failed to create Vulkan instance");
+	}
 
 	uint32_t extentionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount, nullptr);
@@ -118,9 +130,16 @@ VkResult Instance::Init(
 	if (debugMode && loader.vkCreateDebugUtilsMessengerEXT)
 		loader.vkCreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo,
 			nullptr, &debugMessenger);
+}
 
-	initialized = true;
-	return VK_SUCCESS;
+Instance::~Instance()
+{
+	if (debugMode && loader.vkDestroyDebugUtilsMessengerEXT)
+		loader.vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+
+	debugCallbacks.clear();
+
+	loader.vkDestroyInstance(instance, nullptr);
 }
 
 QueueFamilyIndices Instance::FindQueueFamilies(
@@ -225,9 +244,6 @@ void Instance::RemoveDebugMessenger(DebugCallback* callback)
 
 VkInstance Instance::Get()
 {
-	if (!initialized)
-		return nullptr;
-	
 	return instance;
 }
 
@@ -255,16 +271,6 @@ std::vector<VkExtensionProperties> Instance::GetAvailableExtentions()
 bool Instance::IsDebugMode()
 {
 	return debugMode;
-}
-
-void Instance::OnDispose()
-{
-	if (debugMode && loader.vkDestroyDebugUtilsMessengerEXT)
-		loader.vkDestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-
-	debugCallbacks.clear();
-	
-	loader.vkDestroyInstance(instance, nullptr);
 }
 
 bool Instance::CheckValidationLayerSupport(std::vector<const char*> layers)

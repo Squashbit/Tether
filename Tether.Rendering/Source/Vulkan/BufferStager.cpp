@@ -39,8 +39,12 @@ BufferStager::BufferStager(
 		DisposeStager();
 		throw RendererException("Failed to record staging command buffer");
 	}
+}
 
-	initialized = true;
+BufferStager::~BufferStager()
+{
+	Wait();
+	DisposeStager();
 }
 
 void BufferStager::UploadData(void* data)
@@ -139,10 +143,4 @@ void BufferStager::DisposeStager()
 	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
 	dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
 	dloader->vkDestroyFence(device, completedFence, nullptr);
-}
-
-void BufferStager::OnDispose()
-{
-	Wait();
-	DisposeStager();
 }

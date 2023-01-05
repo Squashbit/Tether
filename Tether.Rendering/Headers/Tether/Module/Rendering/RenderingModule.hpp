@@ -7,7 +7,7 @@
 
 namespace Tether::Rendering
 {
-	namespace Storage
+	namespace Vulkan
 	{
 		struct VulkanNative;
 	}
@@ -25,11 +25,11 @@ namespace Tether::Rendering
 		 * @param validationLayers True if the Vulkan instance should enable
 		 * validation layers.
 		 */
-		Vulkan::ErrorCode InitVulkan(bool validationLayers = false);
+		void InitVulkan(bool validationLayers = false);
 		bool LoadVulkan();
 		void DisposeVulkan();
 
-		Storage::VulkanNative* GetVulkanNative();
+		Vulkan::VulkanNative* GetVulkanNative();
 		bool IsVulkanLoaded();
 		bool IsVulkanInitialized();
 
@@ -38,7 +38,7 @@ namespace Tether::Rendering
 		bool OnInit();
 		void OnDispose();
 
-		Storage::VulkanNative* vulkan = nullptr;
+		Vulkan::VulkanNative* vulkan = nullptr;
 
 		static RenderingModule internal;
 	};
