@@ -82,11 +82,6 @@ public:
 		window.SetVisible(true);
 	}
 
-	~RendererTestApp()
-	{
-		
-	}
-
 	void Run()
 	{
 		while (!window.IsCloseRequested())

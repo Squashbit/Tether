@@ -14,9 +14,13 @@ layout(binding = 0) uniform Transform
 
 void main() 
 {
+    vec2 screenSpacePosition = trans.position.xy;
+    screenSpacePosition -= 1;
+    screenSpacePosition *= 2;
+
     vec2 vertexPosition = position.xy;
     vertexPosition *= trans.scale.xy;
-    vertexPosition += trans.position.xy;
+    vertexPosition += screenSpacePosition;
 
     fragColor = color;
     gl_Position = vec4(vertexPosition, 0.0, 1.0);

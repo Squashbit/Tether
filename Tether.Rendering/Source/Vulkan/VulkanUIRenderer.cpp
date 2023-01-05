@@ -100,7 +100,7 @@ bool VulkanUIRenderer::RenderFrame()
 		Objects::Object* pObject = objects[i];
 		ObjectRenderer* pRenderer = (ObjectRenderer*)pObject->GetObjectRenderer();
 
-		pRenderer->OnRenderFrame(currentFrame);
+		pRenderer->OnRenderFrame(imageIndex);
 	}
 
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
@@ -181,7 +181,7 @@ Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
 )
 {
 	if (typeName == Objects::Rectangle::typeName)
-		return std::make_unique<RectangleRenderer>(this);
+		return std::make_unique<RectangleRenderer>(this, (Objects::Rectangle*)pObject);
 
 	throw RendererException("Unsupported object");
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Tether/Common/Stopwatch.hpp>
+
 #include <Tether/Module/Rendering/Vulkan/Common/Uniforms.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
@@ -13,11 +15,11 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT RectangleRenderer : public ObjectRenderer
 	{
 	public:
-		RectangleRenderer(VulkanUIRenderer* pRenderer);
+		RectangleRenderer(VulkanUIRenderer* pRenderer, Objects::Rectangle* pRectangle);
 		~RectangleRenderer();
 		TETHER_NO_COPY(RectangleRenderer);
 
-		void OnRenderFrame(uint32_t currentFrame) override;
+		void OnRenderFrame(uint32_t imageIndex) override;
 		void AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) override;
 	private:
 		void CreateDescriptorPool();
@@ -32,9 +34,13 @@ namespace Tether::Rendering::Vulkan
 		VkDescriptorPool descriptorPool;
 		std::vector<VkDescriptorSet> descriptorSets;
 
+		Stopwatch timer;
+
 		Device* device = nullptr;
 		DeviceLoader* dloader = nullptr;
 		VertexBuffer* pRectBuffer = nullptr;
 		VmaAllocator allocator = nullptr;
+
+		Objects::Rectangle* pRectangle = nullptr;
 	};
 }

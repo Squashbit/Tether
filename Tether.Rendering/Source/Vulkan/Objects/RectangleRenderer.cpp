@@ -4,9 +4,11 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-RectangleRenderer::RectangleRenderer(VulkanUIRenderer* pVkRenderer)
+RectangleRenderer::RectangleRenderer(VulkanUIRenderer* pVkRenderer,
+	Objects::Rectangle* pRectangle)
 	:
-	ObjectRenderer(pVkRenderer)
+	ObjectRenderer(pVkRenderer),
+	pRectangle(pRectangle)
 {
 	this->device = pVkRenderer->GetDevice();
 	this->dloader = device->GetLoader();
@@ -112,8 +114,10 @@ void RectangleRenderer::CreateDescriptorSets()
 
 void RectangleRenderer::OnRenderFrame(uint32_t currentFrame)
 {
-	transform.position.x = (float)rand() / RAND_MAX;
-	transform.position.y = (float)rand() / RAND_MAX;
+	transform.position.x = sin(timer.GetElapsedSeconds()) / 2.0f + 1.0f;
+	transform.position.y = sin(timer.GetElapsedSeconds()) / 2.0f + 1.0f;
+	transform.scale.x = 0.1;
+	transform.scale.y = 0.1;
 
 	memcpy(uniformAllocInfos[currentFrame].pMappedData, &transform, 
 		sizeof(Transform));
@@ -130,8 +134,8 @@ void RectangleRenderer::AddToCommandBuffer(VkCommandBuffer commandBuffer,
 
 	dloader->vkCmdBindDescriptorSets(
 		commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		pVkRenderer->GetPipeline()->GetLayout(), 0, 
-		1, &descriptorSets[index], 
+		pVkRenderer->GetPipeline()->GetLayout(), 0,
+		1, &descriptorSets[index],
 		0, nullptr
 	);
 
