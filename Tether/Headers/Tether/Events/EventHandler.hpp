@@ -21,17 +21,10 @@ namespace Tether::Events
 	{
 		friend SimpleWindow;
 	public:
-		~EventHandler();
-
 		virtual void OnWindowClosing(WindowClosingEvent event) {}
 		virtual void OnWindowRepaint(WindowRepaintEvent event) {}
 		virtual void OnWindowResize(WindowResizeEvent event) {}
 		virtual void OnWindowMove(WindowMoveEvent event) {}
 		virtual void OnWindowError(WindowErrorEvent event) {}
-	protected:
-		void OnAdd(SimpleWindow* pWindow);
-		void OnRemove(SimpleWindow* pWindow);
-	private:
-		std::vector<SimpleWindow*> windows;
 	};
 }

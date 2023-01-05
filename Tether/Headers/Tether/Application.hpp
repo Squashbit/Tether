@@ -30,6 +30,8 @@ namespace Tether
         
         Storage::AppVarStorage* GetStorage();
         std::vector<Module*>* GetModules();
+        int16_t* GetKeycodes();
+        int16_t* GetScancodes();
         
         static Application& Get();
         static void DisposeApplication();
@@ -37,6 +39,8 @@ namespace Tether
         void RegisterModule(Module* pModule);
 
         Storage::AppVarStorage* storage = nullptr;
+        int16_t keycodes[512];
+        int16_t scancodes[Keycodes::KEY_LAST + 1];
     private:
         bool OnInit();
         void OnAppDispose();

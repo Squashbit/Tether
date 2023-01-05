@@ -20,16 +20,9 @@ namespace Tether::Input
     {
         friend SimpleWindow;
     public:
-        ~InputListener();
-
         virtual void OnMouseMove(MouseMoveInfo& info) {}
         virtual void OnRawMouseMove(RawMouseMoveInfo& info) {}
         virtual void OnKey(KeyInfo& info) {}
         virtual void OnKeyChar(KeyCharInfo& info) {}
-	protected:
-		void OnAdd(SimpleWindow* pWindow);
-		void OnRemove(SimpleWindow* pWindow);
-	private:
-		std::vector<SimpleWindow*> windows;
     };
 }

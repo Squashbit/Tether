@@ -112,15 +112,16 @@ void RectangleRenderer::CreateDescriptorSets()
 	}
 }
 
-void RectangleRenderer::OnRenderFrame(uint32_t currentFrame)
+void RectangleRenderer::OnObjectUpdate()
 {
-	transform.position.x = sin(timer.GetElapsedSeconds()) / 2.0f + 1.0f;
-	transform.position.y = sin(timer.GetElapsedSeconds()) / 2.0f + 1.0f;
-	transform.scale.x = 0.1;
-	transform.scale.y = 0.1;
+	transform.position.x = pRectangle->GetX();
+	transform.position.y = pRectangle->GetY();
+	transform.scale.x = pRectangle->GetWidth();
+	transform.scale.y = pRectangle->GetHeight();
 
-	memcpy(uniformAllocInfos[currentFrame].pMappedData, &transform, 
-		sizeof(Transform));
+	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
+		memcpy(uniformAllocInfos[i].pMappedData, &transform,
+			sizeof(Transform));
 }
 
 void RectangleRenderer::AddToCommandBuffer(VkCommandBuffer commandBuffer,

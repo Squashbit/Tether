@@ -64,9 +64,6 @@ namespace Tether::Storage
 
 		Pixmap hiddenCursorPixmap;
         Cursor hiddenCursor;
-
-		int16_t keycodes[256];
-		int16_t scancodes[256];
 	};
 #endif
 }

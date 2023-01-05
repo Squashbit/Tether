@@ -577,38 +577,45 @@ int64_t Win32SimpleWindow::HandleMessage(HWND hWnd, UINT msg, WPARAM wParam,
 			if ((HIWORD(lParam) & KF_REPEAT) == KF_REPEAT)
 				return 0;
 
+			UINT scancode = HIWORD(lParam) & (KF_EXTENDED | 0xFF);
+			if (!scancode)
+				scancode = MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC);
+
 			// Windows does this thing where you can't distinguish between either 
 			// shift keys, so instead, just press both and hope for the best.
 			if (wParam == VK_SHIFT)
 			{
-				UINT scancode = MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC);
 				pWindow->SpawnKeyInput(scancode, Keycodes::KEY_LEFT_SHIFT, true);
 				pWindow->SpawnKeyInput(scancode, Keycodes::KEY_RIGHT_SHIFT, true);
 
 				return 0;
 			}
 
-			pWindow->SpawnKeyInput(MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC), wParam32,
-				true);
+			Application& application = Application::Get();
+			int16_t* keycodes = application.GetKeycodes();
 
+			std::cout << wParam32 << std::endl;
+			pWindow->SpawnKeyInput(scancode, keycodes[wParam32], true);
 			return 0;
 		}
 		break;
 
 		case WM_KEYUP:
 		{
+			UINT scancode = MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC);
+
 			if (wParam == VK_SHIFT)
 			{
-				UINT scancode = MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC);
 				pWindow->SpawnKeyInput(scancode, Keycodes::KEY_LEFT_SHIFT, false);
 				pWindow->SpawnKeyInput(scancode, Keycodes::KEY_RIGHT_SHIFT, false);
 
 				return 0;
 			}
 
-			pWindow->SpawnKeyInput(MapVirtualKeyA(wParam32, MAPVK_VK_TO_VSC), wParam32,
-				false);
+			Application& application = Application::Get();
+			int16_t* keycodes = application.GetKeycodes();
 
+			pWindow->SpawnKeyInput(scancode, keycodes[wParam32], false);
 			return 0;
 		}
 		break;

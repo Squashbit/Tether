@@ -95,14 +95,6 @@ bool VulkanUIRenderer::RenderFrame()
 
 	dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
-	for (size_t i = 0; i < objects.size(); i++)
-	{
-		Objects::Object* pObject = objects[i];
-		ObjectRenderer* pRenderer = (ObjectRenderer*)pObject->GetObjectRenderer();
-
-		pRenderer->OnRenderFrame(imageIndex);
-	}
-
 	VkSemaphore waitSemaphores[] = { imageAvailableSemaphores[currentFrame] };
 	VkSemaphore signalSemaphores[] = { renderFinishedSemaphores[currentFrame] };
 	VkPipelineStageFlags waitStages[] = {

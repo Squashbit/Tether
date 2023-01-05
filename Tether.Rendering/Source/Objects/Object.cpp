@@ -7,7 +7,17 @@ Object::Object(UIRenderer* pRenderer, Scope<ObjectRenderer> pObjectRenderer)
 	:
 	pRenderer(pRenderer),
 	pObjectRenderer(std::move(pObjectRenderer))
-{}
+{
+	this->pObjectRenderer->OnObjectUpdate();
+}
+
+Object::Object(Object&& other) noexcept
+	:
+	pRenderer(other.pRenderer),
+	pObjectRenderer(std::move(other.pObjectRenderer))
+{
+
+}
 
 UIRenderer* Object::GetUIRenderer()
 {

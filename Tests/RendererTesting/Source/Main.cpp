@@ -69,15 +69,19 @@ public:
 	RendererTestApp()
 		:
 		window(1280, 720, "Renderer testing"),
-		renderer(&window),
-		testRect(&renderer)
+		renderer(&window)
 	{
-		testRect.SetX(100);
-		testRect.SetY(100);
-		testRect.SetWidth(100);
-		testRect.SetHeight(100);
+		for (size_t i = 0; i < numSquares; i++)
+		{
+			Scope<Objects::Rectangle> rect = std::make_unique<Objects::Rectangle>(&renderer);
 
-		renderer.AddObject(&testRect);
+			rect->SetWidth(1 / (float)numSquares);
+			rect->SetHeight(0.1f);
+			rect->SetX(i / (float)numSquares);
+			
+			renderer.AddObject(rect.get());
+			rectangles.emplace_back(std::move(rect));
+		}
 
 		window.SetVisible(true);
 	}
@@ -102,21 +106,37 @@ public:
 				fpsTimer.Set();
 			}
 
+			for (size_t i = 0; i < numSquares; i++)
+			{
+				Objects::Rectangle* rect = rectangles[i].get();
+
+				float rectTime = fullTime.GetElapsedSeconds();
+				rectTime += (numSquares - i) * 0.1f;
+
+				float timeSine = abs(sin(rectTime));
+				timeSine *= 1 - rect->GetWidth();
+
+				rect->SetY(1 - timeSine - rect->GetHeight());
+			}
+
 			window.PollEvents();
 			renderer.RenderFrame();
 		}
 	}
 private:
-	Stopwatch fpsTimer;
-	Stopwatch deltaTimer;
+	size_t numSquares = 10;
 
 	size_t frames = 0;
 	float time = 0.0f;
 
 	SimpleWindow window;
 	Vulkan::VulkanUIRenderer renderer;
+	
+	std::vector<Scope<Objects::Rectangle>> rectangles;
 
-	Objects::Rectangle testRect;
+	Stopwatch fpsTimer;
+	Stopwatch deltaTimer;
+	Stopwatch fullTime;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)

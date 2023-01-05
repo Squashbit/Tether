@@ -32,6 +32,16 @@ std::vector<Module*>* Application::GetModules()
 	return &modules;
 }
 
+int16_t* Application::GetKeycodes()
+{
+	return keycodes;
+}
+
+int16_t* Application::GetScancodes()
+{
+	return scancodes;
+}
+
 Application& Application::Get()
 {
 	return internal;
