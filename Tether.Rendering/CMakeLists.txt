@@ -44,7 +44,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/VmaImplementation.cpp
         Source/Vulkan/Vulkan_RenderingModule.cpp
         Source/Vulkan/Allocator.cpp
-     "Source/Vulkan/RenderPass.cpp")
+     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp")
 endif()
 
 # Set the sources of platform specific files

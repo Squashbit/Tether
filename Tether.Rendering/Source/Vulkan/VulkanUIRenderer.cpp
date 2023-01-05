@@ -13,6 +13,7 @@
 #include <set>
 
 using namespace Tether;
+using namespace Assets;
 using namespace Rendering;
 using namespace Vulkan;
 
@@ -27,7 +28,15 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	allocator(instance->Get(), device.Get(), device.GetPhysicalDevice(), iloader),
 	swapchainDetails(QuerySwapchainSupport()),
 	surfaceFormat(ChooseSurfaceFormat()),
-	renderPass(device.Get(), dloader, surfaceFormat.format)
+	renderPass(device.Get(), dloader, surfaceFormat.format),
+	pipeline(
+		&device, renderPass.Get(),
+		swapchain->GetExtent(), 0,
+		(uint32_t*)VulkanShaders::_binary_solid_vert_spv,
+		sizeof(VulkanShaders::_binary_solid_vert_spv),
+		(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
+		sizeof(VulkanShaders::_binary_solid_frag_spv)
+	)
 {
 	queueIndices = instance->FindQueueFamilies(device.GetPhysicalDevice(),
 		surface.Get());
@@ -36,7 +45,6 @@ VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
 	presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
 	CreateSwapchain();
-	CreatePipeline();
 	CreateFramebuffers();
 	CreateSyncObjects();
 	CreateCommandPool();
@@ -52,8 +60,6 @@ VulkanUIRenderer::~VulkanUIRenderer()
 
 	square->Dispose();
 
-	pipeline->Dispose();
-	
 	dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 	for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -205,141 +211,13 @@ void VulkanUIRenderer::CreateSwapchain()
 {
 	swapchain.emplace(
 		instance, &device,
-		queueIndices, QuerySwapchainSupport(), surfaceFormat, surface.Get(),
+		queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 		pWindow->GetWidth(), pWindow->GetHeight(), 
 		true
 	);
 
 	swapchainImages = swapchain->GetImages();
 	swapchain->CreateImageViews(&swapchainImageViews);
-}
-
-void VulkanUIRenderer::CreatePipeline()
-{
-	using namespace Tether::Assets;
-
-	VkShaderModule vertex;
-	VkShaderModule fragment;
-
-	VkShaderModuleCreateInfo vertexInfo{};
-	vertexInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	vertexInfo.pCode = (uint32_t*)VulkanShaders::_binary_solid_vert_spv;
-	vertexInfo.codeSize = sizeof(VulkanShaders::_binary_solid_vert_spv);
-
-	VkShaderModuleCreateInfo fragmentInfo{};
-	fragmentInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	fragmentInfo.pCode = (uint32_t*)VulkanShaders::_binary_solid_frag_spv;
-	fragmentInfo.codeSize = sizeof(VulkanShaders::_binary_solid_frag_spv);
-
-	if (dloader->vkCreateShaderModule(device.Get(), &vertexInfo, nullptr,
-		&vertex) != VK_SUCCESS)
-		throw RendererException("Vertex shader creation failed");
-	if (dloader->vkCreateShaderModule(device.Get(), &fragmentInfo, nullptr,
-		&fragment) != VK_SUCCESS)
-		throw RendererException("Fragment shader creation failed");
-
-	std::vector<VkVertexInputBindingDescription> bindingDescs;
-	std::vector<VkVertexInputAttributeDescription> attribDescs;
-
-	// Vector2 descriptions
-	{
-		VkVertexInputBindingDescription bindingDesc;
-		bindingDesc.binding = 0;
-		bindingDesc.stride = sizeof(VertexTypes::Vertex2);
-		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		bindingDescs.push_back(bindingDesc);
-
-		VkVertexInputAttributeDescription posDesc;
-		posDesc.binding = 0;
-		posDesc.location = 0;
-		posDesc.format = VK_FORMAT_R32G32_SFLOAT;
-		posDesc.offset = offsetof(VertexTypes::Vertex2, position);
-		attribDescs.push_back(posDesc);
-
-		VkVertexInputAttributeDescription colorDesc;
-		colorDesc.binding = 0;
-		colorDesc.location = 1;
-		colorDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
-		colorDesc.offset = offsetof(VertexTypes::Vertex2, color);
-		attribDescs.push_back(colorDesc);
-	}
-
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 
-		static_cast<uint32_t>(bindingDescs.size());
-	vertexInputInfo.vertexAttributeDescriptionCount = 
-		static_cast<uint32_t>(attribDescs.size());
-	vertexInputInfo.pVertexBindingDescriptions = bindingDescs.data();
-	vertexInputInfo.pVertexAttributeDescriptions = attribDescs.data();
-
-	VkExtent2D swapchainExtent = swapchain->GetExtent();
-
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float)swapchainExtent.width;
-	viewport.height = (float)swapchainExtent.height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-
-	VkRect2D scissor{};
-	scissor.offset.x = 0;
-	scissor.offset.y = 0;
-	scissor.extent.width = swapchainExtent.width;
-	scissor.extent.height = swapchainExtent.height;
-
-	VkPipelineViewportStateCreateInfo viewportState{};
-	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-	viewportState.viewportCount = 1;
-	viewportState.pViewports = &viewport;
-	viewportState.scissorCount = 1;
-	viewportState.pScissors = &scissor;
-
-	VkDynamicState dynamicStates[] =
-	{
-		VK_DYNAMIC_STATE_VIEWPORT,
-		VK_DYNAMIC_STATE_SCISSOR
-	};
-
-	VkPipelineDynamicStateCreateInfo dynamicState{};
-	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamicState.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
-	dynamicState.pDynamicStates = dynamicStates;
-
-	// Oh, yes, cool thing about Vulkan, you can actually have multiple shader
-	// stages for one shader module. That means that you can have a VSMain and
-	// a PSMain in one shader module (aka a GLSL file in this case).
-
-	VkPipelineShaderStageCreateInfo vertexStage{};
-	vertexStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vertexStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertexStage.module = vertex;
-	vertexStage.pName = "main";
-
-	VkPipelineShaderStageCreateInfo fragmentStage{};
-	fragmentStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	fragmentStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragmentStage.module = fragment;
-	fragmentStage.pName = "main";
-
-	VkPipelineShaderStageCreateInfo stages[] =
-	{
-		vertexStage, fragmentStage
-	};
-
-	PipelineInfo info{};
-	info.stageCount = sizeof(stages) / sizeof(stages[0]);
-	info.pStages = stages;
-	info.pViewportState = &viewportState;
-	info.renderPass = renderPass.Get();
-	info.pDynamicState = &dynamicState;
-	info.pVertexInputState = &vertexInputInfo;
-
-	pipeline.emplace(device.Get(), dloader, &info);
-	
-	dloader->vkDestroyShaderModule(device.Get(), vertex, nullptr);
-	dloader->vkDestroyShaderModule(device.Get(), fragment, nullptr);
 }
 
 void VulkanUIRenderer::CreateFramebuffers()
@@ -506,8 +384,6 @@ bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 
 		dloader->vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, 
 			VK_SUBPASS_CONTENTS_INLINE);
-		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-			pipeline->Get());
 
 		VkExtent2D swapchainExtent = swapchain->GetExtent();
 
@@ -526,6 +402,9 @@ bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32
 		scissor.extent.width = swapchainExtent.width;
 		scissor.extent.height = swapchainExtent.height;
 		dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			pipeline.Get());
 
 		AddObjectsToCommandBuffer(commandBuffer, index);
 
@@ -557,6 +436,10 @@ bool VulkanUIRenderer::RecreateSwapchain()
 		return true;
 	
 	DestroySwapchain();
+
+	// The details contain the min and max width and height, and that changes every
+	// time the swapchain needs to be recreated.
+	swapchainDetails = QuerySwapchainSupport();
 
 	CreateSwapchain();
 	CreateFramebuffers();

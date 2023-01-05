@@ -14,6 +14,7 @@ namespace Tether::Rendering::Vulkan
 		RenderPass(VkDevice device, DeviceLoader* dloader, 
 			VkFormat colorAttachmentFormat);
 		~RenderPass();
+		TETHER_NO_COPY(RenderPass);
 
 		VkRenderPass Get();
 	private:

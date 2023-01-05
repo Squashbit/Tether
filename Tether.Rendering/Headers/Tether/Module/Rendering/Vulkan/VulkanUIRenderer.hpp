@@ -44,7 +44,6 @@ namespace Tether::Rendering::Vulkan
 		SwapchainDetails QuerySwapchainSupport();
 
 		void CreateSwapchain();
-		void CreatePipeline();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandPool();
@@ -69,12 +68,12 @@ namespace Tether::Rendering::Vulkan
 		SwapchainDetails swapchainDetails;
 		VkSurfaceFormatKHR surfaceFormat;
 		RenderPass renderPass;
+		Pipeline pipeline;
 
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
 
-		std::optional<Pipeline> pipeline;
 		std::optional<VertexBuffer> square;
 
 		std::optional<Swapchain> swapchain;

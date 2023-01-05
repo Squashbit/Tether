@@ -1,25 +1,91 @@
-#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
+#include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
+#include <Tether/Module/Rendering/Common/VertexTypes.hpp>
+
+#include <vector>
 
 using namespace Tether::Rendering::Vulkan;
 
-Pipeline::Pipeline(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
+PipelineLayout::PipelineLayout(Device* device, 
+	VkPipelineLayoutCreateInfo* createInfo)
 {
-	TETHER_ASSERT(pInfo != nullptr);
-	TETHER_ASSERT(dloader != nullptr);
+	TETHER_ASSERT(device != nullptr);
+	TETHER_ASSERT(createInfo != nullptr);
 
 	this->device = device;
-	this->dloader = dloader;
-	
-	VkPipelineLayoutCreateInfo pipelineLayoutDesc{};
-	pipelineLayoutDesc.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	this->dloader = device->GetLoader();
 
-	if (dloader->vkCreatePipelineLayout(device, &pipelineLayoutDesc,
-		nullptr, &pipelineLayout) != VK_SUCCESS)
+	if (dloader->vkCreatePipelineLayout(device->Get(), createInfo,
+		nullptr, &layout) != VK_SUCCESS)
 		throw RendererException("Pipeline layout creation failed");
+}
+
+PipelineLayout::~PipelineLayout()
+{
+	dloader->vkDestroyPipelineLayout(device->Get(), layout, nullptr);
+}
+
+VkPipelineLayout PipelineLayout::Get()
+{
+	return layout;
+}
+
+Pipeline::Pipeline(
+	Device* device, VkRenderPass renderPass,
+	VkExtent2D viewportExtent, uint32_t subpass,
+	uint32_t* pVertexCode, size_t vertexCodeSize,
+	uint32_t* pFragmentCode, size_t fragmentCodeSize,
+	VkPipelineLayoutCreateInfo* customLayoutInfo
+)
+	:
+	device(device),
+	dloader(device->GetLoader())
+{
+	if (customLayoutInfo != nullptr)
+		layout.emplace(device, customLayoutInfo);
+	else
+	{
+		VkPipelineLayoutCreateInfo layoutCreateInfo{};
+		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+
+		layout.emplace(device, &layoutCreateInfo);
+	}
+
+	std::vector<VkVertexInputBindingDescription> bindingDescs;
+	std::vector<VkVertexInputAttributeDescription> attribDescs;
+
+	// Vector2 descriptions
+	{
+		VkVertexInputBindingDescription bindingDesc;
+		bindingDesc.binding = 0;
+		bindingDesc.stride = sizeof(VertexTypes::Vertex2);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		bindingDescs.push_back(bindingDesc);
+
+		VkVertexInputAttributeDescription posDesc;
+		posDesc.binding = 0;
+		posDesc.location = 0;
+		posDesc.format = VK_FORMAT_R32G32_SFLOAT;
+		posDesc.offset = offsetof(VertexTypes::Vertex2, position);
+		attribDescs.push_back(posDesc);
+
+		VkVertexInputAttributeDescription colorDesc;
+		colorDesc.binding = 0;
+		colorDesc.location = 1;
+		colorDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
+		colorDesc.offset = offsetof(VertexTypes::Vertex2, color);
+		attribDescs.push_back(colorDesc);
+	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputInfo.vertexBindingDescriptionCount =
+		static_cast<uint32_t>(bindingDescs.size());
+	vertexInputInfo.vertexAttributeDescriptionCount =
+		static_cast<uint32_t>(attribDescs.size());
+	vertexInputInfo.pVertexBindingDescriptions = bindingDescs.data();
+	vertexInputInfo.pVertexAttributeDescriptions = attribDescs.data();
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -62,40 +128,80 @@ Pipeline::Pipeline(VkDevice device, DeviceLoader* dloader, PipelineInfo* pInfo)
 	colorBlending.attachmentCount = 1;
 	colorBlending.pAttachments = &colorBlendAttachment;
 
-	// Oh, yes, cool thing about Vulkan, you can actually have multiple shader
-	// stages for one shader module. That means that you can have a VSMain and
-	// a PSMain in one shader module (aka a GLSL file in this case).
+	ShaderModule vertex(
+		device,
+		VK_SHADER_STAGE_VERTEX_BIT, 
+		pVertexCode, vertexCodeSize
+	);
+
+	ShaderModule fragment(
+		device,
+		VK_SHADER_STAGE_FRAGMENT_BIT,
+		pFragmentCode, fragmentCodeSize
+	);
+
+	VkPipelineShaderStageCreateInfo stages[] =
+	{
+		vertex.GetStageInfo(),
+		fragment.GetStageInfo(),
+	};
+
+	VkViewport viewport{};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float)viewportExtent.width;
+	viewport.height = (float)viewportExtent.height;
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+
+	VkRect2D scissor{};
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent.width = viewportExtent.width;
+	scissor.extent.height = viewportExtent.height;
+
+	VkPipelineViewportStateCreateInfo viewportState{};
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportState.viewportCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.scissorCount = 1;
+	viewportState.pScissors = &scissor;
+
+	VkDynamicState dynamicStates[] =
+	{
+		VK_DYNAMIC_STATE_VIEWPORT,
+		VK_DYNAMIC_STATE_SCISSOR
+	};
+
+	VkPipelineDynamicStateCreateInfo dynamicState{};
+	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicState.dynamicStateCount = sizeof(dynamicStates) / sizeof(dynamicStates[0]);
+	dynamicState.pDynamicStates = dynamicStates;
 
 	VkGraphicsPipelineCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	createInfo.stageCount = pInfo->stageCount;
-	createInfo.pStages = pInfo->pStages;
-	createInfo.renderPass = pInfo->renderPass;
-	createInfo.pViewportState = pInfo->pViewportState;
-	createInfo.pDynamicState = pInfo->pDynamicState;
-	createInfo.pDepthStencilState = pInfo->pDepthStencilState;
-	createInfo.subpass = pInfo->subpass;
-	createInfo.layout = pipelineLayout;
-
-#define TETHER_PIPELINE_OVERRIDE_TEST(variable) \
-	if (pInfo->variable) createInfo.variable = pInfo->variable
-
+	createInfo.layout = layout->Get();
+	createInfo.stageCount = sizeof(stages) / sizeof(VkPipelineShaderStageCreateInfo);
+	createInfo.pStages = stages;
+	createInfo.renderPass = renderPass;
+	createInfo.subpass = subpass;
+	createInfo.pViewportState = &viewportState;
+	createInfo.pDynamicState = &dynamicState;
 	createInfo.pVertexInputState = &vertexInputInfo;
-	TETHER_PIPELINE_OVERRIDE_TEST(pVertexInputState);
 	createInfo.pInputAssemblyState = &inputAssembly;
-	TETHER_PIPELINE_OVERRIDE_TEST(pInputAssemblyState);
 	createInfo.pRasterizationState = &rasterizer;
-	TETHER_PIPELINE_OVERRIDE_TEST(pRasterizationState);
 	createInfo.pMultisampleState = &multisampleState;
-	TETHER_PIPELINE_OVERRIDE_TEST(pMultisampleState);
 	createInfo.pColorBlendState = &colorBlending;
-	TETHER_PIPELINE_OVERRIDE_TEST(pColorBlendState);
+	createInfo.pDepthStencilState = nullptr;
 	
-	if (dloader->vkCreateGraphicsPipelines(device, VK_NULL_HANDLE,
+	if (dloader->vkCreateGraphicsPipelines(device->Get(), VK_NULL_HANDLE,
 		1, &createInfo, nullptr, &pipeline) != VK_SUCCESS)
 		throw RendererException("Pipeline creation failed");
+}
 
-	initialized = true;
+Pipeline::~Pipeline()
+{
+	dloader->vkDestroyPipeline(device->Get(), pipeline, nullptr);
 }
 
 VkPipeline Pipeline::Get()
@@ -105,11 +211,5 @@ VkPipeline Pipeline::Get()
 
 VkPipelineLayout Pipeline::GetLayout()
 {
-	return pipelineLayout;
-}
-
-void Pipeline::OnDispose()
-{
-	dloader->vkDestroyPipeline(device, pipeline, nullptr);
-	dloader->vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+	return layout->Get();
 }
