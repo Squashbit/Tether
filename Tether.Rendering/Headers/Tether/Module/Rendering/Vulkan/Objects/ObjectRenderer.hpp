@@ -11,12 +11,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT ObjectRenderer : public Objects::ObjectRenderer
 	{
 	public:
-		ObjectRenderer(VulkanUIRenderer* pVkRenderer);
-		virtual ~ObjectRenderer() = default;
-		
 		virtual void AddToCommandBuffer(VkCommandBuffer commandBuffer,
 			uint32_t index) {}
-	protected:
-		VulkanUIRenderer* pVkRenderer;
 	};
 }

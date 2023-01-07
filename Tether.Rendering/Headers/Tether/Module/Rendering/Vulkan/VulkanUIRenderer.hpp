@@ -40,10 +40,7 @@ namespace Tether::Rendering::Vulkan
 
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	private:
-		Scope<Objects::ObjectRenderer> OnObjectCreateRenderer(
-			HashedString& typeName, 
-			Objects::Object* pObject
-		) override;
+		Objects::Object* OnObjectCreate(HashedString& typeName) override;
 
 		void OnObjectAdd(Objects::Object* pObject) override;
 		void OnObjectRemove(Objects::Object* pObject) override;

@@ -1,5 +1,6 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
+#include <Tether/Math/Constants.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
@@ -71,16 +72,17 @@ public:
 		window(1280, 720, "Renderer testing"),
 		renderer(&window)
 	{
+		rectangles.resize(numSquares);
 		for (size_t i = 0; i < numSquares; i++)
 		{
-			Scope<Objects::Rectangle> rect = std::make_unique<Objects::Rectangle>(&renderer);
+			rectangles[i] = renderer.CreateObject<Objects::Rectangle>();
+			Objects::Rectangle* rect = rectangles[i].get();
 
 			rect->SetWidth(1 / (float)numSquares);
 			rect->SetHeight(0.1f);
 			rect->SetX(i / (float)numSquares);
 			
-			renderer.AddObject(rect.get());
-			rectangles.emplace_back(std::move(rect));
+			renderer.AddObject(rect);
 		}
 
 		window.SetVisible(true);
@@ -110,10 +112,10 @@ public:
 			{
 				Objects::Rectangle* rect = rectangles[i].get();
 
-				float rectTime = fullTime.GetElapsedSeconds();
-				rectTime += (numSquares - i) * 0.1f;
+				float rectTime = fullTime.GetElapsedSeconds() / 3;
+				rectTime += (numSquares - i) * 0.03f;
 
-				float timeSine = abs(sin(rectTime));
+				float timeSine = abs(sin(rectTime * Math::PI));
 				timeSine *= 1 - rect->GetWidth();
 
 				rect->SetY(1 - timeSine - rect->GetHeight());

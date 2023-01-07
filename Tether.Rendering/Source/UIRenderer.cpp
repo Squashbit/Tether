@@ -9,12 +9,12 @@ UIRenderer::UIRenderer()
 
 UIRenderer::~UIRenderer()
 {
-	objects.clear();
+	ClearObjects();
 }
 
 void UIRenderer::AddObject(Objects::Object* pObject)
 {
-	if (pObject->GetUIRenderer() != this)
+	if (HasObject(pObject) || pObject->GetUIRenderer() != this)
 		return;
 
 	objects.push_back(pObject);
@@ -23,9 +23,6 @@ void UIRenderer::AddObject(Objects::Object* pObject)
 
 bool UIRenderer::RemoveObject(Objects::Object* pObject)
 {
-	if (pObject->GetUIRenderer() != this)
-		return false;
-
 	for (size_t i = 0; i < objects.size(); i++)
 		if (objects[i] == pObject)
 		{

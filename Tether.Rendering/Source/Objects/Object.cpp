@@ -3,21 +3,10 @@
 using namespace Tether::Rendering;
 using namespace Tether::Rendering::Objects;
 
-Object::Object(UIRenderer* pRenderer, Scope<ObjectRenderer> pObjectRenderer)
+Object::Object(UIRenderer* pRenderer)
 	:
-	pRenderer(pRenderer),
-	pObjectRenderer(std::move(pObjectRenderer))
-{
-	this->pObjectRenderer->OnObjectUpdate();
-}
-
-Object::Object(Object&& other) noexcept
-	:
-	pRenderer(other.pRenderer),
-	pObjectRenderer(std::move(other.pObjectRenderer))
-{
-
-}
+	pRenderer(pRenderer)
+{}
 
 UIRenderer* Object::GetUIRenderer()
 {
@@ -26,5 +15,5 @@ UIRenderer* Object::GetUIRenderer()
 
 ObjectRenderer* Object::GetObjectRenderer()
 {
-	return pObjectRenderer.get();
+	return pObjectRenderer;
 }

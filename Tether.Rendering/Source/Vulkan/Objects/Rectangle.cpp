@@ -1,15 +1,16 @@
-#include <Tether/Module/Rendering/Vulkan/Objects/RectangleRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <iostream>
 
 using namespace Tether::Rendering::Vulkan;
 
-RectangleRenderer::RectangleRenderer(VulkanUIRenderer* pVkRenderer,
-	Objects::Rectangle* pRectangle)
+Rectangle::Rectangle(VulkanUIRenderer* pVkRenderer)
 	:
-	ObjectRenderer(pVkRenderer),
-	pRectangle(pRectangle)
+	Objects::Rectangle(pVkRenderer)
 {
+	this->pObjectRenderer = this;
+	this->pVkRenderer = pVkRenderer;
+
 	this->device = pVkRenderer->GetDevice();
 	this->dloader = device->GetLoader();
 	this->pRectBuffer = pVkRenderer->GetRectangleBuffer();
@@ -43,7 +44,7 @@ RectangleRenderer::RectangleRenderer(VulkanUIRenderer* pVkRenderer,
 	CreateDescriptorSets();
 }
 
-RectangleRenderer::~RectangleRenderer()
+Rectangle::~Rectangle()
 {
 	pVkRenderer->WaitForCommandBuffers();
 
@@ -53,7 +54,7 @@ RectangleRenderer::~RectangleRenderer()
 	dloader->vkDestroyDescriptorPool(device->Get(), descriptorPool, nullptr);
 }
 
-void RectangleRenderer::CreateDescriptorPool()
+void Rectangle::CreateDescriptorPool()
 {
 	uint32_t imageCount = pVkRenderer->GetSwapchainImageCount();
 
@@ -72,7 +73,7 @@ void RectangleRenderer::CreateDescriptorPool()
 		throw RendererException("Failed to create Vulkan descriptor pool");
 }
 
-void RectangleRenderer::CreateDescriptorSets()
+void Rectangle::CreateDescriptorSets()
 {
 	uint32_t imageCount = pVkRenderer->GetSwapchainImageCount();
 
@@ -112,19 +113,19 @@ void RectangleRenderer::CreateDescriptorSets()
 	}
 }
 
-void RectangleRenderer::OnObjectUpdate()
+void Rectangle::OnObjectUpdate()
 {
-	transform.position.x = pRectangle->GetX();
-	transform.position.y = pRectangle->GetY();
-	transform.scale.x = pRectangle->GetWidth();
-	transform.scale.y = pRectangle->GetHeight();
+	transform.position.x = GetX();
+	transform.position.y = GetY();
+	transform.scale.x = GetWidth();
+	transform.scale.y = GetHeight();
 
 	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
 		memcpy(uniformAllocInfos[i].pMappedData, &transform,
 			sizeof(Transform));
 }
 
-void RectangleRenderer::AddToCommandBuffer(VkCommandBuffer commandBuffer,
+void Rectangle::AddToCommandBuffer(VkCommandBuffer commandBuffer,
 	uint32_t index)
 {
 	VkBuffer vbuffers[] = { pRectBuffer->GetBuffer() };

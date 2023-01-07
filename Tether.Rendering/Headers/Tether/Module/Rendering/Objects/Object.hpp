@@ -25,17 +25,15 @@ namespace Tether::Rendering::Objects
 	class TETHER_EXPORT Object
 	{
 	public:
-		Object(UIRenderer* pRenderer, Scope<ObjectRenderer> pObjectRenderer);
-		Object(Object&&) noexcept;
-
-		Object(const Object&) = delete;
-		Object& operator=(const Object&) = delete;
-		Object& operator=(Object&&) = delete;
+		virtual ~Object() = default;
+		TETHER_NO_COPY(Object);
 
 		UIRenderer* GetUIRenderer();
 		ObjectRenderer* GetObjectRenderer();
 	protected:
+		Object(UIRenderer* pRenderer);
+
 		UIRenderer* pRenderer = nullptr;
-		Scope<ObjectRenderer> pObjectRenderer;
+		ObjectRenderer* pObjectRenderer = nullptr;
 	};
 }

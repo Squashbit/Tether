@@ -29,8 +29,8 @@ set(TETHER_RENDERING_DEPENDENT_SOURCES)
 if (TETHER_RENDERING_VULKAN_API)
     set(TETHER_RENDERING_DEPENDENT_SOURCES ${TETHER_RENDERING_DEPENDENT_SOURCES} 
         Source/Vulkan/Common/TypeNames.cpp
-        Source/Vulkan/Objects/RectangleRenderer.cpp
-        Source/Vulkan/Objects/ObjectRenderer.cpp
+        "Source/Vulkan/Objects/Rectangle.cpp"
+        
         Source/Vulkan/Device.cpp
         Source/Vulkan/DeviceLoader.cpp
         Source/Vulkan/Instance.cpp

@@ -27,20 +27,21 @@ namespace Tether::Rendering
 		virtual bool RenderFrame() { return true; }
 
 		template<typename T>
-		Scope<Objects::ObjectRenderer> CreateObjectRenderer(T* pObject)
+		Scope<T> CreateObject()
 		{
 			HashedString typeHash(TypeTools::GetTypeName<T>());
-			return OnObjectCreateRenderer(typeHash, pObject);
+			return Scope<T>((T*)OnObjectCreate(typeHash));
 		}
 
 		const std::vector<Objects::Object*>& GetObjects() const;
 	protected:
 		virtual void OnObjectAdd(Objects::Object* pObject) {}
 		virtual void OnObjectRemove(Objects::Object* pObject) {}
-		virtual Scope<Objects::ObjectRenderer> OnObjectCreateRenderer(
-			HashedString& typeName,
-			Objects::Object* pObject
-		) = 0;
+
+		// This function should return a heap allocated pointer.
+		// It will get converted to a unique_ptr later, so no memory should be leaked.
+		// The pointer returned should also be a class derived from Object.
+		virtual Objects::Object* OnObjectCreate(HashedString& typeName) = 0;
 
 		std::vector<Objects::Object*> objects;
 	};

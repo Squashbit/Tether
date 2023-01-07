@@ -4,7 +4,7 @@
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/Objects/RectangleRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Common/VertexTypes.hpp>
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
@@ -167,13 +167,10 @@ VmaAllocator VulkanUIRenderer::GetAllocator()
 	return allocator.Get();
 }
 
-Scope<Objects::ObjectRenderer> VulkanUIRenderer::OnObjectCreateRenderer(
-	HashedString& typeName, 
-	Objects::Object* pObject
-)
+Objects::Object* VulkanUIRenderer::OnObjectCreate(HashedString& typeName)
 {
 	if (typeName == Objects::Rectangle::typeName)
-		return std::make_unique<RectangleRenderer>(this, (Objects::Rectangle*)pObject);
+		return new Rectangle(this);
 
 	throw RendererException("Unsupported object");
 }
@@ -473,7 +470,11 @@ void VulkanUIRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 	for (size_t i = 0; i < objects.size(); i++)
 	{
 		Objects::Object* pObject = objects[i];
-		ObjectRenderer* pRenderer = (ObjectRenderer*)pObject->GetObjectRenderer();
+		Objects::ObjectRenderer* pObjectRenderer = pObject->GetObjectRenderer();
+		if (!pObjectRenderer)
+			continue;
+
+		ObjectRenderer* pRenderer = (ObjectRenderer*)pObjectRenderer;
 
 		pRenderer->AddToCommandBuffer(commandBuffer, index);
 	}

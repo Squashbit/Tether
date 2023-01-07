@@ -12,12 +12,12 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT RectangleRenderer : public ObjectRenderer
+	class TETHER_EXPORT Rectangle : public Objects::Rectangle, public ObjectRenderer
 	{
 	public:
-		RectangleRenderer(VulkanUIRenderer* pRenderer, Objects::Rectangle* pRectangle);
-		~RectangleRenderer();
-		TETHER_NO_COPY(RectangleRenderer);
+		Rectangle(VulkanUIRenderer* pRenderer);
+		~Rectangle();
+		TETHER_NO_COPY(Rectangle);
 
 		void AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) override;
 	private:
@@ -32,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VmaAllocation> uniformAllocations;
 		std::vector<VmaAllocationInfo> uniformAllocInfos;
 
-		VkDescriptorPool descriptorPool;
+		VkDescriptorPool descriptorPool = nullptr;
 		std::vector<VkDescriptorSet> descriptorSets;
 
 		Device* device = nullptr;
@@ -40,6 +40,6 @@ namespace Tether::Rendering::Vulkan
 		VertexBuffer* pRectBuffer = nullptr;
 		VmaAllocator allocator = nullptr;
 
-		Objects::Rectangle* pRectangle = nullptr;
+		VulkanUIRenderer* pVkRenderer = nullptr;
 	};
 }

@@ -8,7 +8,7 @@ namespace Tether::Rendering::Objects
 	class TETHER_EXPORT Rectangle : public Object
 	{
 	public:
-		Rectangle(UIRenderer* pRenderer);
+		virtual ~Rectangle() = default;
 		
 		void SetX(float value);
 		void SetY(float value);
@@ -21,6 +21,8 @@ namespace Tether::Rendering::Objects
 
 		inline static HashedString typeName =
 			HashedString(TypeTools::GetTypeName<Rectangle>());
+	protected:
+		Rectangle(UIRenderer* pRenderer);
 	private:
 		float x = 0.0f;
 		float y = 0.0f;
