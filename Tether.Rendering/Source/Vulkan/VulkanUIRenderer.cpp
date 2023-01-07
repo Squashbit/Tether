@@ -5,7 +5,6 @@
 #include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
-#include <Tether/Module/Rendering/Common/VertexTypes.hpp>
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
@@ -204,7 +203,7 @@ void VulkanUIRenderer::CreateShaders()
 	uboLayoutBinding.binding = 0;
 	uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo{};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -220,6 +219,25 @@ void VulkanUIRenderer::CreateShaders()
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
+	std::vector<VkVertexInputBindingDescription> bindingDescs;
+	std::vector<VkVertexInputAttributeDescription> attribDescs;
+
+	// Vector2 descriptions
+	{
+		VkVertexInputBindingDescription bindingDesc;
+		bindingDesc.binding = 0;
+		bindingDesc.stride = sizeof(Math::Vector2f);
+		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		bindingDescs.push_back(bindingDesc);
+
+		VkVertexInputAttributeDescription posDesc;
+		posDesc.binding = 0;
+		posDesc.location = 0;
+		posDesc.format = VK_FORMAT_R32G32_SFLOAT;
+		posDesc.offset = 0;
+		attribDescs.push_back(posDesc);
+	}
+
 	pipeline.emplace(
 		&device, renderPass.Get(),
 		swapchain->GetExtent(), 0,
@@ -227,6 +245,8 @@ void VulkanUIRenderer::CreateShaders()
 		sizeof(VulkanShaders::_binary_solid_vert_spv),
 		(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
 		sizeof(VulkanShaders::_binary_solid_frag_spv),
+		bindingDescs,
+		attribDescs,
 		&pipelineLayoutInfo
 	);
 }
@@ -323,12 +343,12 @@ void VulkanUIRenderer::CreateCommandBuffer()
 
 void VulkanUIRenderer::CreateVertexBuffers()
 {
-	VertexTypes::Vertex2 vertices[] =
+	Math::Vector2f vertices[] =
 	{
-		{ {  0.0f,  0.0f}, {0, 1, 1} },
-		{ {  1.0f,  0.0f}, {1, 0, 1} },
-		{ {  1.0f,  1.0f}, {0, 0, 0} },
-		{ {  0.0f,  1.0f}, {1, 1, 0} },
+		{  0.0f,  0.0f},
+		{  1.0f,  0.0f},
+		{  1.0f,  1.0f},
+		{  0.0f,  1.0f},
 	};
 
 	uint32_t indices[] =

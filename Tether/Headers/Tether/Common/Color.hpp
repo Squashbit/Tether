@@ -29,8 +29,8 @@ namespace Tether
 		float GetG() const;
 		float GetB() const;
 	private:
-		float r = 0;
-		float g = 0;
-		float b = 0;
+		float r = 0.0f;
+		float g = 0.0f;
+		float b = 0.0f;
 	};
 }

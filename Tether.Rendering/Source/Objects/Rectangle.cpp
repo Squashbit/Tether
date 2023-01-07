@@ -32,6 +32,11 @@ void Rectangle::SetHeight(float value)
 	pObjectRenderer->OnObjectUpdate();
 }
 
+void Rectangle::SetColor(Color color)
+{
+	this->color = color;
+}
+
 float Rectangle::GetX()
 {
 	return x;

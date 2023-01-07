@@ -1,8 +1,7 @@
 #pragma once
 
-#include <Tether/Common/Stopwatch.hpp>
+#include <Tether/Math/Types.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Common/Uniforms.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
 
@@ -15,6 +14,13 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT Rectangle : public Objects::Rectangle, public ObjectRenderer
 	{
 	public:
+		struct Uniforms
+		{
+			Math::Vector2f position;
+			Math::Vector2f scale;
+			Math::Vector3f color;
+		};
+
 		Rectangle(VulkanUIRenderer* pRenderer);
 		~Rectangle();
 		TETHER_NO_COPY(Rectangle);
@@ -26,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 		void CreateDescriptorPool();
 		void CreateDescriptorSets();
 
-		Transform transform;
+		Uniforms uniforms;
 
 		std::vector<VkBuffer> uniformBuffers;
 		std::vector<VmaAllocation> uniformAllocations;

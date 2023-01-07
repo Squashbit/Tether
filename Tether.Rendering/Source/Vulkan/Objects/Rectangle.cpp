@@ -26,7 +26,7 @@ Rectangle::Rectangle(VulkanUIRenderer* pVkRenderer)
 	{
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(transform);
+		bufferInfo.size = sizeof(uniforms);
 		bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 
 		VmaAllocationCreateInfo allocInfo{};
@@ -98,7 +98,7 @@ void Rectangle::CreateDescriptorSets()
 		VkDescriptorBufferInfo bufferInfo{};
 		bufferInfo.buffer = uniformBuffers[i];
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(Transform);
+		bufferInfo.range = sizeof(Uniforms);
 
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -115,14 +115,17 @@ void Rectangle::CreateDescriptorSets()
 
 void Rectangle::OnObjectUpdate()
 {
-	transform.position.x = GetX();
-	transform.position.y = GetY();
-	transform.scale.x = GetWidth();
-	transform.scale.y = GetHeight();
+	uniforms.position.x = x;
+	uniforms.position.y = y;
+	uniforms.scale.x = width;
+	uniforms.scale.y = height;
+	uniforms.color.x = color.GetR();
+	uniforms.color.y = color.GetG();
+	uniforms.color.z = color.GetB();
 
 	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-		memcpy(uniformAllocInfos[i].pMappedData, &transform,
-			sizeof(Transform));
+		memcpy(uniformAllocInfos[i].pMappedData, &uniforms,
+			sizeof(Uniforms));
 }
 
 void Rectangle::AddToCommandBuffer(VkCommandBuffer commandBuffer,

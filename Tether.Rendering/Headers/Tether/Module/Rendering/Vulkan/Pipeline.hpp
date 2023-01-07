@@ -6,6 +6,8 @@
 #include <Tether/Module/Rendering/Vulkan/Common/PipelineInfo.hpp>
 
 #include <optional>
+#include <vector>
+
 #include <vulkan/vulkan.h>
 
 namespace Tether::Rendering::Vulkan
@@ -33,6 +35,8 @@ namespace Tether::Rendering::Vulkan
 			VkExtent2D viewportExtent, uint32_t subpass,
 			uint32_t* pVertexCode, size_t vertexCodeSize,
 			uint32_t* pFragmentCode, size_t fragmentCodeSize,
+			std::vector<VkVertexInputBindingDescription>& bindingDescs,
+			std::vector<VkVertexInputAttributeDescription>& attribDescs,
 			VkPipelineLayoutCreateInfo* pLayoutInfo = nullptr
 		);
 		~Pipeline();

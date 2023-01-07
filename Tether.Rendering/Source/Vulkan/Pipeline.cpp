@@ -1,9 +1,6 @@
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
-#include <Tether/Module/Rendering/Common/VertexTypes.hpp>
-
-#include <vector>
 
 using namespace Tether::Rendering::Vulkan;
 
@@ -36,6 +33,8 @@ Pipeline::Pipeline(
 	VkExtent2D viewportExtent, uint32_t subpass,
 	uint32_t* pVertexCode, size_t vertexCodeSize,
 	uint32_t* pFragmentCode, size_t fragmentCodeSize,
+	std::vector<VkVertexInputBindingDescription>& bindingDescs,
+	std::vector<VkVertexInputAttributeDescription>& attribDescs,
 	VkPipelineLayoutCreateInfo* customLayoutInfo
 )
 	:
@@ -50,32 +49,6 @@ Pipeline::Pipeline(
 		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
 		layout.emplace(device, &layoutCreateInfo);
-	}
-
-	std::vector<VkVertexInputBindingDescription> bindingDescs;
-	std::vector<VkVertexInputAttributeDescription> attribDescs;
-
-	// Vector2 descriptions
-	{
-		VkVertexInputBindingDescription bindingDesc;
-		bindingDesc.binding = 0;
-		bindingDesc.stride = sizeof(VertexTypes::Vertex2);
-		bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-		bindingDescs.push_back(bindingDesc);
-
-		VkVertexInputAttributeDescription posDesc;
-		posDesc.binding = 0;
-		posDesc.location = 0;
-		posDesc.format = VK_FORMAT_R32G32_SFLOAT;
-		posDesc.offset = offsetof(VertexTypes::Vertex2, position);
-		attribDescs.push_back(posDesc);
-
-		VkVertexInputAttributeDescription colorDesc;
-		colorDesc.binding = 0;
-		colorDesc.location = 1;
-		colorDesc.format = VK_FORMAT_R32G32B32_SFLOAT;
-		colorDesc.offset = offsetof(VertexTypes::Vertex2, color);
-		attribDescs.push_back(colorDesc);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};

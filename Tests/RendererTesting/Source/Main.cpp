@@ -78,9 +78,12 @@ public:
 			rectangles[i] = renderer.CreateObject<Objects::Rectangle>();
 			Objects::Rectangle* rect = rectangles[i].get();
 
+			float brightness = (float)(i + 1) / (numSquares + 1);
+
 			rect->SetWidth(1 / (float)numSquares);
 			rect->SetHeight(0.1f);
 			rect->SetX(i / (float)numSquares);
+			rect->SetColor(Color(0.0f, 0.6f * brightness, brightness));
 			
 			renderer.AddObject(rect);
 		}
@@ -143,8 +146,8 @@ private:
 
 #if defined(_WIN32) && !defined(_DEBUG)
 #include <Windows.h>
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine,
-	int nCmdShow)
+INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
+	PSTR lpCmdLine, INT nCmdShow)
 #else
 int main()
 #endif
