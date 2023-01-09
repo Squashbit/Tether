@@ -1,7 +1,8 @@
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/UIRenderer.hpp>
 
-using namespace Tether::Rendering::Objects;
+using namespace Tether;
+using namespace Rendering::Objects;
 
 Rectangle::Rectangle(UIRenderer* pRenderer)
 	:
@@ -55,4 +56,9 @@ float Rectangle::GetWidth()
 float Rectangle::GetHeight()
 {
 	return height;
+}
+
+Color Rectangle::GetColor()
+{
+	return color;
 }

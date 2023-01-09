@@ -6,13 +6,13 @@
 #include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
 
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Objects/Image.hpp>
 
 #include <vector>
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT Rectangle : public Objects::Rectangle, public ObjectRenderer
+	class TETHER_EXPORT Image : public Objects::Image, public ObjectRenderer
 	{
 	public:
 		struct Uniforms
@@ -22,8 +22,8 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector3f color;
 		};
 
-		Rectangle(VulkanUIRenderer* pRenderer);
-		TETHER_NO_COPY(Rectangle);
+		Image(VulkanUIRenderer* pRenderer);
+		TETHER_NO_COPY(Image);
 
 		void AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) override;
 	private:

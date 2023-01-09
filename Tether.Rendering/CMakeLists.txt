@@ -21,7 +21,7 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     Source/GraphicalWindow.cpp 
     Source/UIRenderer.cpp
     Source/RenderingModule.cpp
-)
+ "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp")
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets)
 
@@ -44,7 +44,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/VmaImplementation.cpp
         Source/Vulkan/Vulkan_RenderingModule.cpp
         Source/Vulkan/Allocator.cpp
-     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp")
+     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp")
 endif()
 
 # Set the sources of platform specific files

@@ -2,7 +2,7 @@
 #include <Tether/Common/Stopwatch.hpp>
 #include <Tether/Math/Constants.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Objects/Image.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
@@ -72,20 +72,19 @@ public:
 		window(1280, 720, "Renderer testing"),
 		renderer(&window)
 	{
-		rectangles.resize(numSquares);
-		for (size_t i = 0; i < numSquares; i++)
+		const float imageSize = 1.0f / numObjects;
+
+		objects.resize(numObjects);
+		for (size_t i = 0; i < numObjects; i++)
 		{
-			rectangles[i] = renderer.CreateObject<Objects::Rectangle>();
-			Objects::Rectangle* rect = rectangles[i].get();
+			objects[i] = renderer.CreateObject<Objects::Image>();
+			Objects::Image* image = objects[i].get();
 
-			float brightness = (float)(i + 1) / (numSquares + 1);
-
-			rect->SetWidth(1 / (float)numSquares);
-			rect->SetHeight(0.1f);
-			rect->SetX(i / (float)numSquares);
-			rect->SetColor(Color(0.0f, 0.6f * brightness, brightness));
+			image->SetX(i / (float)numObjects);
+			image->SetWidth(imageSize);
+			image->SetHeight(imageSize);
 			
-			renderer.AddObject(rect);
+			renderer.AddObject(image);
 		}
 
 		window.SetVisible(true);
@@ -111,17 +110,18 @@ public:
 				fpsTimer.Set();
 			}
 
-			for (size_t i = 0; i < numSquares; i++)
+			for (size_t i = 0; i < numObjects; i++)
 			{
-				Objects::Rectangle* rect = rectangles[i].get();
+				Objects::Image* image = objects[i].get();
 
-				float rectTime = fullTime.GetElapsedSeconds() / 3;
-				rectTime += (numSquares - i) * 0.03f;
+				float x1time = fullTime.GetElapsedSeconds() / 3;
+				float x2time = x1time;
+				x1time += (numObjects - i) * 0.03f;
+				
+				float x1sine = abs(sin(x1time * Math::PI));
+				x1sine *= 1 - lineSpacing;
 
-				float timeSine = abs(sin(rectTime * Math::PI));
-				timeSine *= 1 - rect->GetWidth();
-
-				rect->SetY(1 - timeSine - rect->GetHeight());
+				image->SetY(1 - x1sine - lineSpacing);
 			}
 
 			window.PollEvents();
@@ -129,7 +129,8 @@ public:
 		}
 	}
 private:
-	size_t numSquares = 10;
+	size_t numObjects = 10;
+	float lineSpacing = 0.1f;
 
 	size_t frames = 0;
 	float time = 0.0f;
@@ -137,7 +138,7 @@ private:
 	SimpleWindow window;
 	Vulkan::VulkanUIRenderer renderer;
 	
-	std::vector<Scope<Objects::Rectangle>> rectangles;
+	std::vector<Scope<Objects::Image>> objects;
 
 	Stopwatch fpsTimer;
 	Stopwatch deltaTimer;

@@ -6,7 +6,13 @@ using namespace Tether::Rendering::Vulkan;
 
 Rectangle::Rectangle(VulkanUIRenderer* pVkRenderer)
 	:
-	Objects::Rectangle(pVkRenderer)
+	Objects::Rectangle(pVkRenderer),
+	pool(pVkRenderer->GetDevice(), pVkRenderer->GetSwapchainImageCount()),
+	uniformBuffer(
+		pVkRenderer->GetAllocator(), pVkRenderer->GetDevice(), 
+		&pool, pVkRenderer->GetDescriptorSetLayout(),
+		sizeof(Uniforms), pVkRenderer->GetSwapchainImageCount()
+	)
 {
 	this->pObjectRenderer = this;
 	this->pVkRenderer = pVkRenderer;
@@ -15,102 +21,6 @@ Rectangle::Rectangle(VulkanUIRenderer* pVkRenderer)
 	this->dloader = device->GetLoader();
 	this->pRectBuffer = pVkRenderer->GetRectangleBuffer();
 	this->allocator = pVkRenderer->GetAllocator();
-
-	uint32_t imageCount = pVkRenderer->GetSwapchainImageCount();
-
-	uniformBuffers.resize(imageCount);
-	uniformAllocations.resize(imageCount);
-	uniformAllocInfos.resize(imageCount);
-
-	for (size_t i = 0; i < imageCount; i++)
-	{
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = sizeof(uniforms);
-		bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-
-		VmaAllocationCreateInfo allocInfo{};
-		allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-
-		if (vmaCreateBuffer(
-			allocator, &bufferInfo, &allocInfo, 
-			&uniformBuffers[i], &uniformAllocations[i], 
-			&uniformAllocInfos[i]) != VK_SUCCESS)
-			throw RendererException("Failed to create staging buffer");
-	}
-
-	CreateDescriptorPool();
-	CreateDescriptorSets();
-}
-
-Rectangle::~Rectangle()
-{
-	pVkRenderer->WaitForCommandBuffers();
-
-	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-		vmaDestroyBuffer(allocator, uniformBuffers[i], uniformAllocations[i]);
-
-	dloader->vkDestroyDescriptorPool(device->Get(), descriptorPool, nullptr);
-}
-
-void Rectangle::CreateDescriptorPool()
-{
-	uint32_t imageCount = pVkRenderer->GetSwapchainImageCount();
-
-	VkDescriptorPoolSize poolSize{};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = imageCount;
-
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
-	poolInfo.maxSets = imageCount;
-
-	if (dloader->vkCreateDescriptorPool(device->Get(), &poolInfo, nullptr,
-		&descriptorPool) != VK_SUCCESS)
-		throw RendererException("Failed to create Vulkan descriptor pool");
-}
-
-void Rectangle::CreateDescriptorSets()
-{
-	uint32_t imageCount = pVkRenderer->GetSwapchainImageCount();
-
-	std::vector<VkDescriptorSetLayout> layouts(
-		imageCount,
-		pVkRenderer->GetDescriptorSetLayout()
-	);
-
-	VkDescriptorSetAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = imageCount;
-	allocInfo.pSetLayouts = layouts.data();
-
-	descriptorSets.resize(layouts.size());
-	if (dloader->vkAllocateDescriptorSets(device->Get(), &allocInfo,
-		descriptorSets.data()) != VK_SUCCESS)
-		throw RendererException("Failed to allocate descriptor sets");
-
-	for (size_t i = 0; i < layouts.size(); i++)
-	{
-		VkDescriptorBufferInfo bufferInfo{};
-		bufferInfo.buffer = uniformBuffers[i];
-		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(Uniforms);
-
-		VkWriteDescriptorSet descriptorWrite{};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = descriptorSets[i];
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &bufferInfo;
-
-		dloader->vkUpdateDescriptorSets(device->Get(), 1, &descriptorWrite, 0, nullptr);
-	}
 }
 
 void Rectangle::OnObjectUpdate()
@@ -124,7 +34,7 @@ void Rectangle::OnObjectUpdate()
 	uniforms.color.z = color.GetB();
 
 	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-		memcpy(uniformAllocInfos[i].pMappedData, &uniforms,
+		memcpy(uniformBuffer.GetMappedData(i), &uniforms,
 			sizeof(Uniforms));
 }
 
@@ -140,7 +50,7 @@ void Rectangle::AddToCommandBuffer(VkCommandBuffer commandBuffer,
 	dloader->vkCmdBindDescriptorSets(
 		commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 		pVkRenderer->GetPipeline()->GetLayout(), 0,
-		1, &descriptorSets[index],
+		1, uniformBuffer.GetSetAtIndex(index),
 		0, nullptr
 	);
 
