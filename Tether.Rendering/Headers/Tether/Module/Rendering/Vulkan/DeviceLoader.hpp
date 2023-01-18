@@ -31,6 +31,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CreateFence);
 		TETHER_DEVICE_FUNC_VAR(CreateFramebuffer);
 		TETHER_DEVICE_FUNC_VAR(CreateGraphicsPipelines);
+		TETHER_DEVICE_FUNC_VAR(CreateImage);
 		TETHER_DEVICE_FUNC_VAR(CreateImageView);
 		TETHER_DEVICE_FUNC_VAR(CreatePipelineLayout);
 		TETHER_DEVICE_FUNC_VAR(CreateRenderPass);
@@ -43,8 +44,10 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CmdBindIndexBuffer);
 		TETHER_DEVICE_FUNC_VAR(CmdBindVertexBuffers);
 		TETHER_DEVICE_FUNC_VAR(CmdCopyBuffer);
+		TETHER_DEVICE_FUNC_VAR(CmdCopyBufferToImage);
 		TETHER_DEVICE_FUNC_VAR(CmdDraw);
 		TETHER_DEVICE_FUNC_VAR(CmdDrawIndexed);
+		TETHER_DEVICE_FUNC_VAR(CmdPipelineBarrier);
 		TETHER_DEVICE_FUNC_VAR(CmdEndRenderPass);
 		TETHER_DEVICE_FUNC_VAR(CmdSetScissor);
 		TETHER_DEVICE_FUNC_VAR(CmdSetViewport);
@@ -53,6 +56,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(DestroyDescriptorPool);
 		TETHER_DEVICE_FUNC_VAR(DestroyDescriptorSetLayout);
 		TETHER_DEVICE_FUNC_VAR(DestroyDevice);
+		TETHER_DEVICE_FUNC_VAR(DestroyImage);
 		TETHER_DEVICE_FUNC_VAR(DestroyImageView);
 		TETHER_DEVICE_FUNC_VAR(DestroyFramebuffer);
 		TETHER_DEVICE_FUNC_VAR(DestroyPipeline);
@@ -70,6 +74,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(GetSwapchainImagesKHR);
 		TETHER_DEVICE_FUNC_VAR(QueuePresentKHR);
 		TETHER_DEVICE_FUNC_VAR(QueueSubmit);
+		TETHER_DEVICE_FUNC_VAR(QueueWaitIdle);
 		TETHER_DEVICE_FUNC_VAR(ResetCommandBuffer);
 		TETHER_DEVICE_FUNC_VAR(ResetFences);
 		TETHER_DEVICE_FUNC_VAR(UpdateDescriptorSets);

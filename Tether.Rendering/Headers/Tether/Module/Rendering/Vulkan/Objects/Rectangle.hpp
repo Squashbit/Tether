@@ -22,7 +22,7 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector3f color;
 		};
 
-		Rectangle(VulkanUIRenderer* pRenderer);
+		Rectangle(VulkanRenderer* pRenderer);
 		TETHER_NO_COPY(Rectangle);
 
 		void AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) override;
@@ -39,6 +39,6 @@ namespace Tether::Rendering::Vulkan
 		VertexBuffer* pRectBuffer = nullptr;
 		VmaAllocator allocator = nullptr;
 
-		VulkanUIRenderer* pVkRenderer = nullptr;
+		VulkanRenderer* pVkRenderer = nullptr;
 	};
 }

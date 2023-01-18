@@ -3,12 +3,12 @@
 using namespace Tether::Rendering;
 using namespace Tether::Rendering::Objects;
 
-Object::Object(UIRenderer* pRenderer)
+Object::Object(Renderer* pRenderer)
 	:
 	pRenderer(pRenderer)
 {}
 
-UIRenderer* Object::GetUIRenderer()
+Renderer* Object::GetUIRenderer()
 {
 	return pRenderer;
 }

@@ -3,7 +3,7 @@
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/Ref.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
+#include <Tether/Module/Rendering/Vulkan/Device.hpp>
 
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
@@ -15,8 +15,7 @@ namespace Tether::Rendering::Vulkan
 	public:
 		BufferStager(
 			VmaAllocator allocator,
-			VkDevice device,
-			DeviceLoader* dloader,
+			Device* pDevice,
 			VkCommandPool pool,
 			VkQueue bufferOwnerQueue,
 			VkBuffer buffer,
@@ -35,7 +34,7 @@ namespace Tether::Rendering::Vulkan
 		void CreateFence();
 
 		void CreateStagingBuffer();
-		bool RecordCommandBuffer();
+		void RecordCommandBuffer();
 
 		void DisposeStager();
 

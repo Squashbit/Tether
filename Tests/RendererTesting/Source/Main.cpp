@@ -4,7 +4,7 @@
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
 
 #include <iostream>
@@ -72,6 +72,28 @@ public:
 		window(1280, 720, "Renderer testing"),
 		renderer(&window)
 	{
+		BufferedImageInfo info{};
+		info.width = 1024;
+		info.height = 1024;
+		info.channels = 4;
+		
+		std::vector<uint32_t> data(info.width * info.height * info.channels);
+		info.pixelData = data.data();
+
+		for (size_t y = 0; y < info.height; y++)
+			for (size_t x = 0; x < info.width; x++)
+			{
+				uint8_t r = static_cast<uint8_t>(rand() % 255);
+				uint8_t g = static_cast<uint8_t>(rand() % 255);
+				uint8_t b = static_cast<uint8_t>(rand() % 255);
+				uint8_t a = 255;
+
+				uint32_t color = r | g << 8 | b << 16 | a << 24;
+				info.pixelData[y * info.width + x] = color;
+			}
+
+		testImage = renderer.CreateImage(info);
+		
 		const float imageSize = 1.0f / numObjects;
 
 		objects.resize(numObjects);
@@ -114,14 +136,13 @@ public:
 			{
 				Objects::Image* image = objects[i].get();
 
-				float x1time = fullTime.GetElapsedSeconds() / 3;
-				float x2time = x1time;
-				x1time += (numObjects - i) * 0.03f;
+				float yTime = fullTime.GetElapsedSeconds() / 3;
+				yTime += (numObjects - i) * 0.03f;
 				
-				float x1sine = abs(sin(x1time * Math::PI));
-				x1sine *= 1 - lineSpacing;
+				float ypos = abs(sin(yTime * Math::PI));
+				ypos *= 1 - lineSpacing;
 
-				image->SetY(1 - x1sine - lineSpacing);
+				image->SetY(1 - ypos - lineSpacing);
 			}
 
 			window.PollEvents();
@@ -136,7 +157,9 @@ private:
 	float time = 0.0f;
 
 	SimpleWindow window;
-	Vulkan::VulkanUIRenderer renderer;
+	Vulkan::VulkanRenderer renderer;
+
+	Scope<BufferedImage> testImage;
 	
 	std::vector<Scope<Objects::Image>> objects;
 

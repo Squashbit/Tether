@@ -20,11 +20,8 @@ namespace Tether::Rendering::Objects
 		float GetY();
 		float GetWidth();
 		float GetHeight();
-
-		inline static HashedString typeName =
-			HashedString(TypeTools::GetTypeName<Image>());
 	protected:
-		Image(UIRenderer* pRenderer);
+		Image(Renderer* pRenderer);
 		
 		float x = 0.0f;
 		float y = 0.0f;

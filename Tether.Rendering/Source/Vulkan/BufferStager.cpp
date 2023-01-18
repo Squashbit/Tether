@@ -7,44 +7,35 @@ using namespace Tether::Rendering::Vulkan;
 
 BufferStager::BufferStager(
 	VmaAllocator allocator,
-	VkDevice device,
-	DeviceLoader* dloader,
+	Device* pDevice,
 	VkCommandPool pool,
 	VkQueue bufferOwnerQueue,
 	VkBuffer buffer,
 	size_t bufferSize
 )
+	:
+	allocator(allocator),
+	device(pDevice->Get()),
+	dloader(pDevice->GetLoader()),
+	pool(pool),
+	bufferOwnerQueue(bufferOwnerQueue),
+	buffer(buffer),
+	bufferSize(bufferSize)
 {
-	TETHER_ASSERT(allocator != nullptr);
-	TETHER_ASSERT(device != nullptr);
-	TETHER_ASSERT(dloader != nullptr);
-	TETHER_ASSERT(pool != nullptr);
-	TETHER_ASSERT(buffer != nullptr);
-	TETHER_ASSERT(bufferOwnerQueue != nullptr);
-
-	this->allocator = allocator;
-	this->device = device;
-	this->dloader = dloader;
-	this->pool = pool;
-	this->bufferOwnerQueue = bufferOwnerQueue;
-	this->buffer = buffer;
-	this->bufferSize = bufferSize;
-
 	CreateCommandBuffer();	
 	CreateFence();
 	CreateStagingBuffer();
 
-	if (!RecordCommandBuffer())
-	{
-		DisposeStager();
-		throw RendererException("Failed to record staging command buffer");
-	}
+	RecordCommandBuffer();
 }
 
 BufferStager::~BufferStager()
 {
 	Wait();
-	DisposeStager();
+
+	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+	dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
+	dloader->vkDestroyFence(device, completedFence, nullptr);
 }
 
 void BufferStager::UploadData(void* data)
@@ -117,14 +108,14 @@ void BufferStager::CreateFence()
 	}
 }
 
-bool BufferStager::RecordCommandBuffer()
+void BufferStager::RecordCommandBuffer()
 {
 	VkCommandBufferBeginInfo beginInfo{};
 	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	if (dloader->vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-		return false;
+		throw RendererException("Failed to record staging command buffer");
 	{
 		VkBufferCopy copyRegion{};
 		copyRegion.size = bufferSize;
@@ -133,14 +124,5 @@ bool BufferStager::RecordCommandBuffer()
 			1, &copyRegion);
 	}
 	if (dloader->vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-		return false;
-
-	return true;
-}
-
-void BufferStager::DisposeStager()
-{
-	vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
-	dloader->vkFreeCommandBuffers(device, pool, 1, &commandBuffer);
-	dloader->vkDestroyFence(device, completedFence, nullptr);
+		throw RendererException("Failed to record staging command buffer");
 }

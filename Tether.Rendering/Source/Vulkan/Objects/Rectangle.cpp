@@ -4,7 +4,7 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-Rectangle::Rectangle(VulkanUIRenderer* pVkRenderer)
+Rectangle::Rectangle(VulkanRenderer* pVkRenderer)
 	:
 	Objects::Rectangle(pVkRenderer),
 	pool(pVkRenderer->GetDevice(), pVkRenderer->GetSwapchainImageCount()),
@@ -33,9 +33,8 @@ void Rectangle::OnObjectUpdate()
 	uniforms.color.y = color.GetG();
 	uniforms.color.z = color.GetB();
 
-	for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-		memcpy(uniformBuffer.GetMappedData(i), &uniforms,
-			sizeof(Uniforms));
+	for (uint32_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
+		memcpy(uniformBuffer.GetMappedData(i), &uniforms, sizeof(Uniforms));
 }
 
 void Rectangle::AddToCommandBuffer(VkCommandBuffer commandBuffer,

@@ -3,7 +3,6 @@
 #include <Tether/Common/Defs.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/PipelineInfo.hpp>
 
 #include <optional>
 #include <vector>

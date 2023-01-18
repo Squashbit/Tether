@@ -1,7 +1,12 @@
 #pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
+
 #include <Tether/Module/Rendering/Objects/Object.hpp>
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Objects/Image.hpp>
+
+#include <Tether/Module/Rendering/BufferedImage.hpp>
 
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/TypeTools.hpp>
@@ -12,12 +17,12 @@
 
 namespace Tether::Rendering
 {
-	class TETHER_EXPORT UIRenderer
+	class TETHER_EXPORT Renderer
 	{
 	public:
-		UIRenderer();
-		virtual ~UIRenderer();
-		TETHER_NO_COPY(UIRenderer);
+		Renderer();
+		virtual ~Renderer();
+		TETHER_NO_COPY(Renderer);
 
 		void AddObject(Objects::Object* pObject);
 		bool RemoveObject(Objects::Object* pObject);
@@ -29,19 +34,21 @@ namespace Tether::Rendering
 		template<typename T>
 		Scope<T> CreateObject()
 		{
-			HashedString typeHash(TypeTools::GetTypeName<T>());
-			return Scope<T>((T*)OnObjectCreate(typeHash));
+			Scope<T> object;
+			OnCreateObject(object);
+
+			return object;
 		}
+
+		virtual Scope<BufferedImage> CreateImage(const BufferedImageInfo& info) = 0;
 
 		const std::vector<Objects::Object*>& GetObjects() const;
 	protected:
 		virtual void OnObjectAdd(Objects::Object* pObject) {}
 		virtual void OnObjectRemove(Objects::Object* pObject) {}
-
-		// This function should return a heap allocated pointer.
-		// It will get converted to a unique_ptr later, so no memory should be leaked.
-		// The pointer returned should also be a class derived from Object.
-		virtual Objects::Object* OnObjectCreate(HashedString& typeName) = 0;
+		
+		virtual void OnCreateObject(Scope<Objects::Rectangle>& object) = 0;
+		virtual void OnCreateObject(Scope<Objects::Image>& object) = 0;
 
 		std::vector<Objects::Object*> objects;
 	};

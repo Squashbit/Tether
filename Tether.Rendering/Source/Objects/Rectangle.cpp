@@ -1,10 +1,10 @@
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
-#include <Tether/Module/Rendering/UIRenderer.hpp>
+#include <Tether/Module/Rendering/Renderer.hpp>
 
 using namespace Tether;
 using namespace Rendering::Objects;
 
-Rectangle::Rectangle(UIRenderer* pRenderer)
+Rectangle::Rectangle(Renderer* pRenderer)
 	:
 	Object(pRenderer)
 {}

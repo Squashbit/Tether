@@ -2,7 +2,7 @@
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
 
 #include <vulkan/vulkan.h>
 

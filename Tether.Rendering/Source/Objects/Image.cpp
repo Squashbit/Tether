@@ -1,9 +1,9 @@
 #include <Tether/Module/Rendering/Objects/Image.hpp>
-#include <Tether/Module/Rendering/UIRenderer.hpp>
+#include <Tether/Module/Rendering/Renderer.hpp>
 
 namespace Tether::Rendering::Objects
 {
-	Image::Image(UIRenderer* pRenderer)
+	Image::Image(Renderer* pRenderer)
 		:
 		Object(pRenderer)
 	{

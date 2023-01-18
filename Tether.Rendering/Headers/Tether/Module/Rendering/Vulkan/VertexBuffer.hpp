@@ -2,7 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
+#include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
 
 #include <optional>
@@ -15,8 +15,7 @@ namespace Tether::Rendering::Vulkan
 	struct VertexBufferInfo
 	{
 		VmaAllocator allocator = nullptr;
-		VkDevice device = nullptr;
-		DeviceLoader* dloader = nullptr;
+		Device* device = nullptr;
 		VkQueue graphicsQueue = nullptr;
 		VkCommandPool pool = nullptr;
 	};

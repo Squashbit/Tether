@@ -15,7 +15,6 @@ VertexBuffer::VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, siz
 	vertexStager.emplace(
 		info.allocator,
 		info.device,
-		info.dloader,
 		info.pool,
 		info.graphicsQueue,
 		vertexBuffer,
@@ -25,7 +24,6 @@ VertexBuffer::VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, siz
 	indexStager.emplace(
 		info.allocator,
 		info.device,
-		info.dloader,
 		info.pool,
 		info.graphicsQueue,
 		indexBuffer,
@@ -140,7 +138,7 @@ void VertexBuffer::CreateIndexBuffer(size_t size)
 
 void VertexBuffer::DestroyBuffers()
 {
-	info.dloader->vkDeviceWaitIdle(info.device);
+	info.device->WaitIdle();
 
 	vertexStager.reset();
 	indexStager.reset();

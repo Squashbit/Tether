@@ -1,8 +1,10 @@
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/VulkanBufferedImage.hpp>
+
 #define TETHER_INCLUDE_VULKAN
-#include <Tether/Module/Rendering/Vulkan/VulkanUIRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
@@ -14,7 +16,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanUIRenderer::VulkanUIRenderer(SimpleWindow* pWindow)
+	VulkanRenderer::VulkanRenderer(SimpleWindow* pWindow)
 		:
 		pWindow(pWindow),
 		instance(&RenderingModule::Get().GetVulkanNative()->instance.value()),
@@ -44,7 +46,7 @@ namespace Tether::Rendering::Vulkan
 		PopulateCommandBuffers();
 	}
 
-	VulkanUIRenderer::~VulkanUIRenderer()
+	VulkanRenderer::~VulkanRenderer()
 	{
 		DestroySwapchain();
 
@@ -63,7 +65,7 @@ namespace Tether::Rendering::Vulkan
 			nullptr);
 	}
 
-	bool VulkanUIRenderer::RenderFrame()
+	bool VulkanRenderer::RenderFrame()
 	{
 		if (shouldRecreateSwapchain)
 		{
@@ -129,64 +131,71 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void VulkanUIRenderer::WaitForCommandBuffers()
+	Scope<Rendering::BufferedImage> VulkanRenderer::CreateImage(
+		const BufferedImageInfo& info)
+	{
+		return std::make_unique<VulkanBufferedImage>(&device, allocator.Get(), 
+			commandPool, graphicsQueue, info);
+	}
+
+	void VulkanRenderer::WaitForCommandBuffers()
 	{
 		for (size_t i = 0; i < inFlightFences.size(); i++)
 			dloader->vkWaitForFences(device.Get(), 1,
 				&inFlightFences[i], VK_TRUE, UINT64_MAX);
 	}
 
-	uint32_t VulkanUIRenderer::GetSwapchainImageCount()
+	uint32_t VulkanRenderer::GetSwapchainImageCount()
 	{
 		return swapchain->GetImageCount();
 	}
 
-	Device* VulkanUIRenderer::GetDevice()
+	Device* VulkanRenderer::GetDevice()
 	{
 		return &device;
 	}
 
-	Pipeline* VulkanUIRenderer::GetPipeline()
+	Pipeline* VulkanRenderer::GetPipeline()
 	{
 		return &pipeline.value();
 	}
 
-	VkDescriptorSetLayout VulkanUIRenderer::GetDescriptorSetLayout()
+	VkDescriptorSetLayout VulkanRenderer::GetDescriptorSetLayout()
 	{
 		return descriptorSetLayout;
 	}
 
-	VertexBuffer* VulkanUIRenderer::GetRectangleBuffer()
+	VertexBuffer* VulkanRenderer::GetRectangleBuffer()
 	{
 		return &square.value();
 	}
 
-	VmaAllocator VulkanUIRenderer::GetAllocator()
+	VmaAllocator VulkanRenderer::GetAllocator()
 	{
 		return allocator.Get();
 	}
 
-	Objects::Object* VulkanUIRenderer::OnObjectCreate(HashedString& typeName)
+	void VulkanRenderer::OnCreateObject(Scope<Objects::Rectangle>& object)
 	{
-		if (typeName == Objects::Rectangle::typeName)
-			return new Rectangle(this);
-		if (typeName == Objects::Image::typeName)
-			return new Rectangle(this);
-
-		throw RendererException("Unsupported object");
+		object = std::make_unique<Rectangle>(this);
 	}
 
-	void VulkanUIRenderer::OnObjectAdd(Objects::Object* pObject)
+	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
 	{
-		shouldRecreateCommandBuffers = true;
+		object = std::make_unique<Image>(this);
 	}
 
-	void VulkanUIRenderer::OnObjectRemove(Objects::Object* pObject)
+	void VulkanRenderer::OnObjectAdd(Objects::Object* pObject)
 	{
 		shouldRecreateCommandBuffers = true;
 	}
 
-	void VulkanUIRenderer::CreateSwapchain()
+	void VulkanRenderer::OnObjectRemove(Objects::Object* pObject)
+	{
+		shouldRecreateCommandBuffers = true;
+	}
+
+	void VulkanRenderer::CreateSwapchain()
 	{
 		swapchain.emplace(
 			instance, &device,
@@ -199,7 +208,7 @@ namespace Tether::Rendering::Vulkan
 		swapchain->CreateImageViews(&swapchainImageViews);
 	}
 
-	void VulkanUIRenderer::CreateShaders()
+	void VulkanRenderer::CreateShaders()
 	{
 		using namespace Assets;
 
@@ -256,7 +265,7 @@ namespace Tether::Rendering::Vulkan
 		);
 	}
 
-	void VulkanUIRenderer::CreateFramebuffers()
+	void VulkanRenderer::CreateFramebuffers()
 	{
 		VkExtent2D swapchainExtent = swapchain->GetExtent();
 
@@ -290,7 +299,7 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	void VulkanUIRenderer::CreateSyncObjects()
+	void VulkanRenderer::CreateSyncObjects()
 	{
 		imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
 		renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -319,7 +328,7 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	void VulkanUIRenderer::CreateCommandPool()
+	void VulkanRenderer::CreateCommandPool()
 	{
 		VkCommandPoolCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -331,7 +340,7 @@ namespace Tether::Rendering::Vulkan
 			throw RendererException("Command pool creation failed");
 	}
 
-	void VulkanUIRenderer::CreateCommandBuffer()
+	void VulkanRenderer::CreateCommandBuffer()
 	{
 		commandBuffers.resize(swapchainFramebuffers.size());
 
@@ -346,7 +355,7 @@ namespace Tether::Rendering::Vulkan
 			throw RendererException("Command buffer allocation failed");
 	}
 
-	void VulkanUIRenderer::CreateVertexBuffers()
+	void VulkanRenderer::CreateVertexBuffers()
 	{
 		Math::Vector2f vertices[] =
 		{
@@ -363,8 +372,7 @@ namespace Tether::Rendering::Vulkan
 
 		VertexBufferInfo info{};
 		info.allocator = allocator.Get();
-		info.device = device.Get();
-		info.dloader = dloader;
+		info.device = &device;
 		info.graphicsQueue = graphicsQueue;
 		info.pool = commandPool;
 
@@ -373,7 +381,7 @@ namespace Tether::Rendering::Vulkan
 		square->FinishDataUpload();
 	}
 
-	VkSurfaceFormatKHR VulkanUIRenderer::ChooseSurfaceFormat()
+	VkSurfaceFormatKHR VulkanRenderer::ChooseSurfaceFormat()
 	{
 		if (swapchainDetails.formats.size() == 0)
 			throw RendererException("No available swapchain image formats");
@@ -386,7 +394,7 @@ namespace Tether::Rendering::Vulkan
 		return swapchainDetails.formats[0];
 	}
 
-	SwapchainDetails VulkanUIRenderer::QuerySwapchainSupport()
+	SwapchainDetails VulkanRenderer::QuerySwapchainSupport()
 	{
 		VkPhysicalDevice physicalDevice = device.GetPhysicalDevice();
 		VkSurfaceKHR surfacekhr = surface.Get();
@@ -420,7 +428,7 @@ namespace Tether::Rendering::Vulkan
 		return details;
 	}
 
-	bool VulkanUIRenderer::PopulateCommandBuffers()
+	bool VulkanRenderer::PopulateCommandBuffers()
 	{
 		for (size_t i = 0; i < inFlightFences.size(); i++)
 			dloader->vkWaitForFences(device.Get(), 1,
@@ -436,7 +444,7 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	bool VulkanUIRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
+	bool VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
 		uint32_t index)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
@@ -490,7 +498,7 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void VulkanUIRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
+	void VulkanRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 		uint32_t index)
 	{
 		for (size_t i = 0; i < objects.size(); i++)
@@ -506,7 +514,7 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	bool VulkanUIRenderer::RecreateSwapchain()
+	bool VulkanRenderer::RecreateSwapchain()
 	{
 		if (pWindow->GetWidth() == 0 || pWindow->GetHeight() == 0)
 			return true;
@@ -525,7 +533,7 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void VulkanUIRenderer::DestroySwapchain()
+	void VulkanRenderer::DestroySwapchain()
 	{
 		device.WaitIdle();
 

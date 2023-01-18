@@ -4,7 +4,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	Image::Image(VulkanUIRenderer* pVkRenderer)
+	Image::Image(VulkanRenderer* pVkRenderer)
 		:
 		Objects::Image(pVkRenderer),
 		pool(pVkRenderer->GetDevice(), pVkRenderer->GetSwapchainImageCount()),
@@ -30,9 +30,8 @@ namespace Tether::Rendering::Vulkan
 		uniforms.scale.x = width;
 		uniforms.scale.y = height;
 
-		for (size_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-			memcpy(uniformBuffer.GetMappedData(i), &uniforms,
-				sizeof(Uniforms));
+		for (uint32_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
+			memcpy(uniformBuffer.GetMappedData(i), &uniforms, sizeof(Uniforms));
 	}
 
 	void Image::AddToCommandBuffer(VkCommandBuffer commandBuffer,

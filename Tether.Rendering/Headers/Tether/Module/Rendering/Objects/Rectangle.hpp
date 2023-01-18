@@ -22,11 +22,8 @@ namespace Tether::Rendering::Objects
 		float GetWidth();
 		float GetHeight();
 		Color GetColor();
-
-		inline static HashedString typeName =
-			HashedString(TypeTools::GetTypeName<Rectangle>());
 	protected:
-		Rectangle(UIRenderer* pRenderer);
+		Rectangle(Renderer* pRenderer);
 		
 		float x = 0.0f;
 		float y = 0.0f;

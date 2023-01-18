@@ -1,18 +1,18 @@
-#include <Tether/Module/Rendering/UIRenderer.hpp>
+#include <Tether/Module/Rendering/Renderer.hpp>
 
 using namespace Tether::Rendering;
 
-UIRenderer::UIRenderer()
+Renderer::Renderer()
 {
 	
 }
 
-UIRenderer::~UIRenderer()
+Renderer::~Renderer()
 {
 	ClearObjects();
 }
 
-void UIRenderer::AddObject(Objects::Object* pObject)
+void Renderer::AddObject(Objects::Object* pObject)
 {
 	if (HasObject(pObject) || pObject->GetUIRenderer() != this)
 		return;
@@ -21,7 +21,7 @@ void UIRenderer::AddObject(Objects::Object* pObject)
 	OnObjectAdd(pObject);
 }
 
-bool UIRenderer::RemoveObject(Objects::Object* pObject)
+bool Renderer::RemoveObject(Objects::Object* pObject)
 {
 	for (size_t i = 0; i < objects.size(); i++)
 		if (objects[i] == pObject)
@@ -35,7 +35,7 @@ bool UIRenderer::RemoveObject(Objects::Object* pObject)
 	return false;
 }
 
-bool UIRenderer::HasObject(Objects::Object* pObject)
+bool Renderer::HasObject(Objects::Object* pObject)
 {
 	for (size_t i = 0; i < objects.size(); i++)
 		if (objects[i] == pObject)
@@ -44,7 +44,7 @@ bool UIRenderer::HasObject(Objects::Object* pObject)
 	return false;
 }
 
-void UIRenderer::ClearObjects()
+void Renderer::ClearObjects()
 {
 	for (size_t i = 0; i < objects.size(); i++)
 		OnObjectRemove(objects[i]);
@@ -52,7 +52,7 @@ void UIRenderer::ClearObjects()
 	objects.clear();
 }
 
-const std::vector<Objects::Object*>& UIRenderer::GetObjects() const
+const std::vector<Objects::Object*>& Renderer::GetObjects() const
 {
 	return objects;
 }

@@ -1,9 +1,8 @@
 #pragma once
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Module/Rendering/UIRenderer.hpp>
+#include <Tether/Module/Rendering/Renderer.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Common/ErrorCode.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
@@ -21,13 +20,15 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VulkanUIRenderer : public Rendering::UIRenderer
+	class TETHER_EXPORT VulkanRenderer : public Rendering::Renderer
 	{
 	public:
-		VulkanUIRenderer(SimpleWindow* pWindow);
-		~VulkanUIRenderer();
+		VulkanRenderer(SimpleWindow* pWindow);
+		~VulkanRenderer();
 		
 		bool RenderFrame();
+
+		Scope<BufferedImage> CreateImage(const BufferedImageInfo& info) override;
 
 		void WaitForCommandBuffers();
 
@@ -40,7 +41,8 @@ namespace Tether::Rendering::Vulkan
 
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	private:
-		Objects::Object* OnObjectCreate(HashedString& typeName) override;
+		void OnCreateObject(Scope<Objects::Rectangle>& object) override;
+		void OnCreateObject(Scope<Objects::Image>& object) override;
 
 		void OnObjectAdd(Objects::Object* pObject) override;
 		void OnObjectRemove(Objects::Object* pObject) override;

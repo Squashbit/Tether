@@ -1,15 +1,11 @@
 #pragma once
 
-#include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/Ref.hpp>
-#include <Tether/Common/HashedString.hpp>
-#include <Tether/Common/TypeTools.hpp>
-
-#include <Tether/Module/Rendering/Common/Defs.hpp>
+#include <Tether/Common/Defs.hpp>
 
 namespace Tether::Rendering
 {
-	class UIRenderer;
+	class Renderer;
 }
 
 namespace Tether::Rendering::Objects
@@ -28,12 +24,12 @@ namespace Tether::Rendering::Objects
 		virtual ~Object() = default;
 		TETHER_NO_COPY(Object);
 
-		UIRenderer* GetUIRenderer();
+		Renderer* GetUIRenderer();
 		ObjectRenderer* GetObjectRenderer();
 	protected:
-		Object(UIRenderer* pRenderer);
+		Object(Renderer* pRenderer);
 
-		UIRenderer* pRenderer = nullptr;
+		Renderer* pRenderer = nullptr;
 		ObjectRenderer* pObjectRenderer = nullptr;
 	};
 }

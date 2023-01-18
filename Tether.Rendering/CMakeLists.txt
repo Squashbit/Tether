@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE}
     Source/Objects/Object.cpp 
     Source/Objects/Rectangle.cpp 
     Source/GraphicalWindow.cpp 
-    Source/UIRenderer.cpp
+    Source/Renderer.cpp
     Source/RenderingModule.cpp
  "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp")
 
@@ -35,7 +35,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/DeviceLoader.cpp
         Source/Vulkan/Instance.cpp
         Source/Vulkan/InstanceLoader.cpp
-        Source/Vulkan/VulkanUIRenderer.cpp
+        Source/Vulkan/VulkanRenderer.cpp
         Source/Vulkan/Surface.cpp
         Source/Vulkan/Pipeline.cpp
         Source/Vulkan/Swapchain.cpp
@@ -44,7 +44,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/VmaImplementation.cpp
         Source/Vulkan/Vulkan_RenderingModule.cpp
         Source/Vulkan/Allocator.cpp
-     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp")
+     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp" "Source/Vulkan/VulkanBufferedImage.cpp"  "Source/Vulkan/SingleUseCommandBuffer.cpp")
 endif()
 
 # Set the sources of platform specific files

@@ -3,8 +3,6 @@
 #include <Tether/Module.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Common/ErrorCode.hpp>
-
 namespace Tether::Rendering
 {
 	namespace Vulkan
