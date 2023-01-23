@@ -2,6 +2,7 @@
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/VulkanBufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/CommandBufferDescriptor.hpp>
 
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
@@ -11,6 +12,8 @@
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
+#include <Tether.Rendering/Assets/CompiledShaders/textured.vert.spv.h>
+#include <Tether.Rendering/Assets/CompiledShaders/textured.frag.spv.h>
 
 #include <set>
 
@@ -36,12 +39,14 @@ namespace Tether::Rendering::Vulkan
 		presentQueue = device.GetDeviceQueue(queueIndices.presentFamilyIndex, 0);
 
 		CreateSwapchain();
-		CreateShaders();
+		CreateSolidPipeline();
+		CreateTexturedPipeline();
 		CreateFramebuffers();
 		CreateSyncObjects();
 		CreateCommandPool();
 		CreateVertexBuffers();
 		CreateCommandBuffer();
+		CreateSampler();
 
 		PopulateCommandBuffers();
 	}
@@ -50,6 +55,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		DestroySwapchain();
 
+		dloader->vkDestroySampler(device.Get(), sampler, nullptr);
 		dloader->vkDestroyCommandPool(device.Get(), commandPool, nullptr);
 
 		for (uint32_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -61,7 +67,9 @@ namespace Tether::Rendering::Vulkan
 			dloader->vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
 		}
 
-		dloader->vkDestroyDescriptorSetLayout(device.Get(), descriptorSetLayout, 
+		dloader->vkDestroyDescriptorSetLayout(device.Get(), solidPipelineSetLayout,
+			nullptr);
+		dloader->vkDestroyDescriptorSetLayout(device.Get(), texturedPipelineSetLayout,
 			nullptr);
 	}
 
@@ -135,7 +143,7 @@ namespace Tether::Rendering::Vulkan
 		const BufferedImageInfo& info)
 	{
 		return std::make_unique<VulkanBufferedImage>(&device, allocator.Get(), 
-			commandPool, graphicsQueue, info);
+			commandPool, graphicsQueue, sampler, info);
 	}
 
 	void VulkanRenderer::WaitForCommandBuffers()
@@ -155,16 +163,6 @@ namespace Tether::Rendering::Vulkan
 		return &device;
 	}
 
-	Pipeline* VulkanRenderer::GetPipeline()
-	{
-		return &pipeline.value();
-	}
-
-	VkDescriptorSetLayout VulkanRenderer::GetDescriptorSetLayout()
-	{
-		return descriptorSetLayout;
-	}
-
 	VertexBuffer* VulkanRenderer::GetRectangleBuffer()
 	{
 		return &square.value();
@@ -177,12 +175,18 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Rectangle>& object)
 	{
-		object = std::make_unique<Rectangle>(this);
+		object = std::make_unique<Rectangle>(
+			this, device, allocator.Get(), &solidPipeline.value(), &square.value(),
+			solidPipelineSetLayout, swapchain->GetImageCount()
+		);
 	}
 
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
 	{
-		object = std::make_unique<Image>(this);
+		object = std::make_unique<Image>(
+			this, device, allocator.Get(), &texturedPipeline.value(), &square.value(),
+			texturedPipelineSetLayout, swapchain->GetImageCount()
+		);
 	}
 
 	void VulkanRenderer::OnObjectAdd(Objects::Object* pObject)
@@ -208,7 +212,7 @@ namespace Tether::Rendering::Vulkan
 		swapchain->CreateImageViews(&swapchainImageViews);
 	}
 
-	void VulkanRenderer::CreateShaders()
+	void VulkanRenderer::CreateSolidPipeline()
 	{
 		using namespace Assets;
 
@@ -225,13 +229,13 @@ namespace Tether::Rendering::Vulkan
 		layoutInfo.pBindings = &uboLayoutBinding;
 
 		if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
-			&descriptorSetLayout) != VK_SUCCESS)
+			&solidPipelineSetLayout) != VK_SUCCESS)
 			throw RendererException("Failed to create descriptor set layout");
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+		pipelineLayoutInfo.pSetLayouts = &solidPipelineSetLayout;
 
 		std::vector<VkVertexInputBindingDescription> bindingDescs;
 		std::vector<VkVertexInputAttributeDescription> attribDescs;
@@ -252,13 +256,74 @@ namespace Tether::Rendering::Vulkan
 			attribDescs.push_back(posDesc);
 		}
 
-		pipeline.emplace(
+		solidPipeline.emplace(
 			&device, renderPass.Get(),
 			swapchain->GetExtent(), 0,
 			(uint32_t*)VulkanShaders::_binary_solid_vert_spv,
 			sizeof(VulkanShaders::_binary_solid_vert_spv),
 			(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
 			sizeof(VulkanShaders::_binary_solid_frag_spv),
+			bindingDescs,
+			attribDescs,
+			&pipelineLayoutInfo
+		);
+	}
+
+	void VulkanRenderer::CreateTexturedPipeline()
+	{
+		using namespace Assets;
+
+		VkDescriptorSetLayoutBinding layoutBindings[2] = {};
+		layoutBindings[0].binding = 0;
+		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		layoutBindings[0].descriptorCount = 1;
+		layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+		layoutBindings[1].binding = 1;
+		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		layoutBindings[1].descriptorCount = 1;
+		layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = sizeof(layoutBindings) 
+			/ sizeof(VkDescriptorSetLayoutBinding);
+		layoutInfo.pBindings = layoutBindings;
+
+		if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
+			&texturedPipelineSetLayout) != VK_SUCCESS)
+			throw RendererException("Failed to create descriptor set layout");
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &texturedPipelineSetLayout;
+
+		std::vector<VkVertexInputBindingDescription> bindingDescs;
+		std::vector<VkVertexInputAttributeDescription> attribDescs;
+
+		// Vector2 descriptions
+		{
+			VkVertexInputBindingDescription bindingDesc;
+			bindingDesc.binding = 0;
+			bindingDesc.stride = sizeof(Math::Vector2f);
+			bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			bindingDescs.push_back(bindingDesc);
+
+			VkVertexInputAttributeDescription posDesc;
+			posDesc.binding = 0;
+			posDesc.location = 0;
+			posDesc.format = VK_FORMAT_R32G32_SFLOAT;
+			posDesc.offset = 0;
+			attribDescs.push_back(posDesc);
+		}
+
+		texturedPipeline.emplace(
+			&device, renderPass.Get(),
+			swapchain->GetExtent(), 0,
+			(uint32_t*)VulkanShaders::_binary_textured_vert_spv,
+			sizeof(VulkanShaders::_binary_textured_vert_spv),
+			(uint32_t*)VulkanShaders::_binary_textured_frag_spv,
+			sizeof(VulkanShaders::_binary_textured_frag_spv),
 			bindingDescs,
 			attribDescs,
 			&pipelineLayoutInfo
@@ -381,6 +446,31 @@ namespace Tether::Rendering::Vulkan
 		square->FinishDataUpload();
 	}
 
+	void VulkanRenderer::CreateSampler()
+	{
+		VkSamplerCreateInfo samplerInfo{};
+		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+		samplerInfo.minFilter = VK_FILTER_LINEAR;
+		samplerInfo.magFilter = VK_FILTER_LINEAR;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.anisotropyEnable = VK_FALSE;
+		samplerInfo.maxAnisotropy = 0.0f;
+		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.unnormalizedCoordinates = VK_FALSE;
+		samplerInfo.compareEnable = VK_FALSE;
+		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.mipLodBias = 0.0f;
+		samplerInfo.minLod = 0.0f;
+		samplerInfo.maxLod = 0.0f;
+
+		if (dloader->vkCreateSampler(device.Get(), &samplerInfo, nullptr, &sampler)
+			!= VK_SUCCESS)
+			throw RendererException("Failed to create sampler");
+	}
+
 	VkSurfaceFormatKHR VulkanRenderer::ChooseSurfaceFormat()
 	{
 		if (swapchainDetails.formats.size() == 0)
@@ -485,9 +575,6 @@ namespace Tether::Rendering::Vulkan
 			scissor.extent.height = swapchainExtent.height;
 			dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-			dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-				pipeline->Get());
-
 			AddObjectsToCommandBuffer(commandBuffer, index);
 
 			dloader->vkCmdEndRenderPass(commandBuffer);
@@ -501,6 +588,7 @@ namespace Tether::Rendering::Vulkan
 	void VulkanRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
 		uint32_t index)
 	{
+		CommandBufferDescriptor commandBufferDesc(commandBuffer, dloader);
 		for (size_t i = 0; i < objects.size(); i++)
 		{
 			Objects::Object* pObject = objects[i];
@@ -509,8 +597,8 @@ namespace Tether::Rendering::Vulkan
 				continue;
 
 			ObjectRenderer* pRenderer = (ObjectRenderer*)pObjectRenderer;
-
-			pRenderer->AddToCommandBuffer(commandBuffer, index);
+			
+			pRenderer->AddToCommandBuffer(commandBufferDesc, index);
 		}
 	}
 

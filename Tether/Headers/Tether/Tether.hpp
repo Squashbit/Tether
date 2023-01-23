@@ -7,10 +7,6 @@
 
 #pragma once
 
-#if !defined(__linux__) && !defined(_WIN32)
-#error Sorry! Linux and Windows are currently the only supported platforms!
-#endif
-
 #include <Tether/Common/Ref.hpp>
 
 #include <Tether/Application.hpp>

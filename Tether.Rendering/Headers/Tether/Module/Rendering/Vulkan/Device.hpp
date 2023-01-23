@@ -35,6 +35,8 @@ namespace Tether::Rendering::Vulkan
          * @brief Waits for all work on the device to finish.
          */
         void WaitIdle();
+
+        VkPhysicalDeviceProperties GetPhysicalDeviceProperties();
         
         VkDevice Get();
         VkPhysicalDevice GetPhysicalDevice();

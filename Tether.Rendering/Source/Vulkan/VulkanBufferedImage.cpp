@@ -9,14 +9,16 @@ namespace Tether::Rendering::Vulkan
 	VulkanBufferedImage::VulkanBufferedImage(
 		Device* pDevice, VmaAllocator allocator,
 		VkCommandPool commandPool, VkQueue graphicsQueue,
+		VkSampler sampler,
 		const BufferedImageInfo& info
 	)
 		:
-		pDevice(pDevice),
-		dloader(pDevice->GetLoader()),
-		allocator(allocator),
-		commandPool(commandPool),
-		graphicsQueue(graphicsQueue)
+		m_pDevice(pDevice),
+		m_Dloader(pDevice->GetLoader()),
+		m_Allocator(allocator),
+		m_CommandPool(commandPool),
+		m_GraphicsQueue(graphicsQueue),
+		m_Sampler(sampler)
 	{
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -38,7 +40,7 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 		if (vmaCreateImage(allocator, &imageInfo, &allocInfo, 
-			&image, &imageAllocation, nullptr) != VK_SUCCESS)
+			&m_Image, &m_ImageAllocation, nullptr) != VK_SUCCESS)
 			throw RendererException("Failed to create image");
 
 		UploadImageData(info);
@@ -47,8 +49,8 @@ namespace Tether::Rendering::Vulkan
 
 	VulkanBufferedImage::~VulkanBufferedImage()
 	{
-		dloader->vkDestroyImageView(pDevice->Get(), imageView, nullptr);
-		vmaDestroyImage(allocator, image, imageAllocation);
+		m_Dloader->vkDestroyImageView(m_pDevice->Get(), m_ImageView, nullptr);
+		vmaDestroyImage(m_Allocator, m_Image, m_ImageAllocation);
 	}
 
 	void VulkanBufferedImage::UploadImageData(const BufferedImageInfo& info)
@@ -66,40 +68,40 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 		allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-		if (vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &stagingBuffer, 
+		if (vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo, &stagingBuffer, 
 			&stagingAllocation, &stagingInfo) != VK_SUCCESS)
 			throw RendererException("Failed to create staging buffer");
 
 		memcpy(stagingInfo.pMappedData, info.pixelData, bufferInfo.size);
 
-		SingleUseCommandBuffer singleUseCommandBuffer(pDevice, commandPool, 
-			graphicsQueue);
+		SingleUseCommandBuffer singleUseCommandBuffer(m_pDevice, m_CommandPool, 
+			m_GraphicsQueue);
 		singleUseCommandBuffer.Begin();
 		{
 			singleUseCommandBuffer.TransitionImageLayout(
-				image, VK_FORMAT_R8G8B8A8_SRGB,
+				m_Image, VK_FORMAT_R8G8B8A8_SRGB,
 				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 			);
 			singleUseCommandBuffer.CopyBufferToImage(
-				stagingBuffer, image,
+				stagingBuffer, m_Image,
 				info.width, info.height
 			);
 			singleUseCommandBuffer.TransitionImageLayout(
-				image, VK_FORMAT_R8G8B8A8_SRGB,
+				m_Image, VK_FORMAT_R8G8B8A8_SRGB,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 			);
 		}
 		singleUseCommandBuffer.Submit();
 
-		vmaDestroyBuffer(allocator, stagingBuffer, stagingAllocation);
+		vmaDestroyBuffer(m_Allocator, stagingBuffer, stagingAllocation);
 	}
 
 	void VulkanBufferedImage::CreateImageView()
 	{
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		viewInfo.image = image;
+		viewInfo.image = m_Image;
 		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 		viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
 		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -108,8 +110,23 @@ namespace Tether::Rendering::Vulkan
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		if (dloader->vkCreateImageView(pDevice->Get(), &viewInfo, nullptr, 
-			&imageView) != VK_SUCCESS)
+		if (m_Dloader->vkCreateImageView(m_pDevice->Get(), &viewInfo, nullptr, 
+			&m_ImageView) != VK_SUCCESS)
 			throw RendererException("Failed to create texture image view");
+	}
+
+	VkDescriptorType VulkanBufferedImage::GetDescriptorType()
+	{
+		return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	}
+
+	VkDescriptorImageInfo VulkanBufferedImage::GetImageInfo(uint32_t setIndex)
+	{
+		VkDescriptorImageInfo imageInfo{};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView = m_ImageView;
+		imageInfo.sampler = m_Sampler;
+
+		return imageInfo;
 	}
 }

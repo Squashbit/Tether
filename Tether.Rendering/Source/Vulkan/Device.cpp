@@ -91,6 +91,14 @@ void Device::WaitIdle()
 	loader.vkDeviceWaitIdle(device);
 }
 
+VkPhysicalDeviceProperties Device::GetPhysicalDeviceProperties()
+{
+	VkPhysicalDeviceProperties properties{};
+	loader.vkGetPhysicalDeviceProperties(physicalDevice, &properties);
+
+	return properties;
+}
+
 VkDevice Device::Get()
 {
 	return device;

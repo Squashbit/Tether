@@ -4,6 +4,7 @@
 
 #include <Tether/Module/Rendering/Vulkan/DescriptorPool.hpp>
 #include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
+#include <Tether/Module/Rendering/Vulkan/DescriptorSet.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
 
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
@@ -22,23 +23,34 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector3f color;
 		};
 
-		Rectangle(VulkanRenderer* pRenderer);
+		Rectangle(
+			Renderer* pRenderer,
+			Device& device,
+			VmaAllocator allocator,
+			Pipeline* pPipeline,
+			VertexBuffer* pRectBuffer,
+			VkDescriptorSetLayout pipelineSetLayout,
+			uint32_t swapchainImageCount
+		);
 		TETHER_NO_COPY(Rectangle);
 
-		void AddToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index) override;
+		void AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
+			uint32_t index) override;
 	private:
 		void OnObjectUpdate() override;
 
-		Uniforms uniforms;
+		Device& m_Device;
+		DeviceLoader* m_Dloader;
+		VmaAllocator m_Allocator = nullptr;
+		uint32_t m_SwapchainImageCount;
 
-		DescriptorPool pool;
-		UniformBuffer uniformBuffer;
+		Pipeline* m_pPipeline;
+		VertexBuffer* m_pRectBuffer;
 
-		Device* device = nullptr;
-		DeviceLoader* dloader = nullptr;
-		VertexBuffer* pRectBuffer = nullptr;
-		VmaAllocator allocator = nullptr;
+		DescriptorPool m_Pool;
+		DescriptorSet m_Set;
+		UniformBuffer m_UniformBuffer;
 
-		VulkanRenderer* pVkRenderer = nullptr;
+		Uniforms m_Uniforms;
 	};
 }

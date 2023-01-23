@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Common/Defs.hpp>
+#include <Tether/Common/Defs.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/Defs.hpp>
 
 #include <vulkan/vulkan.h>
 

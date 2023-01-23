@@ -32,10 +32,13 @@ namespace Tether::Rendering::Vulkan
 
 		void WaitForCommandBuffers();
 
+		Pipeline& GetSolidPipeline();
+		VkDescriptorSetLayout GetSolidPipelineSetLayout();
+
+		Pipeline& GetTexturedPipeline();
+
 		uint32_t GetSwapchainImageCount();
 		Device* GetDevice();
-		Pipeline* GetPipeline();
-		VkDescriptorSetLayout GetDescriptorSetLayout();
 		VertexBuffer* GetRectangleBuffer();
 		VmaAllocator GetAllocator();
 
@@ -48,12 +51,14 @@ namespace Tether::Rendering::Vulkan
 		void OnObjectRemove(Objects::Object* pObject) override;
 
 		void CreateSwapchain();
-		void CreateShaders();
+		void CreateSolidPipeline();
+		void CreateTexturedPipeline();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandPool();
 		void CreateCommandBuffer();
 		void CreateVertexBuffers();
+		void CreateSampler();
 
 		VkSurfaceFormatKHR ChooseSurfaceFormat();
 		SwapchainDetails QuerySwapchainSupport();
@@ -75,18 +80,23 @@ namespace Tether::Rendering::Vulkan
 		SwapchainDetails swapchainDetails;
 		VkSurfaceFormatKHR surfaceFormat;
 		RenderPass renderPass;
+
 		VkCommandPool commandPool;
+		VkSampler sampler;
 
-		VkDescriptorSetLayout descriptorSetLayout;
+		std::optional<Pipeline> solidPipeline;
+		VkDescriptorSetLayout solidPipelineSetLayout;
 
-		std::optional<Pipeline> pipeline;
+		std::optional<Pipeline> texturedPipeline;
+		VkDescriptorSetLayout texturedPipelineSetLayout;
+
 		std::optional<VertexBuffer> square;
 		std::optional<Swapchain> swapchain;
 
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkQueue graphicsQueue;
 		VkQueue presentQueue;
-		
+
 		std::vector<VkImage> swapchainImages;
 		std::vector<VkImageView> swapchainImageViews;
 		std::vector<VkFramebuffer> swapchainFramebuffers;

@@ -5,6 +5,8 @@
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
 
+#include <Tether/Module/Rendering/BufferedImage.hpp>
+
 namespace Tether::Rendering::Objects
 {
 	class TETHER_EXPORT Image : public Object
@@ -20,6 +22,8 @@ namespace Tether::Rendering::Objects
 		float GetY();
 		float GetWidth();
 		float GetHeight();
+
+		virtual void SetImage(BufferedImage* image) = 0;
 	protected:
 		Image(Renderer* pRenderer);
 		

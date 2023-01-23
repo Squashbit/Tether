@@ -2,60 +2,65 @@
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <iostream>
 
-using namespace Tether::Rendering::Vulkan;
-
-Rectangle::Rectangle(VulkanRenderer* pVkRenderer)
-	:
-	Objects::Rectangle(pVkRenderer),
-	pool(pVkRenderer->GetDevice(), pVkRenderer->GetSwapchainImageCount()),
-	uniformBuffer(
-		pVkRenderer->GetAllocator(), pVkRenderer->GetDevice(), 
-		&pool, pVkRenderer->GetDescriptorSetLayout(),
-		sizeof(Uniforms), pVkRenderer->GetSwapchainImageCount()
+namespace Tether::Rendering::Vulkan
+{
+	Rectangle::Rectangle(
+		Renderer* pRenderer,
+		Device& device,
+		VmaAllocator allocator,
+		Pipeline* pPipeline,
+		VertexBuffer* pRectBuffer,
+		VkDescriptorSetLayout pipelineSetLayout,
+		uint32_t swapchainImageCount
 	)
-{
-	this->pObjectRenderer = this;
-	this->pVkRenderer = pVkRenderer;
+		:
+		Objects::Rectangle(pRenderer),
+		m_Device(device),
+		m_Dloader(m_Device.GetLoader()),
+		m_Allocator(allocator),
+		m_pPipeline(pPipeline),
+		m_pRectBuffer(pRectBuffer),
+		m_SwapchainImageCount(swapchainImageCount),
+		m_Pool(&m_Device, swapchainImageCount),
+		m_Set(&m_Device, m_Pool, pipelineSetLayout, m_SwapchainImageCount),
+		m_UniformBuffer(allocator, &device, sizeof(Uniforms), m_Set, 0)
+	{
+		this->pObjectRenderer = this;
+	}
 
-	this->device = pVkRenderer->GetDevice();
-	this->dloader = device->GetLoader();
-	this->pRectBuffer = pVkRenderer->GetRectangleBuffer();
-	this->allocator = pVkRenderer->GetAllocator();
-}
+	void Rectangle::OnObjectUpdate()
+	{
+		m_Uniforms.position.x = x;
+		m_Uniforms.position.y = y;
+		m_Uniforms.scale.x = width;
+		m_Uniforms.scale.y = height;
+		m_Uniforms.color.x = color.GetR();
+		m_Uniforms.color.y = color.GetG();
+		m_Uniforms.color.z = color.GetB();
 
-void Rectangle::OnObjectUpdate()
-{
-	uniforms.position.x = x;
-	uniforms.position.y = y;
-	uniforms.scale.x = width;
-	uniforms.scale.y = height;
-	uniforms.color.x = color.GetR();
-	uniforms.color.y = color.GetG();
-	uniforms.color.z = color.GetB();
+		for (uint32_t i = 0; i < m_SwapchainImageCount; i++)
+			memcpy(m_UniformBuffer.GetMappedData(i), &m_Uniforms, sizeof(Uniforms));
+	}
 
-	for (uint32_t i = 0; i < pVkRenderer->GetSwapchainImageCount(); i++)
-		memcpy(uniformBuffer.GetMappedData(i), &uniforms, sizeof(Uniforms));
-}
+	void Rectangle::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
+		uint32_t index)
+	{
+		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-void Rectangle::AddToCommandBuffer(VkCommandBuffer commandBuffer,
-	uint32_t index)
-{
-	VkBuffer vbuffers[] = { pRectBuffer->GetBuffer() };
-	VkDeviceSize offsets[] = { 0 };
-	dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
-	dloader->vkCmdBindIndexBuffer(commandBuffer, pRectBuffer->GetIndexBuffer(), 0,
-		VK_INDEX_TYPE_UINT32);
+		commandBuffer.BindPipelineIfNotBound(m_pPipeline);
+		commandBuffer.BindVertexBufferIfNotBound(m_pRectBuffer);
 
-	dloader->vkCmdBindDescriptorSets(
-		commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-		pVkRenderer->GetPipeline()->GetLayout(), 0,
-		1, uniformBuffer.GetSetAtIndex(index),
-		0, nullptr
-	);
+		m_Dloader->vkCmdBindDescriptorSets(
+			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pPipeline->GetLayout(), 0,
+			1, &m_Set.GetSetAtIndex(index),
+			0, nullptr
+		);
 
-	dloader->vkCmdDrawIndexed(
-		commandBuffer,
-		static_cast<uint32_t>(pRectBuffer->GetVertexCount()),
-		1, 0, 0, 0
-	);
+		m_Dloader->vkCmdDrawIndexed(
+			vkCommandBuffer,
+			static_cast<uint32_t>(m_pRectBuffer->GetVertexCount()),
+			1, 0, 0, 0
+		);
+	}
 }

@@ -1,8 +1,7 @@
 #pragma once
 
 #include <Tether/Common/Defs.hpp>
-
-#include <Tether/Module/Rendering/Common/Defs.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 
 #include <vulkan/vulkan.h>
@@ -35,6 +34,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CreateImageView);
 		TETHER_DEVICE_FUNC_VAR(CreatePipelineLayout);
 		TETHER_DEVICE_FUNC_VAR(CreateRenderPass);
+		TETHER_DEVICE_FUNC_VAR(CreateSampler);
 		TETHER_DEVICE_FUNC_VAR(CreateSemaphore);
 		TETHER_DEVICE_FUNC_VAR(CreateShaderModule);
 		TETHER_DEVICE_FUNC_VAR(CreateSwapchainKHR);
@@ -64,6 +64,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(DestroyRenderPass);
 		TETHER_DEVICE_FUNC_VAR(DestroyFence);
 		TETHER_DEVICE_FUNC_VAR(DestroySemaphore);
+		TETHER_DEVICE_FUNC_VAR(DestroySampler);
 		TETHER_DEVICE_FUNC_VAR(DestroyShaderModule);
 		TETHER_DEVICE_FUNC_VAR(DestroySwapchainKHR);
 		TETHER_DEVICE_FUNC_VAR(DeviceWaitIdle);
@@ -71,6 +72,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(FreeCommandBuffers);
 		TETHER_DEVICE_FUNC_VAR(FreeDescriptorSets);
 		TETHER_DEVICE_FUNC_VAR(GetDeviceQueue);
+		TETHER_DEVICE_FUNC_VAR(GetPhysicalDeviceProperties);
 		TETHER_DEVICE_FUNC_VAR(GetSwapchainImagesKHR);
 		TETHER_DEVICE_FUNC_VAR(QueuePresentKHR);
 		TETHER_DEVICE_FUNC_VAR(QueueSubmit);

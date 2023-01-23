@@ -31,6 +31,7 @@ public:
 		{
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 			{
 				std::cout << pCallbackData->pMessage << std::endl;
 			}
@@ -83,12 +84,10 @@ public:
 		for (size_t y = 0; y < info.height; y++)
 			for (size_t x = 0; x < info.width; x++)
 			{
-				uint8_t r = static_cast<uint8_t>(rand() % 255);
-				uint8_t g = static_cast<uint8_t>(rand() % 255);
-				uint8_t b = static_cast<uint8_t>(rand() % 255);
+				uint8_t r = ((float)x / info.width) * 255;
 				uint8_t a = 255;
 
-				uint32_t color = r | g << 8 | b << 16 | a << 24;
+				uint32_t color = r | r << 8 | r << 16 | a << 24;
 				info.pixelData[y * info.width + x] = color;
 			}
 
@@ -105,11 +104,17 @@ public:
 			image->SetX(i / (float)numObjects);
 			image->SetWidth(imageSize);
 			image->SetHeight(imageSize);
+			image->SetImage(testImage.get());
 			
 			renderer.AddObject(image);
 		}
 
 		window.SetVisible(true);
+	}
+
+	~RendererTestApp()
+	{
+		window.SetVisible(false);
 	}
 
 	void Run()

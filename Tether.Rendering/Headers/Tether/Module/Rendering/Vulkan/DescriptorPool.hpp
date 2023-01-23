@@ -11,6 +11,8 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		DescriptorPool(Device* pDevice, uint32_t uniformDescriptorCount);
+		DescriptorPool(Device* pDevice, uint32_t uniformDescriptorCount,
+			uint32_t imageSamplerDescriptorCount);
 		~DescriptorPool();
 		TETHER_NO_COPY(DescriptorPool);
 

@@ -3,6 +3,8 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DescriptorPool.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
+#include <Tether/Module/Rendering/Vulkan/DescriptorSet.hpp>
+#include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
 
 #include <vector>
 
@@ -11,30 +13,24 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT UniformBuffer
+	class TETHER_EXPORT UniformBuffer : public DescriptorSetWritable
 	{
 	public:
-		UniformBuffer(
-			VmaAllocator allocator, Device* pDevice, 
-			DescriptorPool* pPool, VkDescriptorSetLayout layout,
-			size_t bufferSize, uint32_t setCount
-		);
+		UniformBuffer(VmaAllocator allocator, Device* pDevice, size_t bufferSize,
+			DescriptorSet& set, uint32_t binding);
 		~UniformBuffer();
 		TETHER_NO_COPY(UniformBuffer);
 
 		void* GetMappedData(uint32_t index);
-		VkDescriptorSet* GetSetAtIndex(uint32_t index);
-	private:
-		void CreateDescriptorSets(
-			size_t bufferSize, 
-			DescriptorPool* pPool, 
-			VkDescriptorSetLayout layout
-		);
 
-		std::vector<VkDescriptorSet> descriptorSets;
+		VkDescriptorType GetDescriptorType() override;
+		VkDescriptorBufferInfo GetBufferInfo(uint32_t setIndex) override;
+	private:
 		std::vector<VkBuffer> uniformBuffers;
 		std::vector<VmaAllocation> uniformAllocations;
 		std::vector<VmaAllocationInfo> uniformAllocInfos;
+
+		size_t m_BufferSize = 0;
 
 		VmaAllocator allocator = nullptr;
 		Device* pDevice = nullptr;

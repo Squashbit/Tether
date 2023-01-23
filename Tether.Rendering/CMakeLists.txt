@@ -44,7 +44,7 @@ if (TETHER_RENDERING_VULKAN_API)
         Source/Vulkan/VmaImplementation.cpp
         Source/Vulkan/Vulkan_RenderingModule.cpp
         Source/Vulkan/Allocator.cpp
-     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp" "Source/Vulkan/VulkanBufferedImage.cpp"  "Source/Vulkan/SingleUseCommandBuffer.cpp")
+     "Source/Vulkan/RenderPass.cpp" "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp" "Source/Vulkan/VulkanBufferedImage.cpp"  "Source/Vulkan/SingleUseCommandBuffer.cpp"  "Source/Vulkan/CommandBufferDescriptor.cpp" "Source/Vulkan/DescriptorSet.cpp" "Source/Vulkan/DescriptorSetWritable.cpp")
 endif()
 
 # Set the sources of platform specific files

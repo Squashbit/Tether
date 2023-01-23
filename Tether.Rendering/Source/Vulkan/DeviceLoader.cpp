@@ -27,6 +27,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(CreatePipelineLayout);
 	TETHER_DEVICE_FUNC(CreateRenderPass);
 	TETHER_DEVICE_FUNC(CreateSemaphore);
+	TETHER_DEVICE_FUNC(CreateSampler);
 	TETHER_DEVICE_FUNC(CreateShaderModule);
 	TETHER_DEVICE_FUNC(CreateSwapchainKHR);
 	TETHER_DEVICE_FUNC(CmdBeginRenderPass);
@@ -55,6 +56,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(DestroyRenderPass);
 	TETHER_DEVICE_FUNC(DestroyFence);
 	TETHER_DEVICE_FUNC(DestroySemaphore);
+	TETHER_DEVICE_FUNC(DestroySampler);
 	TETHER_DEVICE_FUNC(DestroyShaderModule);
 	TETHER_DEVICE_FUNC(DestroySwapchainKHR);
 	TETHER_DEVICE_FUNC(DeviceWaitIdle);
@@ -62,6 +64,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(FreeCommandBuffers);
 	TETHER_DEVICE_FUNC(FreeDescriptorSets);
 	TETHER_DEVICE_FUNC(GetDeviceQueue);
+	TETHER_DEVICE_FUNC(GetPhysicalDeviceProperties);
 	TETHER_DEVICE_FUNC(GetSwapchainImagesKHR);
 	TETHER_DEVICE_FUNC(QueuePresentKHR);
 	TETHER_DEVICE_FUNC(QueueSubmit);

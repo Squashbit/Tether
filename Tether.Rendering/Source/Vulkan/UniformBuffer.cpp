@@ -3,15 +3,16 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	UniformBuffer::UniformBuffer(
-		VmaAllocator allocator, Device* pDevice,
-		DescriptorPool* pPool, VkDescriptorSetLayout layout,
-		size_t bufferSize, uint32_t setCount
-	)
+	UniformBuffer::UniformBuffer(VmaAllocator allocator, Device* pDevice, 
+		size_t bufferSize, DescriptorSet& set, uint32_t binding)
+		:
+		m_BufferSize(bufferSize)
 	{
 		this->allocator = allocator;
 		this->pDevice = pDevice;
 		this->dloader = pDevice->GetLoader();
+
+		uint32_t setCount = set.GetSetCount();
 
 		uniformBuffers.resize(setCount);
 		uniformAllocations.resize(setCount);
@@ -35,59 +36,7 @@ namespace Tether::Rendering::Vulkan
 				throw RendererException("Failed to create staging buffer");
 		}
 
-		CreateDescriptorSets(bufferSize, pPool, layout);
-	}
-
-	void UniformBuffer::CreateDescriptorSets(
-		size_t bufferSize,
-		DescriptorPool* pPool,
-		VkDescriptorSetLayout layout
-	)
-	{
-		uint32_t setCount = static_cast<uint32_t>(uniformBuffers.size());
-
-		std::vector<VkDescriptorSetLayout> layouts(setCount, layout);
-
-		VkDescriptorSetAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = pPool->Get();
-		allocInfo.descriptorSetCount = setCount;
-		allocInfo.pSetLayouts = layouts.data();
-
-		descriptorSets.resize(layouts.size());
-		if (dloader->vkAllocateDescriptorSets(pDevice->Get(), &allocInfo,
-			descriptorSets.data()) != VK_SUCCESS)
-			throw RendererException("Failed to allocate descriptor sets");
-
-		for (size_t i = 0; i < layouts.size(); i++)
-		{
-			VkDescriptorBufferInfo bufferInfo{};
-			bufferInfo.buffer = uniformBuffers[i];
-			bufferInfo.offset = 0;
-			bufferInfo.range = bufferSize;
-
-			VkWriteDescriptorSet descriptorWrite{};
-			descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			descriptorWrite.dstSet = descriptorSets[i];
-			descriptorWrite.dstBinding = 0;
-			descriptorWrite.dstArrayElement = 0;
-			descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			descriptorWrite.descriptorCount = 1;
-			descriptorWrite.pBufferInfo = &bufferInfo;
-
-			dloader->vkUpdateDescriptorSets(pDevice->Get(), 1, &descriptorWrite, 
-				0, nullptr);
-		}
-	}
-
-	void* UniformBuffer::GetMappedData(uint32_t index)
-	{
-		return uniformAllocInfos[index].pMappedData;
-	}
-
-	VkDescriptorSet* UniformBuffer::GetSetAtIndex(uint32_t index)
-	{
-		return &descriptorSets[index];
+		set.UpdateSets(this, binding);
 	}
 
 	UniformBuffer::~UniformBuffer()
@@ -96,5 +45,25 @@ namespace Tether::Rendering::Vulkan
 
 		for (size_t i = 0; i < uniformBuffers.size(); i++)
 			vmaDestroyBuffer(allocator, uniformBuffers[i], uniformAllocations[i]);
+	}
+
+	void* UniformBuffer::GetMappedData(uint32_t index)
+	{
+		return uniformAllocInfos[index].pMappedData;
+	}
+
+	VkDescriptorType UniformBuffer::GetDescriptorType()
+	{
+		return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	}
+
+	VkDescriptorBufferInfo UniformBuffer::GetBufferInfo(uint32_t setIndex)
+	{
+		VkDescriptorBufferInfo bufferInfo{};
+		bufferInfo.buffer = uniformBuffers[setIndex];
+		bufferInfo.offset = 0;
+		bufferInfo.range = m_BufferSize;
+
+		return bufferInfo;
 	}
 }
