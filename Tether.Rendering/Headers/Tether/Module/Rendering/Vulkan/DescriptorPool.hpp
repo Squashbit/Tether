@@ -10,9 +10,8 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT DescriptorPool
 	{
 	public:
-		DescriptorPool(Device* pDevice, uint32_t uniformDescriptorCount);
-		DescriptorPool(Device* pDevice, uint32_t uniformDescriptorCount,
-			uint32_t imageSamplerDescriptorCount);
+		DescriptorPool(Device* pDevice, uint32_t maxSets, uint32_t sizeCount,
+			VkDescriptorPoolSize* sizes);
 		~DescriptorPool();
 		TETHER_NO_COPY(DescriptorPool);
 

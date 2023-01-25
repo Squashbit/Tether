@@ -5,7 +5,7 @@
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
 
-#include <Tether/Module/Rendering/BufferedImage.hpp>
+#include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
 
 namespace Tether::Rendering::Objects
 {
@@ -23,9 +23,9 @@ namespace Tether::Rendering::Objects
 		float GetWidth();
 		float GetHeight();
 
-		virtual void SetImage(BufferedImage* image) = 0;
+		virtual void SetImage(Resources::BufferedImage* image) = 0;
 	protected:
-		Image(Renderer* pRenderer);
+		Image() = default;
 		
 		float x = 0.0f;
 		float y = 0.0f;

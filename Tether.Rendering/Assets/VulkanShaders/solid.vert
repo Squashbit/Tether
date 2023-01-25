@@ -3,7 +3,7 @@
 
 layout(location = 0) in vec2 position;
 
-layout(binding = 0) uniform Rectangle
+layout(push_constant) uniform Rectangle
 {
     vec2 position;
     vec2 scale;

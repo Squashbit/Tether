@@ -73,7 +73,7 @@ public:
 		window(1280, 720, "Renderer testing"),
 		renderer(&window)
 	{
-		BufferedImageInfo info{};
+		Resources::BufferedImageInfo info{};
 		info.width = 1024;
 		info.height = 1024;
 		info.channels = 4;
@@ -84,14 +84,13 @@ public:
 		for (size_t y = 0; y < info.height; y++)
 			for (size_t x = 0; x < info.width; x++)
 			{
-				uint8_t r = ((float)x / info.width) * 255;
-				uint8_t a = 255;
-
-				uint32_t color = r | r << 8 | r << 16 | a << 24;
+				uint8_t r = static_cast<uint8_t>(((float)x / info.width) * 255);
+				
+				uint32_t color = r | r << 8 | r << 16 | 255 << 24;
 				info.pixelData[y * info.width + x] = color;
 			}
 
-		testImage = renderer.CreateImage(info);
+		testImage = renderer.CreateResource<Resources::BufferedImage>(info);
 		
 		const float imageSize = 1.0f / numObjects;
 
@@ -164,7 +163,7 @@ private:
 	SimpleWindow window;
 	Vulkan::VulkanRenderer renderer;
 
-	Scope<BufferedImage> testImage;
+	Scope<Resources::BufferedImage> testImage;
 	
 	std::vector<Scope<Objects::Image>> objects;
 

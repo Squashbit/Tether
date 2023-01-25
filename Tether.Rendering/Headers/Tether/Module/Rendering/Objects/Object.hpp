@@ -14,22 +14,21 @@ namespace Tether::Rendering::Objects
 	{
 	public:
 		virtual ~ObjectRenderer() = default;
-
-		virtual void OnObjectUpdate() {}
 	};
 
 	class TETHER_EXPORT Object
 	{
+		friend Renderer;
 	public:
 		virtual ~Object() = default;
 		TETHER_NO_COPY(Object);
 
-		Renderer* GetUIRenderer();
+		Renderer* GetRenderer();
 		ObjectRenderer* GetObjectRenderer();
 	protected:
-		Object(Renderer* pRenderer);
+		Object() = default;
 
-		Renderer* pRenderer = nullptr;
-		ObjectRenderer* pObjectRenderer = nullptr;
+		Renderer* m_pRenderer = nullptr;
+		ObjectRenderer* m_pObjectRenderer = nullptr;
 	};
 }

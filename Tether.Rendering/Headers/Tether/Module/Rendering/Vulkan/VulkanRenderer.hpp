@@ -25,30 +25,19 @@ namespace Tether::Rendering::Vulkan
 	public:
 		VulkanRenderer(SimpleWindow* pWindow);
 		~VulkanRenderer();
-		
-		bool RenderFrame();
+		TETHER_NO_COPY(VulkanRenderer);
 
-		Scope<BufferedImage> CreateImage(const BufferedImageInfo& info) override;
+		bool RenderFrame();
+	private:
+		void OnCreateResource(Scope<Resources::BufferedImage>& image,
+			const Resources::BufferedImageInfo& info) override;
 
 		void WaitForCommandBuffers();
 
-		Pipeline& GetSolidPipeline();
-		VkDescriptorSetLayout GetSolidPipelineSetLayout();
-
-		Pipeline& GetTexturedPipeline();
-
-		uint32_t GetSwapchainImageCount();
-		Device* GetDevice();
-		VertexBuffer* GetRectangleBuffer();
-		VmaAllocator GetAllocator();
-
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
-	private:
+
 		void OnCreateObject(Scope<Objects::Rectangle>& object) override;
 		void OnCreateObject(Scope<Objects::Image>& object) override;
-
-		void OnObjectAdd(Objects::Object* pObject) override;
-		void OnObjectRemove(Objects::Object* pObject) override;
 
 		void CreateSwapchain();
 		void CreateSolidPipeline();
@@ -63,9 +52,9 @@ namespace Tether::Rendering::Vulkan
 		VkSurfaceFormatKHR ChooseSurfaceFormat();
 		SwapchainDetails QuerySwapchainSupport();
 
-		bool PopulateCommandBuffers();
-		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
-		void AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer, uint32_t index);
+		bool PopulateCommandBuffers(uint32_t imageIndex);
+		bool RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer);
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();
@@ -85,8 +74,7 @@ namespace Tether::Rendering::Vulkan
 		VkSampler sampler;
 
 		std::optional<Pipeline> solidPipeline;
-		VkDescriptorSetLayout solidPipelineSetLayout;
-
+		
 		std::optional<Pipeline> texturedPipeline;
 		VkDescriptorSetLayout texturedPipelineSetLayout;
 
@@ -106,8 +94,7 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkFence> inFlightFences;
 
 		bool shouldRecreateSwapchain = false;
-		bool shouldRecreateCommandBuffers = false;
-
+		
 		uint32_t currentFrame = 0;
 	};
 }

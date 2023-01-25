@@ -1,58 +1,54 @@
 #include <Tether/Module/Rendering/Renderer.hpp>
 
-using namespace Tether::Rendering;
-
-Renderer::Renderer()
+namespace Tether::Rendering
 {
-	
-}
+	Renderer::Renderer()
+	{
 
-Renderer::~Renderer()
-{
-	ClearObjects();
-}
+	}
 
-void Renderer::AddObject(Objects::Object* pObject)
-{
-	if (HasObject(pObject) || pObject->GetUIRenderer() != this)
-		return;
+	Renderer::~Renderer()
+	{
+		ClearObjects();
+	}
 
-	objects.push_back(pObject);
-	OnObjectAdd(pObject);
-}
+	void Renderer::AddObject(Objects::Object* pObject)
+	{
+		if (HasObject(pObject) || pObject->GetRenderer() != this)
+			return;
 
-bool Renderer::RemoveObject(Objects::Object* pObject)
-{
-	for (size_t i = 0; i < objects.size(); i++)
-		if (objects[i] == pObject)
-		{
-			OnObjectRemove(pObject);
-			objects.erase(objects.begin() + i);
+		objects.push_back(pObject);
+	}
 
-			return true;
-		}
+	bool Renderer::RemoveObject(Objects::Object* pObject)
+	{
+		for (size_t i = 0; i < objects.size(); i++)
+			if (objects[i] == pObject)
+			{
+				objects.erase(objects.begin() + i);
 
-	return false;
-}
+				return true;
+			}
 
-bool Renderer::HasObject(Objects::Object* pObject)
-{
-	for (size_t i = 0; i < objects.size(); i++)
-		if (objects[i] == pObject)
-			return true;
+		return false;
+	}
 
-	return false;
-}
+	bool Renderer::HasObject(Objects::Object* pObject)
+	{
+		for (size_t i = 0; i < objects.size(); i++)
+			if (objects[i] == pObject)
+				return true;
 
-void Renderer::ClearObjects()
-{
-	for (size_t i = 0; i < objects.size(); i++)
-		OnObjectRemove(objects[i]);
+		return false;
+	}
 
-	objects.clear();
-}
+	void Renderer::ClearObjects()
+	{
+		objects.clear();
+	}
 
-const std::vector<Objects::Object*>& Renderer::GetObjects() const
-{
-	return objects;
+	const std::vector<Objects::Object*>& Renderer::GetObjects() const
+	{
+		return objects;
+	}
 }

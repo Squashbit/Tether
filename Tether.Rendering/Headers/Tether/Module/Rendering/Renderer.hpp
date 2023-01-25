@@ -6,7 +6,7 @@
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
 
-#include <Tether/Module/Rendering/BufferedImage.hpp>
+#include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
 
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/TypeTools.hpp>
@@ -31,24 +31,49 @@ namespace Tether::Rendering
 
 		virtual bool RenderFrame() { return true; }
 
-		template<typename T>
-		Scope<T> CreateObject()
+		template<typename T, typename... Args>
+		Scope<T> CreateObject(Args... args)
 		{
 			Scope<T> object;
-			OnCreateObject(object);
+			OnCreateObject(object, args...);
+
+			object->m_pRenderer = this;
 
 			return object;
 		}
 
-		virtual Scope<BufferedImage> CreateImage(const BufferedImageInfo& info) = 0;
+		template<typename T>
+		Scope<T> CreateOtherObject()
+		{
+			Scope<T> object;
+			OnCreateOtherObject(HashedType<T>(), object);
+
+			object->m_pRenderer = this;
+
+			return object;
+		}
+
+		template<typename T, typename... Args>
+		Scope<T> CreateResource(Args... args)
+		{
+			Scope<T> resource;
+			OnCreateResource(resource, args...);
+
+			resource->m_pRenderer = this;
+
+			return resource;
+		}
 
 		const std::vector<Objects::Object*>& GetObjects() const;
 	protected:
-		virtual void OnObjectAdd(Objects::Object* pObject) {}
-		virtual void OnObjectRemove(Objects::Object* pObject) {}
-		
 		virtual void OnCreateObject(Scope<Objects::Rectangle>& object) = 0;
 		virtual void OnCreateObject(Scope<Objects::Image>& object) = 0;
+
+		virtual void OnCreateOtherObject(const HashedString& type,
+			Scope<Objects::Object>& object) {}
+
+		virtual void OnCreateResource(Scope<Resources::BufferedImage>& image, 
+			const Resources::BufferedImageInfo& info) = 0;
 
 		std::vector<Objects::Object*> objects;
 	};

@@ -23,7 +23,7 @@ namespace Tether::Rendering::Objects
 		float GetHeight();
 		Color GetColor();
 	protected:
-		Rectangle(Renderer* pRenderer);
+		Rectangle() = default;
 		
 		float x = 0.0f;
 		float y = 0.0f;

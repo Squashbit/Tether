@@ -40,6 +40,7 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(CmdDraw);
 	TETHER_DEVICE_FUNC(CmdDrawIndexed);
 	TETHER_DEVICE_FUNC(CmdPipelineBarrier);
+	TETHER_DEVICE_FUNC(CmdPushConstants);
 	TETHER_DEVICE_FUNC(CmdEndRenderPass);
 	TETHER_DEVICE_FUNC(CmdSetScissor);
 	TETHER_DEVICE_FUNC(CmdSetViewport);

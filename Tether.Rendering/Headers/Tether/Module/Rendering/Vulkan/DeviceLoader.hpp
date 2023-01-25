@@ -48,6 +48,7 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(CmdDraw);
 		TETHER_DEVICE_FUNC_VAR(CmdDrawIndexed);
 		TETHER_DEVICE_FUNC_VAR(CmdPipelineBarrier);
+		TETHER_DEVICE_FUNC_VAR(CmdPushConstants);
 		TETHER_DEVICE_FUNC_VAR(CmdEndRenderPass);
 		TETHER_DEVICE_FUNC_VAR(CmdSetScissor);
 		TETHER_DEVICE_FUNC_VAR(CmdSetViewport);

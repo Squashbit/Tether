@@ -10,7 +10,7 @@ namespace Tether::Rendering::Vulkan
 		Device* pDevice, VmaAllocator allocator,
 		VkCommandPool commandPool, VkQueue graphicsQueue,
 		VkSampler sampler,
-		const BufferedImageInfo& info
+		const Resources::BufferedImageInfo& info
 	)
 		:
 		m_pDevice(pDevice),
@@ -53,7 +53,7 @@ namespace Tether::Rendering::Vulkan
 		vmaDestroyImage(m_Allocator, m_Image, m_ImageAllocation);
 	}
 
-	void VulkanBufferedImage::UploadImageData(const BufferedImageInfo& info)
+	void VulkanBufferedImage::UploadImageData(const Resources::BufferedImageInfo& info)
 	{
 		VkBuffer stagingBuffer = nullptr;
 		VmaAllocation stagingAllocation = nullptr;

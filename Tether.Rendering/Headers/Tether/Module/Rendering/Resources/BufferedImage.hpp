@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Tether/Common/Defs.hpp>
+#include <Tether/Module/Rendering/Resources/Resource.hpp>
 
 #include <cstdint>
 
-namespace Tether::Rendering
+namespace Tether::Rendering::Resources
 {
 	struct BufferedImageInfo
 	{
@@ -14,7 +14,7 @@ namespace Tether::Rendering
 		uint32_t* pixelData;
 	};
 
-	class TETHER_EXPORT BufferedImage
+	class TETHER_EXPORT BufferedImage : public Resource
 	{
 	public:
 		virtual ~BufferedImage() = default;

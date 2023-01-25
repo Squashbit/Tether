@@ -47,8 +47,6 @@ namespace Tether::Rendering::Vulkan
 		CreateVertexBuffers();
 		CreateCommandBuffer();
 		CreateSampler();
-
-		PopulateCommandBuffers();
 	}
 
 	VulkanRenderer::~VulkanRenderer()
@@ -67,8 +65,6 @@ namespace Tether::Rendering::Vulkan
 			dloader->vkDestroyFence(device.Get(), inFlightFences[i], nullptr);
 		}
 
-		dloader->vkDestroyDescriptorSetLayout(device.Get(), solidPipelineSetLayout,
-			nullptr);
 		dloader->vkDestroyDescriptorSetLayout(device.Get(), texturedPipelineSetLayout,
 			nullptr);
 	}
@@ -96,11 +92,7 @@ namespace Tether::Rendering::Vulkan
 				imageResult == VK_SUBOPTIMAL_KHR;
 		}
 
-		if (shouldRecreateCommandBuffers)
-		{
-			PopulateCommandBuffers();
-			shouldRecreateCommandBuffers = false;
-		}
+		PopulateCommandBuffers(imageIndex);
 
 		dloader->vkResetFences(device.Get(), 1, &inFlightFences[currentFrame]);
 
@@ -114,7 +106,7 @@ namespace Tether::Rendering::Vulkan
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+		submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -139,11 +131,13 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	Scope<Rendering::BufferedImage> VulkanRenderer::CreateImage(
-		const BufferedImageInfo& info)
+	void VulkanRenderer::OnCreateResource(Scope<Resources::BufferedImage>& image,
+		const Resources::BufferedImageInfo& info)
 	{
-		return std::make_unique<VulkanBufferedImage>(&device, allocator.Get(), 
-			commandPool, graphicsQueue, sampler, info);
+		image = std::make_unique<VulkanBufferedImage>(
+			&device, allocator.Get(), 
+			commandPool, graphicsQueue, sampler, info
+		);
 	}
 
 	void VulkanRenderer::WaitForCommandBuffers()
@@ -153,50 +147,20 @@ namespace Tether::Rendering::Vulkan
 				&inFlightFences[i], VK_TRUE, UINT64_MAX);
 	}
 
-	uint32_t VulkanRenderer::GetSwapchainImageCount()
-	{
-		return swapchain->GetImageCount();
-	}
-
-	Device* VulkanRenderer::GetDevice()
-	{
-		return &device;
-	}
-
-	VertexBuffer* VulkanRenderer::GetRectangleBuffer()
-	{
-		return &square.value();
-	}
-
-	VmaAllocator VulkanRenderer::GetAllocator()
-	{
-		return allocator.Get();
-	}
-
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Rectangle>& object)
 	{
 		object = std::make_unique<Rectangle>(
-			this, device, allocator.Get(), &solidPipeline.value(), &square.value(),
-			solidPipelineSetLayout, swapchain->GetImageCount()
+			device, allocator.Get(), &solidPipeline.value(), &square.value(), 
+			swapchain->GetImageCount()
 		);
 	}
 
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
 	{
 		object = std::make_unique<Image>(
-			this, device, allocator.Get(), &texturedPipeline.value(), &square.value(),
+			device, allocator.Get(), &texturedPipeline.value(), &square.value(),
 			texturedPipelineSetLayout, swapchain->GetImageCount()
 		);
-	}
-
-	void VulkanRenderer::OnObjectAdd(Objects::Object* pObject)
-	{
-		shouldRecreateCommandBuffers = true;
-	}
-
-	void VulkanRenderer::OnObjectRemove(Objects::Object* pObject)
-	{
-		shouldRecreateCommandBuffers = true;
 	}
 
 	void VulkanRenderer::CreateSwapchain()
@@ -216,26 +180,16 @@ namespace Tether::Rendering::Vulkan
 	{
 		using namespace Assets;
 
-		VkDescriptorSetLayoutBinding uboLayoutBinding{};
-		uboLayoutBinding.binding = 0;
-		uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		uboLayoutBinding.descriptorCount = 1;
-		uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT 
-									| VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 1;
-		layoutInfo.pBindings = &uboLayoutBinding;
-
-		if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
-			&solidPipelineSetLayout) != VK_SUCCESS)
-			throw RendererException("Failed to create descriptor set layout");
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(Rectangle::PushConstants);
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT
+			| VK_SHADER_STAGE_FRAGMENT_BIT;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &solidPipelineSetLayout;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		std::vector<VkVertexInputBindingDescription> bindingDescs;
 		std::vector<VkVertexInputAttributeDescription> attribDescs;
@@ -273,30 +227,32 @@ namespace Tether::Rendering::Vulkan
 	{
 		using namespace Assets;
 
-		VkDescriptorSetLayoutBinding layoutBindings[2] = {};
-		layoutBindings[0].binding = 0;
-		layoutBindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		layoutBindings[0].descriptorCount = 1;
-		layoutBindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-		layoutBindings[1].binding = 1;
-		layoutBindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		layoutBindings[1].descriptorCount = 1;
-		layoutBindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+		VkDescriptorSetLayoutBinding layoutBinding{};
+		layoutBinding.binding = 0;
+		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		layoutBinding.descriptorCount = 1;
+		layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 		VkDescriptorSetLayoutCreateInfo layoutInfo{};
 		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = sizeof(layoutBindings) 
-			/ sizeof(VkDescriptorSetLayoutBinding);
-		layoutInfo.pBindings = layoutBindings;
+		layoutInfo.bindingCount = 1;
+		layoutInfo.pBindings = &layoutBinding;
 
 		if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
 			&texturedPipelineSetLayout) != VK_SUCCESS)
 			throw RendererException("Failed to create descriptor set layout");
 
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(Image::PushConstants);
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
 		pipelineLayoutInfo.pSetLayouts = &texturedPipelineSetLayout;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 		std::vector<VkVertexInputBindingDescription> bindingDescs;
 		std::vector<VkVertexInputAttributeDescription> attribDescs;
@@ -354,13 +310,7 @@ namespace Tether::Rendering::Vulkan
 
 			if (dloader->vkCreateFramebuffer(device.Get(), &createInfo, nullptr,
 				&swapchainFramebuffers[i]) != VK_SUCCESS)
-			{
-				for (size_t i2 = 0; i2 < i + 1; i2++)
-					dloader->vkDestroyFramebuffer(device.Get(),
-						swapchainFramebuffers[i2], nullptr);
-
 				throw RendererException("Framebuffer creation failed");
-			}
 		}
 	}
 
@@ -407,7 +357,7 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanRenderer::CreateCommandBuffer()
 	{
-		commandBuffers.resize(swapchainFramebuffers.size());
+		commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -452,9 +402,9 @@ namespace Tether::Rendering::Vulkan
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.minFilter = VK_FILTER_LINEAR;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		samplerInfo.anisotropyEnable = VK_FALSE;
 		samplerInfo.maxAnisotropy = 0.0f;
 		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -518,24 +468,17 @@ namespace Tether::Rendering::Vulkan
 		return details;
 	}
 
-	bool VulkanRenderer::PopulateCommandBuffers()
+	bool VulkanRenderer::PopulateCommandBuffers(uint32_t imageIndex)
 	{
-		for (size_t i = 0; i < inFlightFences.size(); i++)
-			dloader->vkWaitForFences(device.Get(), 1,
-				&inFlightFences[i], VK_TRUE, UINT64_MAX);
-
-		for (size_t i = 0; i < swapchainFramebuffers.size(); i++)
-		{
-			dloader->vkResetCommandBuffer(commandBuffers[i], 0);
-			if (!RecordCommandBuffer(commandBuffers[i], static_cast<uint32_t>(i)))
-				return false;
-		}
+		dloader->vkResetCommandBuffer(commandBuffers[currentFrame], 0);
+		if (!RecordCommandBuffer(commandBuffers[currentFrame], imageIndex))
+			return false;
 
 		return true;
 	}
 
-	bool VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer, 
-		uint32_t index)
+	bool VulkanRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
+		uint32_t imageIndex)
 	{
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -548,7 +491,7 @@ namespace Tether::Rendering::Vulkan
 			VkRenderPassBeginInfo renderPassInfo{};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 			renderPassInfo.renderPass = renderPass.Get();
-			renderPassInfo.framebuffer = swapchainFramebuffers[index];
+			renderPassInfo.framebuffer = swapchainFramebuffers[imageIndex];
 			renderPassInfo.renderArea.offset = { 0, 0 };
 			renderPassInfo.renderArea.extent = swapchain->GetExtent();
 			renderPassInfo.clearValueCount = 1;
@@ -575,7 +518,7 @@ namespace Tether::Rendering::Vulkan
 			scissor.extent.height = swapchainExtent.height;
 			dloader->vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-			AddObjectsToCommandBuffer(commandBuffer, index);
+			AddObjectsToCommandBuffer(commandBuffer);
 
 			dloader->vkCmdEndRenderPass(commandBuffer);
 		}
@@ -585,8 +528,7 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void VulkanRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer,
-		uint32_t index)
+	void VulkanRenderer::AddObjectsToCommandBuffer(VkCommandBuffer commandBuffer)
 	{
 		CommandBufferDescriptor commandBufferDesc(commandBuffer, dloader);
 		for (size_t i = 0; i < objects.size(); i++)
@@ -598,7 +540,7 @@ namespace Tether::Rendering::Vulkan
 
 			ObjectRenderer* pRenderer = (ObjectRenderer*)pObjectRenderer;
 			
-			pRenderer->AddToCommandBuffer(commandBufferDesc, index);
+			pRenderer->AddToCommandBuffer(commandBufferDesc, currentFrame);
 		}
 	}
 
@@ -615,8 +557,6 @@ namespace Tether::Rendering::Vulkan
 
 		CreateSwapchain();
 		CreateFramebuffers();
-
-		PopulateCommandBuffers();
 
 		return true;
 	}

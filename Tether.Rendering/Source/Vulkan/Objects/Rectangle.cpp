@@ -5,41 +5,20 @@
 namespace Tether::Rendering::Vulkan
 {
 	Rectangle::Rectangle(
-		Renderer* pRenderer,
 		Device& device,
 		VmaAllocator allocator,
 		Pipeline* pPipeline,
 		VertexBuffer* pRectBuffer,
-		VkDescriptorSetLayout pipelineSetLayout,
-		uint32_t swapchainImageCount
+		uint32_t framesInFlight
 	)
 		:
-		Objects::Rectangle(pRenderer),
 		m_Device(device),
 		m_Dloader(m_Device.GetLoader()),
 		m_Allocator(allocator),
 		m_pPipeline(pPipeline),
-		m_pRectBuffer(pRectBuffer),
-		m_SwapchainImageCount(swapchainImageCount),
-		m_Pool(&m_Device, swapchainImageCount),
-		m_Set(&m_Device, m_Pool, pipelineSetLayout, m_SwapchainImageCount),
-		m_UniformBuffer(allocator, &device, sizeof(Uniforms), m_Set, 0)
+		m_pRectBuffer(pRectBuffer)
 	{
-		this->pObjectRenderer = this;
-	}
-
-	void Rectangle::OnObjectUpdate()
-	{
-		m_Uniforms.position.x = x;
-		m_Uniforms.position.y = y;
-		m_Uniforms.scale.x = width;
-		m_Uniforms.scale.y = height;
-		m_Uniforms.color.x = color.GetR();
-		m_Uniforms.color.y = color.GetG();
-		m_Uniforms.color.z = color.GetB();
-
-		for (uint32_t i = 0; i < m_SwapchainImageCount; i++)
-			memcpy(m_UniformBuffer.GetMappedData(i), &m_Uniforms, sizeof(Uniforms));
+		this->m_pObjectRenderer = this;
 	}
 
 	void Rectangle::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
@@ -50,11 +29,21 @@ namespace Tether::Rendering::Vulkan
 		commandBuffer.BindPipelineIfNotBound(m_pPipeline);
 		commandBuffer.BindVertexBufferIfNotBound(m_pRectBuffer);
 
-		m_Dloader->vkCmdBindDescriptorSets(
-			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_pPipeline->GetLayout(), 0,
-			1, &m_Set.GetSetAtIndex(index),
-			0, nullptr
+		PushConstants pushConstants;
+		pushConstants.position.x = x;
+		pushConstants.position.y = y;
+		pushConstants.scale.x = width;
+		pushConstants.scale.y = height;
+		pushConstants.color.x = color.GetR();
+		pushConstants.color.y = color.GetG();
+		pushConstants.color.z = color.GetB();
+
+		m_Dloader->vkCmdPushConstants(
+			vkCommandBuffer, m_pPipeline->GetLayout(),
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0,
+			sizeof(PushConstants),
+			&pushConstants
 		);
 
 		m_Dloader->vkCmdDrawIndexed(
