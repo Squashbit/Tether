@@ -427,8 +427,7 @@ namespace Tether::Rendering::Vulkan
 			throw RendererException("No available swapchain image formats");
 
 		for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM
-				&& availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+			if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM)
 				return availableFormat;
 
 		return swapchainDetails.formats[0];

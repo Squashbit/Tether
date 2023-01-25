@@ -4,3 +4,6 @@
 [submodule "Vendor/VMA"]
 	path = Vendor/VMA
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+[submodule "Vendor/stb_image"]
+	path = Vendor/stb_image
+	url = https://github.com/nothings/stb/

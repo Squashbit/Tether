@@ -1,6 +1,8 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 #include <Tether/Math/Constants.hpp>
+
+#include <Tether/Module/Rendering/ImageLoader.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
 
@@ -10,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <chrono>
+#include <stdexcept>
 
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
@@ -73,24 +76,12 @@ public:
 		window(1280, 720, "Renderer testing"),
 		renderer(&window)
 	{
-		Resources::BufferedImageInfo info{};
-		info.width = 1024;
-		info.height = 1024;
-		info.channels = 4;
-		
-		std::vector<uint32_t> data(info.width * info.height * info.channels);
-		info.pixelData = data.data();
+		ImageLoader imageLoader("Test.png");
+		if (!imageLoader.Load())
+			throw std::runtime_error("Failed to load image");
 
-		for (size_t y = 0; y < info.height; y++)
-			for (size_t x = 0; x < info.width; x++)
-			{
-				uint8_t r = static_cast<uint8_t>(((float)x / info.width) * 255);
-				
-				uint32_t color = r | r << 8 | r << 16 | 255 << 24;
-				info.pixelData[y * info.width + x] = color;
-			}
-
-		testImage = renderer.CreateResource<Resources::BufferedImage>(info);
+		testImage = renderer.CreateResource<Resources::BufferedImage>(
+			imageLoader.GetImageInfo());
 		
 		const float imageSize = 1.0f / numObjects;
 
@@ -191,7 +182,7 @@ int main()
 		RendererTestApp testApp;
 		testApp.Run();
 	}
-	catch (RendererException& e)
+	catch (std::exception& e)
 	{
 		std::cout << e.what() << std::endl;
 	}
