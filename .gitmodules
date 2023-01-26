@@ -7,3 +7,6 @@
 [submodule "Tether.Rendering/Vendor/stb_image"]
 	path = Tether.Rendering/Vendor/stb_image
 	url = https://github.com/nothings/stb/
+[submodule "Tether.Rendering/Vendor/freetype"]
+	path = Tether.Rendering/Vendor/freetype
+	url = https://github.com/freetype/freetype
