@@ -36,12 +36,12 @@ endif()
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
     "Headers"
+    "Vendor/VMA/include"
+    "Vendor/stb_image"
 PRIVATE
-    ${TETHER_RELATIVE_PATH}/Headers
     ${TETHER_BINARY_DIR}
+    ${TETHER_DIR}/Headers
     ${Vulkan_INCLUDE_DIR}
-    "../Vendor/VMA/include"
-    "../Vendor/stb_image"
 )
 
 target_link_libraries(${PROJECT_NAME}

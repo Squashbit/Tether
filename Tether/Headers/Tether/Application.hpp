@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Tether/Module.hpp>
-#include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/Defs.hpp>
+#include <Tether/Common/Ref.hpp>
 #include <Tether/Common/Types.hpp>
 
 #include <vector>
@@ -10,38 +10,27 @@
 
 namespace Tether
 {
-    namespace Storage
-    {
-        struct AppVarStorage;
-    }
+	namespace Storage
+	{
+		struct AppVarStorage;
+	}
 
-    namespace Devices
+	class TETHER_EXPORT Application
     {
-        class DeviceManager;
-    }
-
-    class TETHER_EXPORT Application : public IDisposable
-    {
-        friend Module;
-        friend class SimpleWindow;
-        friend Devices::DeviceManager;
     public:
-        Application();
+        ~Application();
+        TETHER_NO_COPY(Application);
         
         Storage::AppVarStorage* GetStorage();
         std::vector<Module*>* GetModules();
-        int16_t* GetKeycodes();
-        int16_t* GetScancodes();
+        int16_t*const GetKeycodes();
+        int16_t*const GetScancodes();
         
         static Application& Get();
         static void DisposeApplication();
-    protected:
-        void RegisterModule(Module* pModule);
-
-        Storage::AppVarStorage* storage = nullptr;
-        int16_t keycodes[512];
-        int16_t scancodes[Keycodes::KEY_LAST + 1];
     private:
+        Application();
+
         bool OnInit();
         void OnAppDispose();
 
@@ -51,10 +40,11 @@ namespace Tether
 
         void CreateKeyLUT();
 
-        void OnDispose();
+		int16_t keycodes[512];
+		int16_t scancodes[Keycodes::KEY_LAST + 1];
 
-        std::vector<Module*> modules;
-        
-        static Application internal;
+        Scope<Storage::AppVarStorage> storage;
+
+        inline static std::unique_ptr<Application> internal = nullptr;
     };
 }

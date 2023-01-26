@@ -1,9 +1,9 @@
 [submodule "Vendor/Bin2cpp"]
 	path = Vendor/Bin2cpp
 	url = https://github.com/Squashbit/Bin2cpp
-[submodule "Vendor/VMA"]
-	path = Vendor/VMA
+[submodule "Tether.Rendering/Vendor/VMA"]
+	path = Tether.Rendering/Vendor/VMA
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
-[submodule "Vendor/stb_image"]
-	path = Vendor/stb_image
+[submodule "Tether.Rendering/Vendor/stb_image"]
+	path = Tether.Rendering/Vendor/stb_image
 	url = https://github.com/nothings/stb/

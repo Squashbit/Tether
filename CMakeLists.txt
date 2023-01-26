@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 17)
 # The relative path to tether from each module directory
 # Tether and Tether Modules are both children of the root repo directory,
 # so this value shouldn't change.
-set(TETHER_RELATIVE_PATH "../Tether")
+set(TETHER_PROJECT_DIR ${CMAKE_CURRENT_LIST_DIR})
+set(TETHER_DIR ${TETHER_PROJECT_DIR}/Tether)
 set(TETHER_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 option(TETHER_BUILD_TESTS "Build tether with tests" OFF)

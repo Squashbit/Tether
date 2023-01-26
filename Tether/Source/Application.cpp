@@ -1,63 +1,46 @@
 #include <Tether/Application.hpp>
 #include <Tether/Native.hpp>
+#include <stdexcept>
 
 using namespace Tether;
 
-Application Application::internal = Application();
-
 Application::Application()
 {
-	storage = new(std::nothrow) Storage::AppVarStorage();
-	if (!storage)
-		return;
-
+	storage = std::make_unique<Storage::AppVarStorage>();
+	
 	if (!OnInit())
-		return;
-
-	initialized = true;
+		throw std::runtime_error("Failed to initialize Application");
 }
 
-void Application::RegisterModule(Module* pModule)
+Application::~Application()
 {
-	modules.push_back(pModule);
+	OnAppDispose();
 }
 
 Storage::AppVarStorage* Application::GetStorage()
 {
-	return storage;
+	return storage.get();
 }
 
-std::vector<Module*>* Application::GetModules()
-{
-	return &modules;
-}
-
-int16_t* Application::GetKeycodes()
+int16_t*const Application::GetKeycodes()
 {
 	return keycodes;
 }
 
-int16_t* Application::GetScancodes()
+int16_t*const Application::GetScancodes()
 {
 	return scancodes;
 }
 
 Application& Application::Get()
 {
-	return internal;
+	if (!internal.get())
+		internal = std::unique_ptr<Application>(new Application());
+
+	return *internal;
 }
 
 void Application::DisposeApplication()
 {
-	internal.Dispose();
-}
-
-void Application::OnDispose()
-{
-	// Dispose all modules
-	for (size_t i = 0; i < modules.size(); i++)
-		modules[i]->OnDispose();
-
-	OnAppDispose();
-	delete storage;
+	internal.release();
 }

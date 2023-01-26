@@ -6,8 +6,6 @@ using namespace Tether;
 Module::Module(Module* pModule, const char* moduleName)
 {
 	this->moduleName = moduleName;
-
-	Application::Get().RegisterModule(pModule);
 }
 
 const char* Module::GetModuleName()

@@ -25,9 +25,8 @@ find_package(Vulkan REQUIRED)
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
 	"Headers"
-	"../../Tether/Headers"
-	"../../Tether.Rendering/Headers"
-	"../../Vendor/VMA/include"
+	${TETHER_PROJECT_DIR}/Tether/Headers
+	${TETHER_PROJECT_DIR}/Tether.Rendering/Headers
 PRIVATE
 	${Vulkan_INCLUDE_DIR}
 )

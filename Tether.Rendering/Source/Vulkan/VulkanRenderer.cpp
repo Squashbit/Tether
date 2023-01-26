@@ -169,7 +169,7 @@ namespace Tether::Rendering::Vulkan
 			instance, &device,
 			queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 			pWindow->GetWidth(), pWindow->GetHeight(),
-			true
+			false
 		);
 
 		swapchainImages = swapchain->GetImages();
@@ -427,7 +427,7 @@ namespace Tether::Rendering::Vulkan
 			throw RendererException("No available swapchain image formats");
 
 		for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
-			if (availableFormat.format == VK_FORMAT_R8G8B8A8_UNORM)
+			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
 				return availableFormat;
 
 		return swapchainDetails.formats[0];
