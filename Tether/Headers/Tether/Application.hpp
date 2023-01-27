@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Tether/Module.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Ref.hpp>
 #include <Tether/Common/Types.hpp>
@@ -22,12 +21,10 @@ namespace Tether
         TETHER_NO_COPY(Application);
         
         Storage::AppVarStorage* GetStorage();
-        std::vector<Module*>* GetModules();
         int16_t*const GetKeycodes();
         int16_t*const GetScancodes();
         
         static Application& Get();
-        static void DisposeApplication();
     private:
         Application();
 

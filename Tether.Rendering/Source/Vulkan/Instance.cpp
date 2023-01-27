@@ -33,11 +33,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL Vulkan_DebugCallback(
 	return false;
 }
 
-Instance::Instance(
-	const char* applicationName,
-	const char* engineName,
-	bool debugMode
-)
+Instance::Instance(const InstanceInfo& info, bool debugMode)
 {
 	this->debugMode = debugMode;
 
@@ -50,16 +46,8 @@ Instance::Instance(
 	appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.apiVersion = VK_API_VERSION_1_3;
-
-	if (applicationName)
-		appInfo.pApplicationName = applicationName;
-	else
-		appInfo.pApplicationName = "VulkanApp";
-	
-	if (engineName)
-		appInfo.pEngineName = engineName;
-	else
-		appInfo.pEngineName = "yo mama so fat";
+	appInfo.pApplicationName = info.applicationName;
+	appInfo.pEngineName = info.engineName;
 
 	VkInstanceCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -103,7 +91,7 @@ Instance::Instance(
 		}
 	}
 	
-	VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+	VkResult result = info.CreateInstance(&createInfo, nullptr, &instance);
 	switch (result)
 	{
 		case VK_SUCCESS: break;
@@ -119,13 +107,13 @@ Instance::Instance(
 	}
 
 	uint32_t extentionCount = 0;
-	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount, nullptr);
+	info.EnumerateInstanceExtensionProperties(nullptr, &extentionCount, nullptr);
 
 	extentions = std::vector<VkExtensionProperties>(extentionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extentionCount,
+	info.EnumerateInstanceExtensionProperties(nullptr, &extentionCount,
 		extentions.data());
 
-	loader.Load(&instance);
+	loader.Load(&instance, info.GetInstanceProcAddr);
 	
 	if (debugMode && loader.vkCreateDebugUtilsMessengerEXT)
 		loader.vkCreateDebugUtilsMessengerEXT(instance, &messengerCreateInfo,
@@ -219,7 +207,7 @@ SwapchainDetails Instance::QuerySwapchainSupport(
 
 void Instance::AddDebugMessenger(DebugCallback* callback)
 {
-	if (!callback)
+	if (!callback || !debugMode)
 		return;
 
 	for (uint64_t i = 0; i < debugCallbacks.size(); i++)
@@ -231,7 +219,7 @@ void Instance::AddDebugMessenger(DebugCallback* callback)
 
 void Instance::RemoveDebugMessenger(DebugCallback* callback)
 {
-	if (!callback)
+	if (!callback || !debugMode)
 		return;
 	
 	for (uint64_t i = 0; i < debugCallbacks.size(); i++)

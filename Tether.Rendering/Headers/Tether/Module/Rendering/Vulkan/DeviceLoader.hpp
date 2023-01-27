@@ -10,6 +10,8 @@
 #undef CreateSemaphore
 #endif
 
+#define TETHER_DEVICE_FUNC_VAR(name) PFN_vk##name vk##name = nullptr;
+
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT DeviceLoader

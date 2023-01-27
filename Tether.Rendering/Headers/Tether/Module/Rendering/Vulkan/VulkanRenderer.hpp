@@ -29,15 +29,18 @@ namespace Tether::Rendering::Vulkan
 
 		bool RenderFrame();
 	private:
-		void OnCreateResource(Scope<Resources::BufferedImage>& image,
-			const Resources::BufferedImageInfo& info) override;
-
 		void WaitForCommandBuffers();
 
 		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 
 		void OnCreateObject(Scope<Objects::Rectangle>& object) override;
 		void OnCreateObject(Scope<Objects::Image>& object) override;
+		void OnCreateObject(Scope<Objects::Text>& object) override;
+
+		void OnCreateResource(Scope<Resources::BufferedImage>& image,
+			const Resources::BufferedImageInfo& info) override;
+		void OnCreateResource(Scope<Resources::Font>& font,
+			const std::string& fontPath) override;
 
 		void CreateSwapchain();
 		void CreateSolidPipeline();

@@ -12,21 +12,15 @@ namespace Tether::Rendering::Objects
 	public:
 		virtual ~Rectangle() = default;
 		
-		void SetX(float value);
-		void SetY(float value);
 		void SetWidth(float value);
 		void SetHeight(float value);
 		void SetColor(Color color);
-		float GetX();
-		float GetY();
 		float GetWidth();
 		float GetHeight();
 		Color GetColor();
 	protected:
-		Rectangle() = default;
+		Rectangle(ObjectRenderer* pObjectRenderer);
 		
-		float x = 0.0f;
-		float y = 0.0f;
 		float width = 0.0f;
 		float height = 0.0f;
 

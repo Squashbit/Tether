@@ -2,11 +2,12 @@
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Objects/Object.hpp>
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Objects/Text.hpp>
 
 #include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
+#include <Tether/Module/Rendering/Resources/Font.hpp>
 
 #include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/TypeTools.hpp>
@@ -20,7 +21,7 @@ namespace Tether::Rendering
 	class TETHER_EXPORT Renderer
 	{
 	public:
-		Renderer();
+		Renderer() = default;
 		virtual ~Renderer();
 		TETHER_NO_COPY(Renderer);
 
@@ -68,12 +69,15 @@ namespace Tether::Rendering
 	protected:
 		virtual void OnCreateObject(Scope<Objects::Rectangle>& object) = 0;
 		virtual void OnCreateObject(Scope<Objects::Image>& object) = 0;
+		virtual void OnCreateObject(Scope<Objects::Text>& object) = 0;
 
 		virtual void OnCreateOtherObject(const HashedString& type,
 			Scope<Objects::Object>& object) {}
 
 		virtual void OnCreateResource(Scope<Resources::BufferedImage>& image, 
 			const Resources::BufferedImageInfo& info) = 0;
+		virtual void OnCreateResource(Scope<Resources::Font>& font,
+			const std::string& fontPath) = 0;
 
 		std::vector<Objects::Object*> objects;
 	};

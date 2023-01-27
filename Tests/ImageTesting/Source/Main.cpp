@@ -42,31 +42,6 @@ public:
 		}
 	}
 };
-static DebugLogger vulkanLogger;
-
-bool InitVulkan()
-{
-	RenderingModule& rendering = RenderingModule::Get();
-
-#if defined(_WIN32) && !defined(_DEBUG)
-	bool debug = false;
-#else
-	bool debug = true;
-#endif
-
-	try
-	{
-		rendering.InitVulkan(debug);
-	}
-	catch (RendererException& e)
-	{
-		std::cout << "Failed to initialize Vulkan! " << e.what() << std::endl;
-	}
-
-	rendering.GetVulkanNative()->instance->AddDebugMessenger(&vulkanLogger);
-
-	return true;
-}
 
 class RendererTestApp
 {
@@ -171,11 +146,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main()
 #endif
 {
-	if (!InitVulkan())
-	{
-		std::cout << "Failed to initialize Vulkan" << std::endl;
-		return 1;
-	}
+	DebugLogger vulkanLogger;
+	GlobalVulkan::Get().AddDebugMessenger(&vulkanLogger);
 
 	try
 	{
@@ -187,6 +159,5 @@ int main()
 		std::cout << e.what() << std::endl;
 	}
 
-	Application::DisposeApplication();
 	return 0;
 }

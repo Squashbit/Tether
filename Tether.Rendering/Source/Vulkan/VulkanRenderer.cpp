@@ -1,14 +1,15 @@
-#include <Tether/Module/Rendering/RendererException.hpp>
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
-
-#include <Tether/Module/Rendering/Vulkan/VulkanBufferedImage.hpp>
-#include <Tether/Module/Rendering/Vulkan/CommandBufferDescriptor.hpp>
-
-#define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/CommandBufferDescriptor.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
+
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Vulkan/Objects/Text.hpp>
+
+#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/Font.hpp>
+
+#include <Tether/Module/Rendering/RendererException.hpp>
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
@@ -22,7 +23,7 @@ namespace Tether::Rendering::Vulkan
 	VulkanRenderer::VulkanRenderer(SimpleWindow* pWindow)
 		:
 		pWindow(pWindow),
-		instance(&RenderingModule::Get().GetVulkanNative()->instance.value()),
+		instance(&GlobalVulkan::Get().GetVulkanNative()->instance.value()),
 		iloader(instance->GetLoader()),
 		surface(instance, pWindow),
 		device(instance, surface.Get()),
@@ -131,15 +132,6 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void VulkanRenderer::OnCreateResource(Scope<Resources::BufferedImage>& image,
-		const Resources::BufferedImageInfo& info)
-	{
-		image = std::make_unique<VulkanBufferedImage>(
-			&device, allocator.Get(), 
-			commandPool, graphicsQueue, sampler, info
-		);
-	}
-
 	void VulkanRenderer::WaitForCommandBuffers()
 	{
 		for (size_t i = 0; i < inFlightFences.size(); i++)
@@ -163,13 +155,37 @@ namespace Tether::Rendering::Vulkan
 		);
 	}
 
+	void VulkanRenderer::OnCreateObject(Scope<Objects::Text>& object)
+	{
+		object = std::make_unique<Text>(
+			
+		);
+	}
+
+	void VulkanRenderer::OnCreateResource(Scope<Resources::BufferedImage>& image,
+		const Resources::BufferedImageInfo& info)
+	{
+		image = std::make_unique<VulkanBufferedImage>(
+			&device, allocator.Get(),
+			commandPool, graphicsQueue, sampler, info
+		);
+	}
+
+	void VulkanRenderer::OnCreateResource(Scope<Resources::Font>& font,
+		const std::string& fontPath)
+	{
+		font = std::make_unique<Font>(
+			fontPath
+		);
+	}
+
 	void VulkanRenderer::CreateSwapchain()
 	{
 		swapchain.emplace(
 			instance, &device,
 			queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 			pWindow->GetWidth(), pWindow->GetHeight(),
-			false
+			true
 		);
 
 		swapchainImages = swapchain->GetImages();
@@ -427,7 +443,7 @@ namespace Tether::Rendering::Vulkan
 			throw RendererException("No available swapchain image formats");
 
 		for (VkSurfaceFormatKHR availableFormat : swapchainDetails.formats)
-			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
+			if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM)
 				return availableFormat;
 
 		return swapchainDetails.formats[0];
@@ -533,6 +549,9 @@ namespace Tether::Rendering::Vulkan
 		for (size_t i = 0; i < objects.size(); i++)
 		{
 			Objects::Object* pObject = objects[i];
+			if (!pObject->IsEnabled())
+				continue;
+
 			Objects::ObjectRenderer* pObjectRenderer = pObject->GetObjectRenderer();
 			if (!pObjectRenderer)
 				continue;

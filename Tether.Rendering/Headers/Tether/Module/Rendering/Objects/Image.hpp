@@ -14,21 +14,15 @@ namespace Tether::Rendering::Objects
 	public:
 		virtual ~Image() = default;
 		
-		void SetX(float value);
-		void SetY(float value);
 		void SetWidth(float value);
 		void SetHeight(float value);
-		float GetX();
-		float GetY();
 		float GetWidth();
 		float GetHeight();
 
 		virtual void SetImage(Resources::BufferedImage* image) = 0;
 	protected:
-		Image() = default;
-		
-		float x = 0.0f;
-		float y = 0.0f;
+		Image(ObjectRenderer* pObjectRenderer);
+
 		float width = 0.0f;
 		float height = 0.0f;
 	};

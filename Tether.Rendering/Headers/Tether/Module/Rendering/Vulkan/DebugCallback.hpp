@@ -1,25 +1,24 @@
 #pragma once
 
+#include <Tether/Common/Defs.hpp>
+
 #include <vulkan/vulkan.h>
 
 namespace Tether::Rendering::Vulkan
 {
-    class DebugCallback
+    class TETHER_EXPORT DebugCallback
     {
+        friend class GlobalVulkan;
     public:
-        /**
-         * @brief Called when any message is received from vulkan validation
-         *  layers.
-         * 
-         * @param messageSeverity The severity of the message (wow really)
-         * @param messageType uhh
-         * @param pCallbackData The callback data... I guess.
-         */
+        ~DebugCallback();
+
         virtual void OnDebugLog(
             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
             VkDebugUtilsMessageTypeFlagsEXT messageType,
             const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData
         )
         {}
+    protected:
+        bool m_IsInGlobalVulkan = false;
     };
 }

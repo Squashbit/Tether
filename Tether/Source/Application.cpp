@@ -39,8 +39,3 @@ Application& Application::Get()
 
 	return *internal;
 }
-
-void Application::DisposeApplication()
-{
-	internal.release();
-}

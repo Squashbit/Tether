@@ -141,6 +141,5 @@ int main()
 		std::this_thread::sleep_for(1ms);
 	}
 
-	Application::DisposeApplication();
 	return 0;
 }

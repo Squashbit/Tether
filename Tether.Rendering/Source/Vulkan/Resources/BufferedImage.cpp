@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/VulkanBufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
 #include <Tether/Module/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 
@@ -13,6 +13,7 @@ namespace Tether::Rendering::Vulkan
 		const Resources::BufferedImageInfo& info
 	)
 		:
+		BufferedImage(info),
 		m_pDevice(pDevice),
 		m_Dloader(pDevice->GetLoader()),
 		m_Allocator(allocator),
@@ -28,7 +29,7 @@ namespace Tether::Rendering::Vulkan
 		imageInfo.extent.depth = 1;
 		imageInfo.mipLevels = 1;
 		imageInfo.arrayLayers = 1;
-		imageInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+		imageInfo.format = m_ImageFormat;
 		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -72,14 +73,15 @@ namespace Tether::Rendering::Vulkan
 			&stagingAllocation, &stagingInfo) != VK_SUCCESS)
 			throw RendererException("Failed to create staging buffer");
 
-		memcpy(stagingInfo.pMappedData, info.pixelData, bufferInfo.size);
+		if (stagingInfo.pMappedData != nullptr) // Suppress warning
+			memcpy(stagingInfo.pMappedData, info.pixelData, bufferInfo.size);
 
 		SingleUseCommandBuffer singleUseCommandBuffer(m_pDevice, m_CommandPool, 
 			m_GraphicsQueue);
 		singleUseCommandBuffer.Begin();
 		{
 			singleUseCommandBuffer.TransitionImageLayout(
-				m_Image, VK_FORMAT_R8G8B8A8_SRGB,
+				m_Image, m_ImageFormat,
 				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
 			);
 			singleUseCommandBuffer.CopyBufferToImage(
@@ -87,7 +89,7 @@ namespace Tether::Rendering::Vulkan
 				info.width, info.height
 			);
 			singleUseCommandBuffer.TransitionImageLayout(
-				m_Image, VK_FORMAT_R8G8B8A8_SRGB,
+				m_Image, m_ImageFormat,
 				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
 				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
 			);
@@ -103,7 +105,7 @@ namespace Tether::Rendering::Vulkan
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = m_Image;
 		viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		viewInfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+		viewInfo.format = m_ImageFormat;
 		viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		viewInfo.subresourceRange.baseMipLevel = 0;
 		viewInfo.subresourceRange.levelCount = 1;

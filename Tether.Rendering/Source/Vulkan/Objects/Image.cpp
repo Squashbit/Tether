@@ -1,7 +1,6 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanBufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
-#include <iostream>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -14,14 +13,13 @@ namespace Tether::Rendering::Vulkan
 		uint32_t framesInFlight
 	)
 		:
+		Objects::Image(this),
 		m_Device(device),
 		m_Dloader(m_Device.GetLoader()),
 		m_Allocator(allocator),
 		m_pPipeline(pPipeline),
 		m_pRectBuffer(pRectBuffer)
 	{
-		this->m_pObjectRenderer = this;
-
 		VkDescriptorPoolSize samplerSize{};
 		samplerSize.descriptorCount = framesInFlight;
 		samplerSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

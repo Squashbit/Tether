@@ -1,10 +1,8 @@
 #include <Tether/Module/Rendering/Vulkan/Allocator.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/Defs.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
-#include <Tether/Module/Rendering/RenderingModule.hpp>
-
-#define TETHER_INCLUDE_VULKAN
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
+#include <Tether/Module/Rendering/RendererException.hpp>
 
 using namespace Tether::Rendering::Vulkan;
 

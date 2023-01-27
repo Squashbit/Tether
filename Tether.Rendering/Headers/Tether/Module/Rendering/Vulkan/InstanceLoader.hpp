@@ -5,14 +5,14 @@
 
 #include <vulkan/vulkan.h>
 
+#define TETHER_INSTANCE_FUNC_VAR(name) PFN_vk##name vk##name = nullptr;
+
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT InstanceLoader
 	{
 	public:
-		InstanceLoader() = default;
-		
-		void Load(VkInstance* pInstance);
+		void Load(VkInstance* pInstance, PFN_vkGetInstanceProcAddr getProcAddr);
 
 		// different breed
 		PFN_vkVoidFunction vkCreateXlibSurfaceKHR = nullptr;

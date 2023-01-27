@@ -36,5 +36,7 @@ namespace Tether::Rendering::Vulkan
 		VkCommandPool m_CommandPool = nullptr;
 		VkQueue m_GraphicsQueue = nullptr;
 		VkSampler m_Sampler = nullptr;
+
+		const VkFormat m_ImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
 	};
 }

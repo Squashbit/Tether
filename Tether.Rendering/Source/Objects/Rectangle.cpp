@@ -3,15 +3,10 @@
 
 namespace Tether::Rendering::Objects
 {
-	void Rectangle::SetX(float value)
-	{
-		this->x = value;
-	}
-
-	void Rectangle::SetY(float value)
-	{
-		this->y = value;
-	}
+	Rectangle::Rectangle(ObjectRenderer* pObjectRenderer)
+		:
+		Objects::Object(pObjectRenderer)
+	{}
 
 	void Rectangle::SetWidth(float value)
 	{
@@ -26,16 +21,6 @@ namespace Tether::Rendering::Objects
 	void Rectangle::SetColor(Color color)
 	{
 		this->color = color;
-	}
-
-	float Rectangle::GetX()
-	{
-		return x;
-	}
-
-	float Rectangle::GetY()
-	{
-		return y;
 	}
 
 	float Rectangle::GetWidth()

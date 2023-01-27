@@ -15,12 +15,21 @@
 
 namespace Tether::Rendering::Vulkan
 {
+	struct InstanceInfo
+	{
+		const char* applicationName = "VulkanApp";
+		const char* engineName = "VulkanEngine";
+		TETHER_VULKAN_FUNC_VAR(CreateInstance);
+		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceExtensionProperties);
+		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
+		TETHER_VULKAN_FUNC_VAR(GetInstanceProcAddr);
+	};
+
 	class TETHER_EXPORT Instance
 	{
 	public:
 		Instance(
-			const char* applicationName = "VulkanApp",
-			const char* engineName = "VulkanEngine",
+			const InstanceInfo& info,
 			bool debugMode = false
 		);
 		~Instance();

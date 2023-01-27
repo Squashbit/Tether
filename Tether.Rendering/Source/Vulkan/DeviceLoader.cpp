@@ -6,6 +6,9 @@
 
 using namespace Tether::Rendering::Vulkan;
 
+#define TETHER_DEVICE_FUNC(name) \
+	vk##name = (PFN_vk##name)iloader->vkGetDeviceProcAddr(*pDevice, "vk"#name)
+
 void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 {
 	if (!iloader || !pDevice)

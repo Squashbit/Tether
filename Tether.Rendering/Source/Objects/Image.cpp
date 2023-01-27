@@ -3,15 +3,10 @@
 
 namespace Tether::Rendering::Objects
 {
-	void Image::SetX(float value)
-	{
-		this->x = value;
-	}
-
-	void Image::SetY(float value)
-	{
-		this->y = value;
-	}
+	Image::Image(ObjectRenderer* pObjectRenderer)
+		:
+		Objects::Object(pObjectRenderer)
+	{}
 
 	void Image::SetWidth(float value)
 	{
@@ -21,16 +16,6 @@ namespace Tether::Rendering::Objects
 	void Image::SetHeight(float value)
 	{
 		this->height = value;
-	}
-
-	float Image::GetX()
-	{
-		return x;
-	}
-
-	float Image::GetY()
-	{
-		return y;
 	}
 
 	float Image::GetWidth()

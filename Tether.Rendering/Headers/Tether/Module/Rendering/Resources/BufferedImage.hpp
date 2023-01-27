@@ -19,7 +19,13 @@ namespace Tether::Rendering::Resources
 	public:
 		virtual ~BufferedImage() = default;
 		TETHER_NO_COPY(BufferedImage);
+
+		uint32_t GetWidth();
+		uint32_t GetHeight();
 	protected:
-		BufferedImage() = default;
+		BufferedImage(const BufferedImageInfo& info);
+	private:
+		uint32_t m_Width = 0;
+		uint32_t m_Height = 0;
 	};
 }

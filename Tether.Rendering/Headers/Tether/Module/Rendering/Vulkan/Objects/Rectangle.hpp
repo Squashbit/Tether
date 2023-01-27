@@ -2,11 +2,7 @@
 
 #include <Tether/Math/Types.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/DescriptorPool.hpp>
-#include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
-#include <Tether/Module/Rendering/Vulkan/DescriptorSet.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
-
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
 #include <vector>

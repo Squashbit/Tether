@@ -20,15 +20,28 @@ namespace Tether::Rendering::Objects
 	{
 		friend Renderer;
 	public:
-		virtual ~Object() = default;
+		virtual ~Object();
 		TETHER_NO_COPY(Object);
 
+		void SetX(float value);
+		void SetY(float value);
+		void SetEnabled(bool enabled);
+		float GetX();
+		float GetY();
+		bool IsEnabled();
+		
 		Renderer* GetRenderer();
 		ObjectRenderer* GetObjectRenderer();
 	protected:
-		Object() = default;
+		Object(ObjectRenderer* pObjectRenderer);
 
+		float x = 0.0f;
+		float y = 0.0f;
+		bool m_Enabled = true;
+
+		bool m_IsInRenderer = false;
 		Renderer* m_pRenderer = nullptr;
+	private:
 		ObjectRenderer* m_pObjectRenderer = nullptr;
 	};
 }

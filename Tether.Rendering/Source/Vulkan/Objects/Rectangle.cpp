@@ -12,14 +12,13 @@ namespace Tether::Rendering::Vulkan
 		uint32_t framesInFlight
 	)
 		:
+		Objects::Rectangle(this),
 		m_Device(device),
 		m_Dloader(m_Device.GetLoader()),
 		m_Allocator(allocator),
 		m_pPipeline(pPipeline),
 		m_pRectBuffer(pRectBuffer)
-	{
-		this->m_pObjectRenderer = this;
-	}
+	{}
 
 	void Rectangle::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 		uint32_t index)

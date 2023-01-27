@@ -4,15 +4,18 @@
 #define TETHER_INCLUDE_VULKAN
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
+#define TETHER_INSTANCE_FUNC(name) \
+	vk##name = (PFN_vk##name)getProcAddr(*pInstance, "vk"#name)
+
 using namespace Tether::Rendering::Vulkan;
 
-void InstanceLoader::Load(VkInstance* pInstance)
+void InstanceLoader::Load(VkInstance* pInstance, PFN_vkGetInstanceProcAddr getProcAddr)
 {
 #ifdef __linux__
-	vkCreateXlibSurfaceKHR = vkGetInstanceProcAddr(
+	vkCreateXlibSurfaceKHR = getProcAddr(
 		*pInstance, "vkCreateXlibSurfaceKHR");
 #elif _WIN32
-	vkCreateWin32SurfaceKHR = vkGetInstanceProcAddr(
+	vkCreateWin32SurfaceKHR = getProcAddr(
 		*pInstance, "vkCreateWin32SurfaceKHR");
 #endif
 	
