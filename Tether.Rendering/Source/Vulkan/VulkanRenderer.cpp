@@ -194,7 +194,7 @@ namespace Tether::Rendering::Vulkan
 			instance, &device,
 			queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 			pWindow->GetWidth(), pWindow->GetHeight(),
-			false
+			true
 		);
 
 		swapchainImages = swapchain->GetImages();

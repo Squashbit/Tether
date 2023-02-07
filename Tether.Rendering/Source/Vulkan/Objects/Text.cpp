@@ -27,9 +27,9 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.windowSize.y = m_Window.GetHeight();
 		pushConstants.color = m_Color;
 		
-		float offset = 0.0f;
 		Font* pFont = (Font*)m_pFont;
 		
+		float offset = 0.0f;
 		for (size_t i = 0; i < m_Text.size(); i++)
 		{
 			Font::Character& character = pFont->GetCharacter(m_Text[i]);
@@ -50,9 +50,10 @@ namespace Tether::Rendering::Vulkan
 		float startY = pushConstants.windowSize.y * y;
 		float bearingX = character.bearing.x * m_Scale;
 		float bearingY = (float)character.size.y - character.bearing.y;
+		float baseDistance = bearingY - character.size.y;
 
 		pushConstants.position.x = startX + offset + bearingX;
-		pushConstants.position.y = startY + (bearingY - character.size.y) * m_Scale;
+		pushConstants.position.y = startY + baseDistance * m_Scale;
 		pushConstants.scale.x = (float)character.size.x * m_Scale;
 		pushConstants.scale.y = (float)character.size.y * m_Scale;
 

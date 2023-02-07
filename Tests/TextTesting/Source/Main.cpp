@@ -43,7 +43,7 @@ public:
 		window(1280, 720, "Text testing"),
 		renderer(&window)
 	{
-		font = renderer.CreateResource<Resources::Font>("arial.ttf");
+		font = renderer.CreateResource<Resources::Font>("font.ttf");
 		font->SetSize(64);
 
 		text = renderer.CreateObject<Objects::Text>();
@@ -76,7 +76,7 @@ public:
 			{
 				printFpsTimer.Set();
 
-				int fps = (int)(1.0f / (time / frames));
+				int fps = (int)round(1.0f / (time / frames));
 				text->SetText("FPS = " + std::to_string(fps));
 
 				time = 0;
