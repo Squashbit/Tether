@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tether/Common/Color.hpp>
+#include <Tether/Math/Types.hpp>
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
@@ -14,16 +14,16 @@ namespace Tether::Rendering::Objects
 		
 		void SetWidth(float value);
 		void SetHeight(float value);
-		void SetColor(Color color);
+		void SetColor(Math::Vector4f color);
 		float GetWidth();
 		float GetHeight();
-		Color GetColor();
+		Math::Vector4f GetColor();
 	protected:
 		Rectangle(ObjectRenderer* pObjectRenderer);
 		
 		float width = 0.0f;
 		float height = 0.0f;
 
-		Color color;
+		Math::Vector4f color;
 	};
 }

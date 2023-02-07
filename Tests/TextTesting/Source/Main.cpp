@@ -8,7 +8,6 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
-#include <random>
 
 using namespace Tether;
 using namespace Rendering;
@@ -41,12 +40,20 @@ class RendererTestApp
 public:
 	RendererTestApp()
 		:
-		window(1280, 720, "Renderer testing"),
-		renderer(&window),
-		gen(rd()),
-		distr(0.0f, 1.0f)
+		window(1280, 720, "Text testing"),
+		renderer(&window)
 	{
-		objects.resize(1024);
+		font = renderer.CreateResource<Resources::Font>("arial.ttf");
+		font->SetSize(64);
+
+		text = renderer.CreateObject<Objects::Text>();
+		text->SetX(0.05f);
+		text->SetY(0.5f);
+		text->SetFont(font.get());
+		text->SetText("FPS = 0");
+		
+		renderer.AddObject(text.get());
+
 		window.SetVisible(true);
 	}
 
@@ -65,17 +72,15 @@ public:
 			time += delta;
 			frames++;
 
-			AddObject();
-
-			if (fpsTimer.GetElapsedSeconds() >= 3.0f)
+			if (printFpsTimer.GetElapsedSeconds() >= 1.0f)
 			{
-				std::cout << "FPS = " << 1.0f / (time / frames) << ", Objects = " 
-					<< objectCount << '\n';
+				printFpsTimer.Set();
+
+				int fps = (int)(1.0f / (time / frames));
+				text->SetText("FPS = " + std::to_string(fps));
 
 				time = 0;
 				frames = 0;
-
-				fpsTimer.Set();
 			}
 
 			window.PollEvents();
@@ -83,41 +88,17 @@ public:
 		}
 	}
 private:
-	void AddObject()
-	{
-		if (objectCount + 1 > objects.size())
-			objects.resize(objects.size() + 1024);
-
-		objects[objectCount] = renderer.CreateObject<Objects::Rectangle>();
-		Objects::Rectangle* newRect = objects[objectCount].get();
-		
-		newRect->SetX(distr(gen));
-		newRect->SetY(distr(gen));
-		newRect->SetWidth(distr(gen));
-		newRect->SetHeight(distr(gen));
-		newRect->SetColor(distr(gen));
-
-		renderer.AddObject(newRect);
-
-		objectCount++;
-	}
-
 	size_t frames = 0;
 	float time = 0.0f;
 
 	SimpleWindow window;
 	Vulkan::VulkanRenderer renderer;
 
-	size_t objectCount = 0;
-	std::vector<Scope<Objects::Rectangle>> objects;
+	Scope<Resources::Font> font;
+	Scope<Objects::Text> text;
 
-	std::random_device rd;
-	std::mt19937 gen;
-	std::uniform_real_distribution<float> distr;
-
-	Stopwatch fpsTimer;
+	Stopwatch printFpsTimer;
 	Stopwatch deltaTimer;
-	Stopwatch fullTime;
 };
 
 #include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
@@ -133,15 +114,8 @@ int main()
 	DebugLogger vulkanLogger;
 	GlobalVulkan::Get().AddDebugMessenger(&vulkanLogger);
 
-	try
-	{
-		RendererTestApp testApp;
-		testApp.Run();
-	}
-	catch (std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
-	}
+	RendererTestApp testApp;
+	testApp.Run();
 
 	return 0;
 }

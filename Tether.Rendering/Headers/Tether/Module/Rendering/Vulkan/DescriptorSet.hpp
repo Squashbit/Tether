@@ -27,7 +27,7 @@ namespace Tether::Rendering::Vulkan
 		void UpdateSets(DescriptorSetWritable* pWrite, uint32_t binding);
 
 		uint32_t GetSetCount();
-		VkDescriptorSet& GetSetAtIndex(uint32_t index);
+		VkDescriptorSet* GetSetAtIndex(uint32_t index);
 	private:
 		std::vector<VkDescriptorSet> m_DescriptorSets;
 

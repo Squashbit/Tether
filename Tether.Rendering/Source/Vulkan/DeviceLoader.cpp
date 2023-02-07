@@ -68,7 +68,6 @@ void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
 	TETHER_DEVICE_FUNC(FreeCommandBuffers);
 	TETHER_DEVICE_FUNC(FreeDescriptorSets);
 	TETHER_DEVICE_FUNC(GetDeviceQueue);
-	TETHER_DEVICE_FUNC(GetPhysicalDeviceProperties);
 	TETHER_DEVICE_FUNC(GetSwapchainImagesKHR);
 	TETHER_DEVICE_FUNC(QueuePresentKHR);
 	TETHER_DEVICE_FUNC(QueueSubmit);

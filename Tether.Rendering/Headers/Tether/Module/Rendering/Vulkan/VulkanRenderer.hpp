@@ -45,6 +45,7 @@ namespace Tether::Rendering::Vulkan
 		void CreateSwapchain();
 		void CreateSolidPipeline();
 		void CreateTexturedPipeline();
+		void CreateTextPipeline();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandPool();
@@ -80,6 +81,9 @@ namespace Tether::Rendering::Vulkan
 		
 		std::optional<Pipeline> texturedPipeline;
 		VkDescriptorSetLayout texturedPipelineSetLayout;
+
+		std::optional<Pipeline> textPipeline;
+		VkDescriptorSetLayout textPipelineLayout;
 
 		std::optional<VertexBuffer> square;
 		std::optional<Swapchain> swapchain;

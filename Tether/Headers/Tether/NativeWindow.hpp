@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Tether/Common/Defs.hpp>
-#include <Tether/Common/Color.hpp>
+#include <Tether/Math/Types.hpp>
 #include <Tether/SimpleWindow.hpp>
 
 namespace Tether
@@ -61,11 +61,11 @@ namespace Tether
         /**
          * @brief Sets the background color of the window.
          */
-        void SetBackgroundColor(Color backgroundColor);
+        void SetBackgroundColor(Math::Vector4f backgroundColor);
         
         void Repaint();
     private:
         std::vector<Controls::Control*> controls;
-        Color backgroundColor;
+        Math::Vector4f backgroundColor;
     };
 }

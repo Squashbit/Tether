@@ -2,10 +2,8 @@
 
 #include <Tether/Math/Types.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/DescriptorPool.hpp>
-#include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
-#include <Tether/Module/Rendering/Vulkan/DescriptorSet.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/ObjectRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/BufferedImage.hpp>
 
 #include <Tether/Module/Rendering/Objects/Image.hpp>
 
@@ -26,9 +24,7 @@ namespace Tether::Rendering::Vulkan
 			Device& device,
 			VmaAllocator allocator,
 			Pipeline* pPipeline,
-			VertexBuffer* pRectBuffer,
-			VkDescriptorSetLayout pipelineSetLayout,
-			uint32_t framesInFlight
+			VertexBuffer* pRectBuffer
 		);
 		TETHER_NO_COPY(Image);
 
@@ -44,7 +40,6 @@ namespace Tether::Rendering::Vulkan
 		Pipeline* m_pPipeline;
 		VertexBuffer* m_pRectBuffer;
 
-		std::optional<DescriptorPool> m_Pool;
-		std::optional<DescriptorSet> m_Set;
+		BufferedImage* m_pImage = nullptr;
 	};
 }

@@ -6,13 +6,15 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Vulkan/Objects/Text.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/BufferedImage.hpp>
 #include <Tether/Module/Rendering/Vulkan/Resources/Font.hpp>
 
 #include <Tether/Module/Rendering/RendererException.hpp>
 
 #include <Tether.Rendering/Assets/CompiledShaders/solid.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/solid.frag.spv.h>
+#include <Tether.Rendering/Assets/CompiledShaders/text.vert.spv.h>
+#include <Tether.Rendering/Assets/CompiledShaders/text.frag.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/textured.vert.spv.h>
 #include <Tether.Rendering/Assets/CompiledShaders/textured.frag.spv.h>
 
@@ -42,6 +44,7 @@ namespace Tether::Rendering::Vulkan
 		CreateSwapchain();
 		CreateSolidPipeline();
 		CreateTexturedPipeline();
+		CreateTextPipeline();
 		CreateFramebuffers();
 		CreateSyncObjects();
 		CreateCommandPool();
@@ -67,6 +70,8 @@ namespace Tether::Rendering::Vulkan
 		}
 
 		dloader->vkDestroyDescriptorSetLayout(device.Get(), texturedPipelineSetLayout,
+			nullptr);
+		dloader->vkDestroyDescriptorSetLayout(device.Get(), textPipelineLayout,
 			nullptr);
 	}
 
@@ -150,24 +155,26 @@ namespace Tether::Rendering::Vulkan
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
 	{
 		object = std::make_unique<Image>(
-			device, allocator.Get(), &texturedPipeline.value(), &square.value(),
-			texturedPipelineSetLayout, swapchain->GetImageCount()
+			device, allocator.Get(), &texturedPipeline.value(), &square.value()
 		);
 	}
 
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Text>& object)
 	{
 		object = std::make_unique<Text>(
-			
+			device, textPipeline.value(), square.value(), *pWindow
 		);
 	}
 
 	void VulkanRenderer::OnCreateResource(Scope<Resources::BufferedImage>& image,
 		const Resources::BufferedImageInfo& info)
 	{
-		image = std::make_unique<VulkanBufferedImage>(
-			&device, allocator.Get(),
-			commandPool, graphicsQueue, sampler, info
+		image = std::make_unique<BufferedImage>(
+			device, allocator.Get(),
+			commandPool, graphicsQueue, sampler, 
+			swapchain->GetImageCount(),
+			texturedPipelineSetLayout,
+			info
 		);
 	}
 
@@ -175,6 +182,8 @@ namespace Tether::Rendering::Vulkan
 		const std::string& fontPath)
 	{
 		font = std::make_unique<Font>(
+			device, commandPool, graphicsQueue, allocator.Get(), 
+			MAX_FRAMES_IN_FLIGHT, textPipelineLayout, sampler,
 			fontPath
 		);
 	}
@@ -185,7 +194,7 @@ namespace Tether::Rendering::Vulkan
 			instance, &device,
 			queueIndices, swapchainDetails, surfaceFormat, surface.Get(),
 			pWindow->GetWidth(), pWindow->GetHeight(),
-			true
+			false
 		);
 
 		swapchainImages = swapchain->GetImages();
@@ -260,7 +269,7 @@ namespace Tether::Rendering::Vulkan
 
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.offset = 0;
-		pushConstantRange.size = sizeof(Image::PushConstants);
+		pushConstantRange.size = sizeof(Text::PushConstants);
 		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -296,6 +305,70 @@ namespace Tether::Rendering::Vulkan
 			sizeof(VulkanShaders::_binary_textured_vert_spv),
 			(uint32_t*)VulkanShaders::_binary_textured_frag_spv,
 			sizeof(VulkanShaders::_binary_textured_frag_spv),
+			bindingDescs,
+			attribDescs,
+			&pipelineLayoutInfo
+		);
+	}
+
+	void VulkanRenderer::CreateTextPipeline()
+	{
+		using namespace Assets;
+
+		VkDescriptorSetLayoutBinding layoutBinding{};
+		layoutBinding.binding = 0;
+		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		layoutBinding.descriptorCount = 1;
+		layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkDescriptorSetLayoutCreateInfo layoutInfo{};
+		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+		layoutInfo.bindingCount = 1;
+		layoutInfo.pBindings = &layoutBinding;
+
+		if (dloader->vkCreateDescriptorSetLayout(device.Get(), &layoutInfo, nullptr,
+			&textPipelineLayout) != VK_SUCCESS)
+			throw RendererException("Failed to create descriptor set layout");
+
+		VkPushConstantRange pushConstantRange{};
+		pushConstantRange.offset = 0;
+		pushConstantRange.size = sizeof(Text::PushConstants);
+		pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT 
+			| VK_SHADER_STAGE_FRAGMENT_BIT;
+
+		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+		pipelineLayoutInfo.setLayoutCount = 1;
+		pipelineLayoutInfo.pSetLayouts = &textPipelineLayout;
+		pipelineLayoutInfo.pushConstantRangeCount = 1;
+		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
+
+		std::vector<VkVertexInputBindingDescription> bindingDescs;
+		std::vector<VkVertexInputAttributeDescription> attribDescs;
+
+		// Vector2 descriptions
+		{
+			VkVertexInputBindingDescription bindingDesc;
+			bindingDesc.binding = 0;
+			bindingDesc.stride = sizeof(Math::Vector2f);
+			bindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			bindingDescs.push_back(bindingDesc);
+
+			VkVertexInputAttributeDescription posDesc;
+			posDesc.binding = 0;
+			posDesc.location = 0;
+			posDesc.format = VK_FORMAT_R32G32_SFLOAT;
+			posDesc.offset = 0;
+			attribDescs.push_back(posDesc);
+		}
+
+		textPipeline.emplace(
+			&device, renderPass.Get(),
+			swapchain->GetExtent(), 0,
+			(uint32_t*)VulkanShaders::_binary_text_vert_spv,
+			sizeof(VulkanShaders::_binary_text_vert_spv),
+			(uint32_t*)VulkanShaders::_binary_text_frag_spv,
+			sizeof(VulkanShaders::_binary_text_frag_spv),
 			bindingDescs,
 			attribDescs,
 			&pipelineLayoutInfo

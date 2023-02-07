@@ -21,5 +21,7 @@ namespace Tether::Rendering::Resources
 	void Font::SetSize(uint32_t fontSize)
 	{
 		FT_Set_Pixel_Sizes(m_FontFace, 0, fontSize);
+
+		OnSetSize(fontSize);
 	}
 }

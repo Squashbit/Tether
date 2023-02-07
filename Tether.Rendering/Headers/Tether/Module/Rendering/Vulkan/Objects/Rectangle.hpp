@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 		{
 			Math::Vector2f position;
 			Math::Vector2f scale;
-			Math::Vector3f color;
+			Math::Vector4f color;
 		};
 
 		Rectangle(

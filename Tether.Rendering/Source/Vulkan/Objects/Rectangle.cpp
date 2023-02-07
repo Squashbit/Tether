@@ -33,10 +33,8 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.position.y = y;
 		pushConstants.scale.x = width;
 		pushConstants.scale.y = height;
-		pushConstants.color.x = color.GetR();
-		pushConstants.color.y = color.GetG();
-		pushConstants.color.z = color.GetB();
-
+		pushConstants.color = color;
+		
 		m_Dloader->vkCmdPushConstants(
 			vkCommandBuffer, m_pPipeline->GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

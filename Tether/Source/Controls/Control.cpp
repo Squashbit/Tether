@@ -22,12 +22,12 @@ void Control::SetHeight(float height)
     this->height = height;
 }
 
-void Control::SetForegroundColor(Color color)
+void Control::SetForegroundColor(Math::Vector4f color)
 {
     foreground = color;
 }
 
-void Control::SetBackgroundColor(Color color)
+void Control::SetBackgroundColor(Math::Vector4f color)
 {
     background = color;
 }
@@ -52,12 +52,12 @@ float Control::GetHeight() const
     return height;
 }
 
-Tether::Color Control::GetForegroundColor() const
+Tether::Math::Vector4f Control::GetForegroundColor() const
 {
     return foreground;
 }
 
-Tether::Color Control::GetBackgroundColor() const
+Tether::Math::Vector4f Control::GetBackgroundColor() const
 {
     return background;
 }

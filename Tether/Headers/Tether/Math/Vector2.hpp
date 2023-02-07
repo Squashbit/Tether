@@ -41,8 +41,8 @@ namespace Tether::Math
 		Vector2<T>& operator*=(const T& value);
 		Vector2<T>& operator/=(const T& value);
 
-		T x = 0.0f;
-		T y = 0.0f;
+		T x = static_cast<T>(0);
+		T y = static_cast<T>(0);
 
 		static Vector2<T> Normalize(Vector2<T> v);
 		static float Dot(Vector2<T> v1, Vector2<T> v2);

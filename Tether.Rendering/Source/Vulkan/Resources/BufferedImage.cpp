@@ -1,21 +1,22 @@
-#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
-#include <Tether/Module/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Resources/BufferedImage.hpp>
+#include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 
 #include <cstring>
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanBufferedImage::VulkanBufferedImage(
-		Device* pDevice, VmaAllocator allocator,
+	BufferedImage::BufferedImage(
+		Device& device, VmaAllocator allocator,
 		VkCommandPool commandPool, VkQueue graphicsQueue,
-		VkSampler sampler,
+		VkSampler sampler, uint32_t framesInFlight,
+		VkDescriptorSetLayout pipelineSetLayout,
 		const Resources::BufferedImageInfo& info
 	)
 		:
-		BufferedImage(info),
-		m_pDevice(pDevice),
-		m_Dloader(pDevice->GetLoader()),
+		Resources::BufferedImage(info),
+		m_Device(device),
+		m_Dloader(m_Device.GetLoader()),
 		m_Allocator(allocator),
 		m_CommandPool(commandPool),
 		m_GraphicsQueue(graphicsQueue),
@@ -46,60 +47,33 @@ namespace Tether::Rendering::Vulkan
 
 		UploadImageData(info);
 		CreateImageView();
+
+		VkDescriptorPoolSize samplerSize{};
+		samplerSize.descriptorCount = framesInFlight;
+		samplerSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+		m_Pool.emplace(&m_Device, framesInFlight, 1, &samplerSize);
+		m_Set.emplace(&m_Device, m_Pool.value(), pipelineSetLayout, framesInFlight);
+		m_Set->UpdateSets(this, 0);
 	}
 
-	VulkanBufferedImage::~VulkanBufferedImage()
+	BufferedImage::~BufferedImage()
 	{
-		m_Dloader->vkDestroyImageView(m_pDevice->Get(), m_ImageView, nullptr);
+		m_Dloader->vkDestroyImageView(m_Device.Get(), m_ImageView, nullptr);
 		vmaDestroyImage(m_Allocator, m_Image, m_ImageAllocation);
 	}
 
-	void VulkanBufferedImage::UploadImageData(const Resources::BufferedImageInfo& info)
+	void BufferedImage::UploadImageData(const Resources::BufferedImageInfo& info)
 	{
-		VkBuffer stagingBuffer = nullptr;
-		VmaAllocation stagingAllocation = nullptr;
-		VmaAllocationInfo stagingInfo{};
+		ImageStager stager(
+			m_Device, m_CommandPool, m_GraphicsQueue,  m_Allocator, m_Image,
+			info.width, info.height, 4, info.pixelData, VK_FORMAT_R8G8B8A8_UNORM
+		);
 
-		VkBufferCreateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = info.width * info.height * 4;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-
-		VmaAllocationCreateInfo allocInfo{};
-		allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-
-		if (vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo, &stagingBuffer, 
-			&stagingAllocation, &stagingInfo) != VK_SUCCESS)
-			throw RendererException("Failed to create staging buffer");
-
-		if (stagingInfo.pMappedData != nullptr) // Suppress warning
-			memcpy(stagingInfo.pMappedData, info.pixelData, bufferInfo.size);
-
-		SingleUseCommandBuffer singleUseCommandBuffer(m_pDevice, m_CommandPool, 
-			m_GraphicsQueue);
-		singleUseCommandBuffer.Begin();
-		{
-			singleUseCommandBuffer.TransitionImageLayout(
-				m_Image, m_ImageFormat,
-				VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
-			);
-			singleUseCommandBuffer.CopyBufferToImage(
-				stagingBuffer, m_Image,
-				info.width, info.height
-			);
-			singleUseCommandBuffer.TransitionImageLayout(
-				m_Image, m_ImageFormat,
-				VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-				VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-			);
-		}
-		singleUseCommandBuffer.Submit();
-
-		vmaDestroyBuffer(m_Allocator, stagingBuffer, stagingAllocation);
+		stager.Upload();
 	}
 
-	void VulkanBufferedImage::CreateImageView()
+	void BufferedImage::CreateImageView()
 	{
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -112,17 +86,22 @@ namespace Tether::Rendering::Vulkan
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		if (m_Dloader->vkCreateImageView(m_pDevice->Get(), &viewInfo, nullptr, 
+		if (m_Dloader->vkCreateImageView(m_Device.Get(), &viewInfo, nullptr,
 			&m_ImageView) != VK_SUCCESS)
 			throw RendererException("Failed to create texture image view");
 	}
 
-	VkDescriptorType VulkanBufferedImage::GetDescriptorType()
+	VkDescriptorSet* BufferedImage::GetSetAtIndex(uint32_t index)
+	{
+		return m_Set->GetSetAtIndex(index);
+	}
+
+	VkDescriptorType BufferedImage::GetDescriptorType()
 	{
 		return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	}
 
-	VkDescriptorImageInfo VulkanBufferedImage::GetImageInfo(uint32_t setIndex)
+	VkDescriptorImageInfo BufferedImage::GetImageInfo(uint32_t setIndex)
 	{
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

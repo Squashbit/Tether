@@ -5,20 +5,24 @@
 #include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
 
 #include <vk_mem_alloc.h>
+#include <optional>
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VulkanBufferedImage : public Resources::BufferedImage, 
+	class TETHER_EXPORT BufferedImage : public Resources::BufferedImage, 
 		public DescriptorSetWritable
 	{
 	public:
-		VulkanBufferedImage(
-			Device* pDevice, VmaAllocator allocator, 
+		BufferedImage(
+			Device& device, VmaAllocator allocator, 
 			VkCommandPool commandPool, VkQueue graphicsQueue,
-			VkSampler sampler,
+			VkSampler sampler, uint32_t framesInFlight,
+			VkDescriptorSetLayout pipelineSetLayout,
 			const Resources::BufferedImageInfo& info
 		);
-		~VulkanBufferedImage();
+		~BufferedImage();
+
+		VkDescriptorSet* GetSetAtIndex(uint32_t index);
 
 		VkDescriptorType GetDescriptorType() override;
 		VkDescriptorImageInfo GetImageInfo(uint32_t setIndex) override;
@@ -30,12 +34,15 @@ namespace Tether::Rendering::Vulkan
 		VkImageView m_ImageView = nullptr;
 		VmaAllocation m_ImageAllocation = nullptr;
 
-		Device* m_pDevice = nullptr;
+		Device& m_Device;
 		DeviceLoader* m_Dloader = nullptr;
 		VmaAllocator m_Allocator = nullptr;
 		VkCommandPool m_CommandPool = nullptr;
 		VkQueue m_GraphicsQueue = nullptr;
 		VkSampler m_Sampler = nullptr;
+
+		std::optional<DescriptorPool> m_Pool;
+		std::optional<DescriptorSet> m_Set;
 
 		const VkFormat m_ImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
 	};

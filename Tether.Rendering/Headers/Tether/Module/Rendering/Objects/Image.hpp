@@ -1,7 +1,5 @@
 #pragma once
 
-#include <Tether/Common/Color.hpp>
-
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
 

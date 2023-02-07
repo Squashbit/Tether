@@ -5,7 +5,8 @@ namespace Tether::Rendering::Objects
 {
 	Rectangle::Rectangle(ObjectRenderer* pObjectRenderer)
 		:
-		Objects::Object(pObjectRenderer)
+		Objects::Object(pObjectRenderer),
+		color(1.0f)
 	{}
 
 	void Rectangle::SetWidth(float value)
@@ -18,7 +19,7 @@ namespace Tether::Rendering::Objects
 		this->height = value;
 	}
 
-	void Rectangle::SetColor(Color color)
+	void Rectangle::SetColor(Math::Vector4f color)
 	{
 		this->color = color;
 	}
@@ -33,7 +34,7 @@ namespace Tether::Rendering::Objects
 		return height;
 	}
 
-	Color Rectangle::GetColor()
+	Math::Vector4f Rectangle::GetColor()
 	{
 		return color;
 	}

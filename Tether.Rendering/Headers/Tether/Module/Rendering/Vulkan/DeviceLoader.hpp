@@ -75,7 +75,6 @@ namespace Tether::Rendering::Vulkan
 		TETHER_DEVICE_FUNC_VAR(FreeCommandBuffers);
 		TETHER_DEVICE_FUNC_VAR(FreeDescriptorSets);
 		TETHER_DEVICE_FUNC_VAR(GetDeviceQueue);
-		TETHER_DEVICE_FUNC_VAR(GetPhysicalDeviceProperties);
 		TETHER_DEVICE_FUNC_VAR(GetSwapchainImagesKHR);
 		TETHER_DEVICE_FUNC_VAR(QueuePresentKHR);
 		TETHER_DEVICE_FUNC_VAR(QueueSubmit);

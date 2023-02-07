@@ -1,5 +1,4 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
-#include <Tether/Module/Rendering/Vulkan/Resources/VulkanBufferedImage.hpp>
 #include <Tether/Module/Rendering/RendererException.hpp>
 
 namespace Tether::Rendering::Vulkan
@@ -8,9 +7,7 @@ namespace Tether::Rendering::Vulkan
 		Device& device,
 		VmaAllocator allocator,
 		Pipeline* pPipeline,
-		VertexBuffer* pRectBuffer,
-		VkDescriptorSetLayout pipelineSetLayout,
-		uint32_t framesInFlight
+		VertexBuffer* pRectBuffer
 	)
 		:
 		Objects::Image(this),
@@ -19,27 +16,28 @@ namespace Tether::Rendering::Vulkan
 		m_Allocator(allocator),
 		m_pPipeline(pPipeline),
 		m_pRectBuffer(pRectBuffer)
-	{
-		VkDescriptorPoolSize samplerSize{};
-		samplerSize.descriptorCount = framesInFlight;
-		samplerSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-		m_Pool.emplace(&m_Device, framesInFlight, 1, &samplerSize);
-		m_Set.emplace(&m_Device, m_Pool.value(), pipelineSetLayout, framesInFlight);
-	}
+	{}
 
 	void Image::SetImage(Resources::BufferedImage* image)
 	{
+		if (!image)
+		{
+			m_pImage = nullptr;
+			return;
+		}
+
 		if (image->GetRenderer() != m_pRenderer)
 			throw RendererException("BufferedImage created with a different renderer");
 
-		VulkanBufferedImage* vkImage = (VulkanBufferedImage*)image;
-		m_Set->UpdateSets(vkImage, 0);
+		m_pImage = (BufferedImage*)image;
 	}
 
 	void Image::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 		uint32_t index)
 	{
+		if (!m_pImage)
+			return;
+
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
 		commandBuffer.BindPipelineIfNotBound(m_pPipeline);
@@ -62,7 +60,7 @@ namespace Tether::Rendering::Vulkan
 		m_Dloader->vkCmdBindDescriptorSets(
 			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_pPipeline->GetLayout(), 0,
-			1, &m_Set->GetSetAtIndex(index),
+			1, m_pImage->GetSetAtIndex(index),
 			0, nullptr
 		);
 

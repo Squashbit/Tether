@@ -11,11 +11,11 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT SingleUseCommandBuffer
 	{
 	public:
-		SingleUseCommandBuffer(Device* pDevice, VkCommandPool commandPool,
+		SingleUseCommandBuffer(Device& device, VkCommandPool commandPool,
 			VkQueue queue);
+		SingleUseCommandBuffer(SingleUseCommandBuffer&& other) noexcept;
 		~SingleUseCommandBuffer();
-		TETHER_NO_COPY(SingleUseCommandBuffer);
-
+		
 		// Calls vkBeginCommandBuffer and returns the command buffer created in
 		// the constructor.
 		VkCommandBuffer Begin();
@@ -30,13 +30,19 @@ namespace Tether::Rendering::Vulkan
 			VkImageLayout oldLayout, VkImageLayout newLayout
 		);
 
-		void Submit();
-	private:
-		VkCommandBuffer commandBuffer = nullptr;
+		void End();
 
-		Device* pDevice = nullptr;
-		DeviceLoader* dloader = nullptr;
-		VkCommandPool commandPool = nullptr;
-		VkQueue queue = nullptr;
+		void Submit(bool wait = true);
+		void Wait();
+	private:
+		bool m_Moved = false;
+
+		VkCommandBuffer m_CommandBuffer = nullptr;
+		VkFence m_Fence = nullptr;
+
+		Device& m_Device;
+		DeviceLoader* m_Dloader = nullptr;
+		VkCommandPool m_CommandPool = nullptr;
+		VkQueue m_Queue = nullptr;
 	};
 }

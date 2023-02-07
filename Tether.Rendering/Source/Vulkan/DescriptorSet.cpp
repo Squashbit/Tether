@@ -82,8 +82,8 @@ namespace Tether::Rendering::Vulkan
 		return static_cast<uint32_t>(m_DescriptorSets.size());
 	}
 
-	VkDescriptorSet& DescriptorSet::GetSetAtIndex(uint32_t index)
+	VkDescriptorSet* DescriptorSet::GetSetAtIndex(uint32_t index)
 	{
-		return m_DescriptorSets[index];
+		return &m_DescriptorSets[index];
 	}
 }

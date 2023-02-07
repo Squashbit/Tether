@@ -7,10 +7,10 @@ layout(push_constant) uniform Rectangle
 {
     vec2 position;
     vec2 scale;
-    vec3 color;
+    vec4 color;
 } rect;
 
 void main() 
 {
-    outColor = vec4(rect.color, 1.0);
+    outColor = rect.color;
 }

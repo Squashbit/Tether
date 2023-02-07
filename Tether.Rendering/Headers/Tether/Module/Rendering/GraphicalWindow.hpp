@@ -2,8 +2,8 @@
 
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
-#include <Tether/Common/Color.hpp>
 #include <Tether/Elements/Element.hpp>
+#include <Tether/Math/Types.hpp>
 #include <Tether/SimpleWindow.hpp>
 
 namespace Tether::Rendering
@@ -44,7 +44,7 @@ namespace Tether::Rendering
 		/**
 		 * @brief Sets the background color of the window.
 		 */
-		void SetBackgroundColor(Color backgroundColor);
+		void SetBackgroundColor(Math::Vector4f backgroundColor);
 		
 		void Repaint();
 	private:
@@ -53,6 +53,6 @@ namespace Tether::Rendering
 		
 		std::vector<Elements::Element*> elements;
 		
-		Color backgroundColor;
+		Math::Vector4f backgroundColor;
 	};
 }

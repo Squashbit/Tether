@@ -33,7 +33,7 @@ bool GraphicalWindow::RemoveElement(Elements::Element* pElement, bool repaint)
 	return false;
 }
 
-void GraphicalWindow::SetBackgroundColor(Color backgroundColor)
+void GraphicalWindow::SetBackgroundColor(Math::Vector4f backgroundColor)
 {
 	this->backgroundColor = backgroundColor;
 }
