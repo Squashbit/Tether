@@ -14,6 +14,8 @@
 #include <Tether/Common/HashedString.hpp>
 #include <Tether/Common/Types.hpp>
 
+#include <Tether/Math/Types.hpp>
+
 #include <vector>
 
 namespace Tether::Rendering
@@ -29,6 +31,8 @@ namespace Tether::Rendering
 		bool RemoveObject(Objects::Object* pObject);
 		bool HasObject(Objects::Object* pObject);
 		void ClearObjects();
+
+		void SetClearColor(const Math::Vector3f& clearColor);
 
 		virtual bool RenderFrame() { return true; }
 
@@ -80,5 +84,7 @@ namespace Tether::Rendering
 			const std::string& fontPath) = 0;
 
 		std::vector<Objects::Object*> objects;
+
+		Math::Vector3f m_ClearColor;
 	};
 }

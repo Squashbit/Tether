@@ -54,6 +54,7 @@ public:
 		text->SetText("FPS = 0");
 		
 		m_Renderer.AddObject(text.get());
+		m_Renderer.SetClearColor(0.2f);
 
 		window.SetVisible(true);
 	}

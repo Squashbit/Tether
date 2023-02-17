@@ -210,7 +210,9 @@ namespace Tether::Rendering::Vulkan
 			&beginInfo) != VK_SUCCESS)
 			throw std::runtime_error("Failed to begin command buffer!");
 		{
-			VkClearValue clearColor = { {{ 0.0f, 0.0f, 0.0f, 1.0f }} };
+			VkClearValue clearColor{};
+			clearColor.color = { m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, 
+				1.0f };
 
 			VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
 
