@@ -2,15 +2,15 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	Text::Text(Device& device, Pipeline& pipeline, VertexBuffer& rectBuffer,
-		SimpleWindow& window)
+	Text::Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
+		Pipeline& pipeline, VertexBuffer& rectBuffer)
 		:
 		Objects::Text(this),
-		m_Device(device),
-		m_Dloader(m_Device.GetLoader()),
+		m_Device(context.device),
+		m_Dloader(context.deviceLoader),
+		m_SwapchainExtent(swapchainExtent),
 		m_Pipeline(pipeline),
-		m_RectBuffer(rectBuffer),
-		m_Window(window)
+		m_RectBuffer(rectBuffer)
 	{
 
 	}
@@ -23,8 +23,8 @@ namespace Tether::Rendering::Vulkan
 		commandBuffer.BindPipelineIfNotBound(&m_Pipeline);
 		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
 
-		pushConstants.windowSize.x = m_Window.GetWidth();
-		pushConstants.windowSize.y = m_Window.GetHeight();
+		pushConstants.windowSize.x = m_SwapchainExtent.width;
+		pushConstants.windowSize.y = m_SwapchainExtent.height;
 		pushConstants.color = m_Color;
 		
 		Font* pFont = (Font*)m_pFont;
@@ -57,14 +57,14 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.scale.x = (float)character.size.x * m_Scale;
 		pushConstants.scale.y = (float)character.size.y * m_Scale;
 
-		m_Dloader->vkCmdBindDescriptorSets(
+		m_Dloader.vkCmdBindDescriptorSets(
 			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			m_Pipeline.GetLayout(), 0,
 			1, &character.descriptorSets[index],
 			0, nullptr
 		);
 
-		m_Dloader->vkCmdPushConstants(
+		m_Dloader.vkCmdPushConstants(
 			vkCommandBuffer, m_Pipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
@@ -72,7 +72,7 @@ namespace Tether::Rendering::Vulkan
 			&pushConstants
 		);
 
-		m_Dloader->vkCmdDrawIndexed(
+		m_Dloader.vkCmdDrawIndexed(
 			vkCommandBuffer,
 			static_cast<uint32_t>(m_RectBuffer.GetVertexCount()),
 			1, 0, 0, 0

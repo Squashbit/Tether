@@ -1,26 +1,23 @@
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
+#include <stdexcept>
 
 using namespace Tether::Rendering::Vulkan;
 
-PipelineLayout::PipelineLayout(Device* device, 
+PipelineLayout::PipelineLayout(VulkanContext& context,
 	VkPipelineLayoutCreateInfo* createInfo)
+	:
+	m_Device(context.device),
+	m_Dloader(context.deviceLoader)
 {
-	TETHER_ASSERT(device != nullptr);
-	TETHER_ASSERT(createInfo != nullptr);
-
-	this->device = device;
-	this->dloader = device->GetLoader();
-
-	if (dloader->vkCreatePipelineLayout(device->Get(), createInfo,
+	if (m_Dloader.vkCreatePipelineLayout(m_Device, createInfo,
 		nullptr, &layout) != VK_SUCCESS)
-		throw RendererException("Pipeline layout creation failed");
+		throw std::runtime_error("Pipeline layout creation failed");
 }
 
 PipelineLayout::~PipelineLayout()
 {
-	dloader->vkDestroyPipelineLayout(device->Get(), layout, nullptr);
+	m_Dloader.vkDestroyPipelineLayout(m_Device, layout, nullptr);
 }
 
 VkPipelineLayout PipelineLayout::Get()
@@ -29,7 +26,7 @@ VkPipelineLayout PipelineLayout::Get()
 }
 
 Pipeline::Pipeline(
-	Device* device, VkRenderPass renderPass,
+	VulkanContext& context,
 	VkExtent2D viewportExtent, uint32_t subpass,
 	uint32_t* pVertexCode, size_t vertexCodeSize,
 	uint32_t* pFragmentCode, size_t fragmentCodeSize,
@@ -38,17 +35,17 @@ Pipeline::Pipeline(
 	VkPipelineLayoutCreateInfo* customLayoutInfo
 )
 	:
-	device(device),
-	dloader(device->GetLoader())
+	m_Device(context.device),
+	m_Dloader(context.deviceLoader)
 {
 	if (customLayoutInfo != nullptr)
-		layout.emplace(device, customLayoutInfo);
+		layout.emplace(context, customLayoutInfo);
 	else
 	{
 		VkPipelineLayoutCreateInfo layoutCreateInfo{};
 		layoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-		layout.emplace(device, &layoutCreateInfo);
+		layout.emplace(context, &layoutCreateInfo);
 	}
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
@@ -102,13 +99,13 @@ Pipeline::Pipeline(
 	colorBlending.pAttachments = &colorBlendAttachment;
 
 	ShaderModule vertex(
-		device,
+		context,
 		VK_SHADER_STAGE_VERTEX_BIT, 
 		pVertexCode, vertexCodeSize
 	);
 
 	ShaderModule fragment(
-		device,
+		context,
 		VK_SHADER_STAGE_FRAGMENT_BIT,
 		pFragmentCode, fragmentCodeSize
 	);
@@ -156,7 +153,7 @@ Pipeline::Pipeline(
 	createInfo.layout = layout->Get();
 	createInfo.stageCount = sizeof(stages) / sizeof(VkPipelineShaderStageCreateInfo);
 	createInfo.pStages = stages;
-	createInfo.renderPass = renderPass;
+	createInfo.renderPass = context.renderPass;
 	createInfo.subpass = subpass;
 	createInfo.pViewportState = &viewportState;
 	createInfo.pDynamicState = &dynamicState;
@@ -167,14 +164,14 @@ Pipeline::Pipeline(
 	createInfo.pColorBlendState = &colorBlending;
 	createInfo.pDepthStencilState = nullptr;
 	
-	if (dloader->vkCreateGraphicsPipelines(device->Get(), VK_NULL_HANDLE,
+	if (m_Dloader.vkCreateGraphicsPipelines(m_Device, VK_NULL_HANDLE,
 		1, &createInfo, nullptr, &pipeline) != VK_SUCCESS)
-		throw RendererException("Pipeline creation failed");
+		throw std::runtime_error("Pipeline creation failed");
 }
 
 Pipeline::~Pipeline()
 {
-	dloader->vkDestroyPipeline(device->Get(), pipeline, nullptr);
+	m_Dloader.vkDestroyPipeline(m_Device, pipeline, nullptr);
 }
 
 VkPipeline Pipeline::Get()

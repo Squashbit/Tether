@@ -17,7 +17,7 @@ namespace Tether::Rendering::Objects
 		float GetWidth();
 		float GetHeight();
 
-		virtual void SetImage(Resources::BufferedImage* image) = 0;
+		virtual void SetImage(Resources::BufferedImage& image) = 0;
 	protected:
 		Image(ObjectRenderer* pObjectRenderer);
 

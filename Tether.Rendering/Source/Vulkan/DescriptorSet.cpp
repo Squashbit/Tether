@@ -1,11 +1,10 @@
 #include <Tether/Module/Rendering/Vulkan/DescriptorSet.hpp>
 #include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
+#include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
 	DescriptorSet::DescriptorSet(
-		Device* device, 
 		DescriptorPool& pool, 
 		VkDescriptorSetLayout layout, 
 		uint32_t setCount,
@@ -13,8 +12,8 @@ namespace Tether::Rendering::Vulkan
 	)
 		:
 		m_Pool(pool),
-		m_Device(device),
-		m_Dloader(m_Device->GetLoader()),
+		m_Device(m_Pool.m_Device),
+		m_Dloader(m_Pool.m_Dloader),
 		m_ShouldFree(shouldFree)
 	{
 		std::vector<VkDescriptorSetLayout> layouts(setCount, layout);
@@ -26,9 +25,9 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.descriptorSetCount = setCount;
 		allocInfo.pSetLayouts = layouts.data();
 
-		if (m_Dloader->vkAllocateDescriptorSets(m_Device->Get(), &allocInfo,
+		if (m_Dloader.vkAllocateDescriptorSets(m_Device, &allocInfo,
 			m_DescriptorSets.data()) != VK_SUCCESS)
-			throw RendererException("Failed to allocate descriptor sets");
+			throw std::runtime_error("Failed to allocate descriptor sets");
 	}
 
 	DescriptorSet::~DescriptorSet()
@@ -36,7 +35,7 @@ namespace Tether::Rendering::Vulkan
 		if (!m_ShouldFree)
 			return;
 
-		m_Dloader->vkFreeDescriptorSets(m_Device->Get(), m_Pool.Get(), 
+		m_Dloader.vkFreeDescriptorSets(m_Device, m_Pool.Get(),
 			static_cast<uint32_t>(m_DescriptorSets.size()), m_DescriptorSets.data());
 	}
 
@@ -72,7 +71,7 @@ namespace Tether::Rendering::Vulkan
 				break;
 			}
 
-			m_Dloader->vkUpdateDescriptorSets(m_Device->Get(), 1, &writeInfo, 0, 
+			m_Dloader.vkUpdateDescriptorSets(m_Device, 1, &writeInfo, 0, 
 				nullptr);
 		}
 	}

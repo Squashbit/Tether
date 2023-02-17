@@ -12,7 +12,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT CommandBufferDescriptor
 	{
 	public:
-		CommandBufferDescriptor(VkCommandBuffer commandBuffer, DeviceLoader* dloader);
+		CommandBufferDescriptor(VkCommandBuffer commandBuffer, DeviceLoader& dloader);
 		TETHER_NO_COPY(CommandBufferDescriptor);
 
 		void BindPipelineIfNotBound(Pipeline* pPipeline);
@@ -20,10 +20,11 @@ namespace Tether::Rendering::Vulkan
 
 		VkCommandBuffer Get();
 	private:
+		DeviceLoader& m_Dloader;
+
 		Pipeline* pBoundPipeline = nullptr;
 		VertexBuffer* pBoundVertexBuffer = nullptr;
 
-		DeviceLoader* dloader = nullptr;
 		VkCommandBuffer commandBuffer = nullptr;
 	};
 }

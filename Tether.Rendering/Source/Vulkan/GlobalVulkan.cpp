@@ -1,15 +1,10 @@
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Application.hpp>
 #include <Tether/Common/LibraryLoader.hpp>
-#include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
 
 #include <stdexcept>
 
-#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
-
 #define TETHER_INSTANCE_FUNC_NULL(name) \
-	vulkan->name = (PFN_vk##name)vulkan->GetInstanceProcAddr(nullptr, "vk"#name)
+	name = (PFN_vk##name)GetInstanceProcAddr(nullptr, "vk"#name)
 
 namespace Tether::Rendering::Vulkan
 {
@@ -20,61 +15,59 @@ namespace Tether::Rendering::Vulkan
 		LoadVulkan();
 
 		InstanceInfo info;
-		info.CreateInstance = vulkan->CreateInstance;
-		info.EnumerateInstanceExtensionProperties = vulkan->EnumerateInstanceExtensionProperties;
-		info.EnumerateInstanceLayerProperties = vulkan->EnumerateInstanceLayerProperties;
-		info.GetInstanceProcAddr = vulkan->GetInstanceProcAddr;
+		info.CreateInstance = CreateInstance;
+		info.EnumerateInstanceExtensionProperties = EnumerateInstanceExtensionProperties;
+		info.EnumerateInstanceLayerProperties = EnumerateInstanceLayerProperties;
+		info.GetInstanceProcAddr = GetInstanceProcAddr;
 
-		vulkan->instance.emplace(info, debugMode);
+		instance.emplace(info, debugMode);
 	}
 
 	GlobalVulkan::~GlobalVulkan()
 	{
-		vulkan->instance.reset();
+		instance.reset();
 
-		LibraryLoader::FreeLibrary(vulkan->handle);
-
-		delete vulkan;
+		LibraryLoader::FreeLibrary(handle);
 	}
 
-	VulkanNative* GlobalVulkan::GetVulkanNative()
+	void GlobalVulkan::AddDebugMessenger(DebugCallback& debugCallback)
 	{
-		return vulkan;
+		debugCallback.m_IsInGlobalVulkan = true;
+		instance->AddDebugMessenger(debugCallback);
 	}
 
-	void GlobalVulkan::AddDebugMessenger(DebugCallback* pDebugCallback)
+	void GlobalVulkan::RemoveDebugMessenger(DebugCallback& debugCallback)
 	{
-		pDebugCallback->m_IsInGlobalVulkan = true;
-		vulkan->instance->AddDebugMessenger(pDebugCallback);
+		debugCallback.m_IsInGlobalVulkan = false;
+		instance->RemoveDebugMessenger(debugCallback);
 	}
 
-	void GlobalVulkan::RemoveDebugMessenger(DebugCallback* pDebugCallback)
+	Instance& GlobalVulkan::GetInstance()
 	{
-		pDebugCallback->m_IsInGlobalVulkan = false;
-		vulkan->instance->RemoveDebugMessenger(pDebugCallback);
+		return *instance;
+	}
+
+	PFN_vkGetInstanceProcAddr GlobalVulkan::GetGetInstanceProcAddr()
+	{
+		return GetInstanceProcAddr;
 	}
 
 	void GlobalVulkan::LoadVulkan()
 	{
-		vulkan = new Vulkan::VulkanNative();
-
-		void* vulkanLibrary;
 #if defined(_WIN32)
-		vulkanLibrary = LibraryLoader::LoadLibrary("vulkan-1.dll");
+		handle = LibraryLoader::LoadLibrary("vulkan-1.dll");
 #elif defined(__OpenBSD__) || defined(__NetBSD__)
-		vulkanLibrary = LibraryLoader::LoadLibrary("libvulkan.so");
+		handle = LibraryLoader::LoadLibrary("libvulkan.so");
 #else
-		vulkanLibrary = LibraryLoader::LoadLibrary("libvulkan.so.1");
+		handle = LibraryLoader::LoadLibrary("libvulkan.so.1");
 #endif
 
-		if (!vulkanLibrary)
+		if (!handle)
 			throw std::runtime_error("Failed to load Vulkan library");
 		
-		vulkan->handle = vulkanLibrary;
-
-		vulkan->GetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)
+		GetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)
 			LibraryLoader::LoadFunction(
-				vulkan->handle, "vkGetInstanceProcAddr");
+				handle, "vkGetInstanceProcAddr");
 
 		TETHER_INSTANCE_FUNC_NULL(CreateInstance);
 		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceExtensionProperties);

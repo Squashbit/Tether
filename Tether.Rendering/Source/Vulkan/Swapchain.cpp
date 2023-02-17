@@ -1,4 +1,3 @@
-#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 
 #include <algorithm>
@@ -7,8 +6,7 @@
 using namespace Tether::Rendering::Vulkan;
 
 Swapchain::Swapchain(
-	Instance* instance,
-	Device* device,
+	VulkanContext& context,
 	const QueueFamilyIndices& queueIndices,
 	const SwapchainDetails& details,
 	VkSurfaceFormatKHR surfaceFormat,
@@ -16,23 +14,23 @@ Swapchain::Swapchain(
 	uint32_t width, uint32_t height,
 	bool vsync
 )
+	:
+	m_Instance(context.instance),
+	m_Iloader(context.instanceLoader),
+	m_Device(context.device),
+	m_Dloader(context.deviceLoader)
 {	
-	this->instance = instance;
-	this->iloader = iloader;
-	this->device = device;
-	this->dloader = device->GetLoader();
-
-	imageCount = FindImageCount(details);
-	imageExtent = ChooseExtent(details.capabilities, width, height);
-	imageFormat = surfaceFormat.format;
+	m_ImageCount = FindImageCount(details);
+	m_ImageExtent = ChooseExtent(details.capabilities, width, height);
+	m_ImageFormat = surfaceFormat.format;
 
 	VkSwapchainCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	createInfo.surface = surface;
 	createInfo.imageColorSpace = surfaceFormat.colorSpace;
-	createInfo.minImageCount = imageCount;
-	createInfo.imageFormat = imageFormat;
-	createInfo.imageExtent = imageExtent;
+	createInfo.minImageCount = m_ImageCount;
+	createInfo.imageFormat = m_ImageFormat;
+	createInfo.imageExtent = m_ImageExtent;
 	createInfo.imageArrayLayers = 1;
 	createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	createInfo.preTransform = details.capabilities.currentTransform;
@@ -44,7 +42,7 @@ Swapchain::Swapchain(
 	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
 	{
 		if (!queueIndices.hasPresentFamily)
-			throw RendererException("Device doesn't have a present family!");
+			throw std::runtime_error("Device doesn't have a present family!");
 
 		uint32_t queueFamilyIndices[] =
 		{
@@ -59,14 +57,14 @@ Swapchain::Swapchain(
 	else
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (dloader->vkCreateSwapchainKHR(device->Get(), &createInfo, nullptr, 
-		&swapchain) != VK_SUCCESS)
-		throw RendererException("Swapchain creation failed");
+	if (m_Dloader.vkCreateSwapchainKHR(m_Device, &createInfo, nullptr,
+		&m_Swapchain) != VK_SUCCESS)
+		throw std::runtime_error("Swapchain creation failed");
 }
 
 Swapchain::~Swapchain()
 {
-	dloader->vkDestroySwapchainKHR(device->Get(), swapchain, nullptr);
+	m_Dloader.vkDestroySwapchainKHR(m_Device, m_Swapchain, nullptr);
 }
 
 VkPresentModeKHR Swapchain::ChoosePresentMode(
@@ -131,11 +129,11 @@ uint32_t Swapchain::FindImageCount(const SwapchainDetails& details)
 std::vector<VkImage> Swapchain::GetImages()
 {
 	uint32_t numImages;
-	dloader->vkGetSwapchainImagesKHR(device->Get(), swapchain, &numImages,
+	m_Dloader.vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &numImages,
 		nullptr);
 	
 	std::vector<VkImage> swapchainImages(numImages);
-	dloader->vkGetSwapchainImagesKHR(device->Get(), swapchain, &numImages,
+	m_Dloader.vkGetSwapchainImagesKHR(m_Device, m_Swapchain, &numImages,
 		swapchainImages.data());
 
 	return swapchainImages;
@@ -154,7 +152,7 @@ void Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		createInfo.image = image;
 		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		createInfo.format = imageFormat;
+		createInfo.format = m_ImageFormat;
 		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
 		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -165,23 +163,23 @@ void Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
 		createInfo.subresourceRange.baseArrayLayer = 0;
 		createInfo.subresourceRange.layerCount = 1;
 		
-		if (dloader->vkCreateImageView(device->Get(), &createInfo, nullptr,
+		if (m_Dloader.vkCreateImageView(m_Device, &createInfo, nullptr,
 			&pVec->at(i)) != VK_SUCCESS)
-			throw RendererException("Swapchain image view creation failed");
+			throw std::runtime_error("Swapchain image view creation failed");
 	}
 }
 
 uint32_t Swapchain::GetImageCount()
 {
-	return imageCount;
+	return m_ImageCount;
 }
 
 VkExtent2D Swapchain::GetExtent()
 {
-	return imageExtent;
+	return m_ImageExtent;
 }
 
 VkSwapchainKHR Swapchain::Get()
 {
-	return swapchain;
+	return m_Swapchain;
 }

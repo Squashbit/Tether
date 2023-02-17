@@ -1,25 +1,25 @@
 #include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
+#include <stdexcept>
 
 using namespace Tether::Rendering::Vulkan;
 
 ShaderModule::ShaderModule(
-	Device* pDevice,
+	VulkanContext& context,
 	VkShaderStageFlagBits stage,
 	uint32_t* pCode, size_t codeSize
 )
+	:
+	m_Device(context.device),
+	m_Dloader(context.deviceLoader)
 {
-	this->pDevice = pDevice;
-	this->dloader = pDevice->GetLoader();
-
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	createInfo.pCode = pCode;
 	createInfo.codeSize = codeSize;
 
-	if (dloader->vkCreateShaderModule(pDevice->Get(), &createInfo, nullptr, &shader)
+	if (m_Dloader.vkCreateShaderModule(m_Device, &createInfo, nullptr, &shader)
 		!= VK_SUCCESS)
-		throw RendererException("Shader creation failed");
+		throw std::runtime_error("Shader creation failed");
 
 	stageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	stageInfo.stage = stage;
@@ -29,7 +29,7 @@ ShaderModule::ShaderModule(
 
 ShaderModule::~ShaderModule()
 {
-	dloader->vkDestroyShaderModule(pDevice->Get(), shader, nullptr);
+	m_Dloader.vkDestroyShaderModule(m_Device, shader, nullptr);
 }
 
 VkShaderModule ShaderModule::Get()

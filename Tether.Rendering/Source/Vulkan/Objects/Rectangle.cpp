@@ -1,23 +1,19 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Rectangle.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
-#include <iostream>
 
 namespace Tether::Rendering::Vulkan
 {
 	Rectangle::Rectangle(
-		Device& device,
-		VmaAllocator allocator,
-		Pipeline* pPipeline,
-		VertexBuffer* pRectBuffer,
-		uint32_t framesInFlight
+		VulkanContext& context,
+		Pipeline& pipeline,
+		VertexBuffer& rectBuffer
 	)
 		:
 		Objects::Rectangle(this),
-		m_Device(device),
-		m_Dloader(m_Device.GetLoader()),
-		m_Allocator(allocator),
-		m_pPipeline(pPipeline),
-		m_pRectBuffer(pRectBuffer)
+		m_Device(context.device),
+		m_Allocator(context.allocator),
+		m_Dloader(context.deviceLoader),
+		m_Pipeline(pipeline),
+		m_RectBuffer(rectBuffer)
 	{}
 
 	void Rectangle::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
@@ -25,8 +21,8 @@ namespace Tether::Rendering::Vulkan
 	{
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		commandBuffer.BindPipelineIfNotBound(m_pPipeline);
-		commandBuffer.BindVertexBufferIfNotBound(m_pRectBuffer);
+		commandBuffer.BindPipelineIfNotBound(&m_Pipeline);
+		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
 
 		PushConstants pushConstants;
 		pushConstants.position.x = x;
@@ -35,17 +31,17 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.scale.y = height;
 		pushConstants.color = color;
 		
-		m_Dloader->vkCmdPushConstants(
-			vkCommandBuffer, m_pPipeline->GetLayout(),
+		m_Dloader.vkCmdPushConstants(
+			vkCommandBuffer, m_Pipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(PushConstants),
 			&pushConstants
 		);
 
-		m_Dloader->vkCmdDrawIndexed(
+		m_Dloader.vkCmdDrawIndexed(
 			vkCommandBuffer,
-			static_cast<uint32_t>(m_pRectBuffer->GetVertexCount()),
+			static_cast<uint32_t>(m_RectBuffer.GetVertexCount()),
 			1, 0, 0, 0
 		);
 	}

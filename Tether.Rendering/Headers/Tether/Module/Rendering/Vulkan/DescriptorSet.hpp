@@ -15,7 +15,6 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		DescriptorSet(
-			Device* device,
 			DescriptorPool& pool,
 			VkDescriptorSetLayout layout,
 			uint32_t setCount,
@@ -34,7 +33,7 @@ namespace Tether::Rendering::Vulkan
 		bool m_ShouldFree = false;
 		
 		DescriptorPool& m_Pool;
-		Device* m_Device = nullptr;
-		DeviceLoader* m_Dloader = nullptr;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 	};
 }

@@ -1,35 +1,28 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
+#include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
 	Image::Image(
-		Device& device,
-		VmaAllocator allocator,
-		Pipeline* pPipeline,
-		VertexBuffer* pRectBuffer
+		VulkanContext& context,
+		Pipeline& pipeline,
+		VertexBuffer& rectBuffer
 	)
 		:
 		Objects::Image(this),
-		m_Device(device),
-		m_Dloader(m_Device.GetLoader()),
-		m_Allocator(allocator),
-		m_pPipeline(pPipeline),
-		m_pRectBuffer(pRectBuffer)
+		m_Device(context.device),
+		m_Dloader(context.deviceLoader),
+		m_Allocator(context.allocator),
+		m_Pipeline(pipeline),
+		m_RectBuffer(rectBuffer)
 	{}
 
-	void Image::SetImage(Resources::BufferedImage* image)
+	void Image::SetImage(Resources::BufferedImage& image)
 	{
-		if (!image)
-		{
-			m_pImage = nullptr;
-			return;
-		}
+		if (image.GetRenderer() != m_pRenderer)
+			throw std::runtime_error("BufferedImage created with a different renderer");
 
-		if (image->GetRenderer() != m_pRenderer)
-			throw RendererException("BufferedImage created with a different renderer");
-
-		m_pImage = (BufferedImage*)image;
+		m_pImage = (BufferedImage*)&image;
 	}
 
 	void Image::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
@@ -40,8 +33,8 @@ namespace Tether::Rendering::Vulkan
 
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		commandBuffer.BindPipelineIfNotBound(m_pPipeline);
-		commandBuffer.BindVertexBufferIfNotBound(m_pRectBuffer);
+		commandBuffer.BindPipelineIfNotBound(&m_Pipeline);
+		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
 
 		PushConstants pushConstants;
 		pushConstants.position.x = x;
@@ -49,24 +42,24 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.scale.x = width;
 		pushConstants.scale.y = height;
 		
-		m_Dloader->vkCmdPushConstants(
-			vkCommandBuffer, m_pPipeline->GetLayout(),
+		m_Dloader.vkCmdPushConstants(
+			vkCommandBuffer, m_Pipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT,
 			0,
 			sizeof(PushConstants),
 			&pushConstants
 		);
 
-		m_Dloader->vkCmdBindDescriptorSets(
+		m_Dloader.vkCmdBindDescriptorSets(
 			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_pPipeline->GetLayout(), 0,
+			m_Pipeline.GetLayout(), 0,
 			1, m_pImage->GetSetAtIndex(index),
 			0, nullptr
 		);
 
-		m_Dloader->vkCmdDrawIndexed(
+		m_Dloader.vkCmdDrawIndexed(
 			vkCommandBuffer,
-			static_cast<uint32_t>(m_pRectBuffer->GetVertexCount()),
+			static_cast<uint32_t>(m_RectBuffer.GetVertexCount()),
 			1, 0, 0, 0
 		);
 	}

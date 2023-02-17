@@ -1,17 +1,17 @@
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
+#include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
 	ImageStager::ImageStager(
-		Device& device, VkCommandPool commandPool, VkQueue queue,
-		VmaAllocator allocator, VkImage image, uint32_t imageWidth,
+		VulkanContext& context,
+		VkImage image, uint32_t imageWidth,
 		uint32_t imageHeight, uint32_t bytesPerPixel, void* imageData,
 		VkFormat imageFormat
 	)
 		:
-		m_CommandBuffer(device, commandPool, queue),
-		m_Allocator(allocator)
+		m_CommandBuffer(context),
+		m_Allocator(context.allocator)
 	{
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -24,7 +24,7 @@ namespace Tether::Rendering::Vulkan
 
 		if (vmaCreateBuffer(m_Allocator, &bufferInfo, &allocInfo, &m_StagingBuffer,
 			&m_StagingAllocation, &m_StagingInfo) != VK_SUCCESS)
-			throw RendererException("Failed to create staging buffer");
+			throw std::runtime_error("Failed to create staging buffer");
 
 		memcpy(m_StagingInfo.pMappedData, imageData, bufferInfo.size);
 

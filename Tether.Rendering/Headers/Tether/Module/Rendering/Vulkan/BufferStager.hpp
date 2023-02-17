@@ -1,12 +1,6 @@
 #pragma once
 
-#include <Tether/Common/IDisposable.hpp>
-#include <Tether/Common/Ref.hpp>
-#include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Vulkan/Device.hpp>
-
-#include <vulkan/vulkan.h>
-#include <vk_mem_alloc.h>
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -14,10 +8,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferStager(
-			VmaAllocator allocator,
-			Device* pDevice,
-			VkCommandPool pool,
-			VkQueue bufferOwnerQueue,
+			VulkanContext& context,
 			VkBuffer buffer,
 			size_t bufferSize
 		);
@@ -38,22 +29,19 @@ namespace Tether::Rendering::Vulkan
 
 		void DisposeStager();
 
-		VmaAllocationInfo stagingInfo;
+		VmaAllocationInfo m_StagingInfo;
 
-		VkBuffer stagingBuffer = nullptr;
-		VmaAllocation stagingAllocation = nullptr;
-		VkCommandBuffer commandBuffer = nullptr;
-		VkFence completedFence = nullptr;
+		VkBuffer m_StagingBuffer = nullptr;
+		VmaAllocation m_StagingAllocation = nullptr;
+		VkCommandBuffer m_CommandBuffer = nullptr;
+		VkFence m_CompletedFence = nullptr;
 
-		VkBuffer buffer = nullptr;
-		size_t bufferSize = 0;
+		VulkanContext& m_Context;
 
-		VkDevice device = nullptr;
-		VkQueue bufferOwnerQueue = nullptr;
-		DeviceLoader* dloader = nullptr;
-
-		VkCommandPool pool = nullptr;
-
-		VmaAllocator allocator = nullptr;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
+		
+		VkBuffer m_Buffer = nullptr;
+		size_t m_BufferSize = 0;
 	};
 }

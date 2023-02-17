@@ -2,16 +2,14 @@
 
 #include <Tether/Module/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
 
-#include <vk_mem_alloc.h>
-
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT ImageStager
 	{
 	public:
 		ImageStager(
-			Device& device, VkCommandPool commandPool, VkQueue queue,
-			VmaAllocator allocator, VkImage image, uint32_t imageWidth, 
+			VulkanContext& context,
+			VkImage image, uint32_t imageWidth, 
 			uint32_t imageHeight, uint32_t bytesPerPixel, void* imageData, 
 			VkFormat imageFormat
 		);

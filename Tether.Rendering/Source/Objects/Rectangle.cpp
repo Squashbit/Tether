@@ -24,13 +24,13 @@ namespace Tether::Rendering::Objects
 		this->color = color;
 	}
 
-	float Rectangle::GetWidth()
-	{
+	float Rectangle::GetWidth() const
+{
 		return width;
 	}
 
-	float Rectangle::GetHeight()
-	{
+	float Rectangle::GetHeight() const
+{
 		return height;
 	}
 

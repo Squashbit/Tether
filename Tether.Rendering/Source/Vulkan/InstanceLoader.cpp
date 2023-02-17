@@ -1,9 +1,6 @@
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Application.hpp>
 
-#define TETHER_INCLUDE_VULKAN
-#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
-
 #define TETHER_INSTANCE_FUNC(name) \
 	vk##name = (PFN_vk##name)getProcAddr(*pInstance, "vk"#name)
 

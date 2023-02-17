@@ -1,10 +1,9 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Vulkan/Instance.hpp>
-#include <Tether/Module/Rendering/Vulkan/Surface.hpp>
-#include <Tether/Module/Rendering/Vulkan/Device.hpp>
+#include <Tether/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
 
 #include <vulkan/vulkan.hpp>
 
@@ -14,8 +13,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Swapchain(
-			Instance* instance,
-			Device* device,
+			VulkanContext& context,
 			const QueueFamilyIndices& queueIndices,
 			const SwapchainDetails& details,
 			VkSurfaceFormatKHR format,
@@ -41,16 +39,16 @@ namespace Tether::Rendering::Vulkan
 	private:
 		uint32_t FindImageCount(const SwapchainDetails& details);
 
-		Instance* instance = nullptr;
-		InstanceLoader* iloader = nullptr;
+		VkInstance m_Instance = nullptr;
+		InstanceLoader& m_Iloader;
 
-		Device* device = nullptr;
-		DeviceLoader* dloader = nullptr;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 
-		VkSwapchainKHR swapchain = nullptr;
+		VkSwapchainKHR m_Swapchain = nullptr;
 
-		uint32_t imageCount = 0;
-		VkExtent2D imageExtent;
-		VkFormat imageFormat = VK_FORMAT_UNDEFINED;
+		uint32_t m_ImageCount = 0;
+		VkExtent2D m_ImageExtent;
+		VkFormat m_ImageFormat = VK_FORMAT_UNDEFINED;
 	};
 }

@@ -2,28 +2,20 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
 
 #include <optional>
 
-#include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 
 namespace Tether::Rendering::Vulkan
 {
-	struct VertexBufferInfo
-	{
-		VmaAllocator allocator = nullptr;
-		Device* device = nullptr;
-		VkQueue graphicsQueue = nullptr;
-		VkCommandPool pool = nullptr;
-	};
-
 	class TETHER_EXPORT VertexBuffer
 	{
 	public:
-		VertexBuffer(VertexBufferInfo* pInfo, size_t vertexBufferSize, size_t indexCount);
+		VertexBuffer(VulkanContext& context, size_t vertexBufferSize, 
+			size_t indexCount);
 		~VertexBuffer();
 		TETHER_NO_COPY(VertexBuffer);
 
@@ -36,7 +28,7 @@ namespace Tether::Rendering::Vulkan
 		// Once this is called, data can't be uploaded anymore.
 		void FinishDataUpload();
 
-		size_t GetVertexCount();
+		size_t GetVertexCount() const;
 		VkBuffer GetBuffer();
 		VkBuffer GetIndexBuffer();
 	private:
@@ -45,18 +37,18 @@ namespace Tether::Rendering::Vulkan
 		
 		void DestroyBuffers();
 
-		size_t vertexCount = 0;
+		size_t m_VertexCount = 0;
 
-		bool finishedUploading = false;
+		bool m_FinishedUploading = false;
 
-		VkBuffer vertexBuffer;
-		VmaAllocation vertexAllocation;
-		VkBuffer indexBuffer;
-		VmaAllocation indexAllocation;
+		VkBuffer m_VertexBuffer;
+		VmaAllocation m_VertexAllocation;
+		VkBuffer m_IndexBuffer;
+		VmaAllocation m_IndexAllocation;
 
-		std::optional<BufferStager> vertexStager;
-		std::optional<BufferStager> indexStager;
+		std::optional<BufferStager> m_VertexStager;
+		std::optional<BufferStager> m_IndexStager;
 		
-		VertexBufferInfo info;
+		VulkanContext& m_Context;
 	};
 }

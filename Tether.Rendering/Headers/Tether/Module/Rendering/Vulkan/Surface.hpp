@@ -12,15 +12,16 @@ namespace Tether::Rendering::Vulkan
     class TETHER_EXPORT Surface
     {
     public:
-        Surface(Instance* pInstance, SimpleWindow* window);
+        Surface(VkInstance instance, InstanceLoader& instanceLoader,
+            SimpleWindow& window);
         ~Surface();
         TETHER_NO_COPY(Surface);
 
         VkSurfaceKHR Get();
     private:
-        Instance* pInstance;
-        Vulkan::InstanceLoader* pLoader;
+        VkInstance m_Instance = nullptr;
+        InstanceLoader& m_Loader;
 
-        VkSurfaceKHR surface;
+        VkSurfaceKHR m_Surface;
     };
 }

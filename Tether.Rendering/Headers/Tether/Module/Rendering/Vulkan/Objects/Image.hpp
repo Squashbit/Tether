@@ -21,24 +21,23 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Image(
-			Device& device,
-			VmaAllocator allocator,
-			Pipeline* pPipeline,
-			VertexBuffer* pRectBuffer
+			VulkanContext& context,
+			Pipeline& pPipeline,
+			VertexBuffer& pRectBuffer
 		);
 		TETHER_NO_COPY(Image);
 
-		void SetImage(Resources::BufferedImage* image) override;
+		void SetImage(Resources::BufferedImage& image) override;
 
 		void AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 			uint32_t index) override;
 	private:
-		Device& m_Device;
-		DeviceLoader* m_Dloader;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 		VmaAllocator m_Allocator = nullptr;
 		
-		Pipeline* m_pPipeline;
-		VertexBuffer* m_pRectBuffer;
+		Pipeline& m_Pipeline;
+		VertexBuffer& m_RectBuffer;
 
 		BufferedImage* m_pImage = nullptr;
 	};

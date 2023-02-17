@@ -13,6 +13,8 @@
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 
+#define TETHER_VULKAN_FUNC_VAR(name) PFN_vk##name name = nullptr
+
 namespace Tether::Rendering::Vulkan
 {
 	struct InstanceInfo
@@ -47,16 +49,16 @@ namespace Tether::Rendering::Vulkan
 		 * 
 		 * @param messenger The debug messenger.
 		 */
-		void AddDebugMessenger(DebugCallback* messenger);
+		void AddDebugMessenger(DebugCallback& messenger);
 		/**
 		 * @brief Removes a debug messenger.
 		 * 
 		 * @param messenger The debug messenger.
 		 */
-		void RemoveDebugMessenger(DebugCallback* messenger);
+		void RemoveDebugMessenger(DebugCallback& messenger);
 
 		VkInstance Get();
-		Vulkan::InstanceLoader* GetLoader();
+		InstanceLoader& GetLoader();
 
 		std::vector<VkExtensionProperties> GetAvailableExtentions();
 
@@ -81,11 +83,13 @@ namespace Tether::Rendering::Vulkan
 		VkInstance instance = nullptr;
 		VkDebugUtilsMessengerEXT debugMessenger = nullptr;
 
+		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
+
 		Vulkan::InstanceLoader loader;
 		
 		std::vector<DebugCallback*> debugCallbacks;
 		std::vector<VkExtensionProperties> extentions;
 
-		bool debugMode = false;
+		bool m_DebugMode = false;
 	};
 }

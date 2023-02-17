@@ -10,16 +10,10 @@
 
 #include <vector>
 
-namespace Tether
-{
-	class SimpleWindow;
-}
-
 namespace Tether::Events
 {
 	class TETHER_EXPORT EventHandler
 	{
-		friend SimpleWindow;
 	public:
 		virtual void OnWindowClosing(WindowClosingEvent event) {}
 		virtual void OnWindowRepaint(WindowRepaintEvent event) {}

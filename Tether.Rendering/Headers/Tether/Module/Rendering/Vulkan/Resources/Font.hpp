@@ -3,7 +3,7 @@
 #include <Tether/Math/Vector2.hpp>
 
 #include <Tether/Module/Rendering/Resources/Font.hpp>
-
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 
 #include <unordered_map>
@@ -26,9 +26,9 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Font(
-			Device& device, VkCommandPool commandPool, VkQueue graphicsQueue, 
-			VmaAllocator allocator, uint32_t framesInFlight,
-			VkDescriptorSetLayout setLayout, VkSampler sampler,
+			VulkanContext& context,
+			VkDescriptorSetLayout setLayout, 
+			VkSampler sampler,
 			const std::string& fontPath
 		);
 		~Font();
@@ -50,15 +50,10 @@ namespace Tether::Rendering::Vulkan
 		void CreateCharacterImage(std::vector<ImageStager>& imageStagers,
 			Character& character);
 		
-		VmaAllocator m_Allocator = nullptr;
-		VkCommandPool m_CommandPool = nullptr;
-		VkQueue m_GraphicsQueue = nullptr;
-
-		Device& m_Device;
-		DeviceLoader* m_Dloader = nullptr;
-
-		uint32_t m_FramesInFlight = 0;
-
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
+		VulkanContext& m_Context;
+		
 		VkDescriptorPool m_Pool = nullptr;
 		VkDescriptorSetLayout m_SetLayout = nullptr;
 		VkSampler m_Sampler = nullptr;

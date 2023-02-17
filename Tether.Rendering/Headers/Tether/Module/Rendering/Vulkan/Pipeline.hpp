@@ -3,6 +3,7 @@
 #include <Tether/Common/Defs.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
 
 #include <optional>
 #include <vector>
@@ -14,14 +15,15 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT PipelineLayout
 	{
 	public:
-		PipelineLayout(Device* device, VkPipelineLayoutCreateInfo* createInfo);
+		PipelineLayout(VulkanContext& context, 
+			VkPipelineLayoutCreateInfo* createInfo);
 		~PipelineLayout();
 		TETHER_NO_COPY(PipelineLayout);
 
 		VkPipelineLayout Get();
 	private:
-		Device* device = nullptr;
-		DeviceLoader* dloader = nullptr;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 
 		VkPipelineLayout layout = nullptr;
 	};
@@ -30,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Pipeline(
-			Device* device, VkRenderPass renderPass,
+			VulkanContext& context,
 			VkExtent2D viewportExtent, uint32_t subpass,
 			uint32_t* pVertexCode, size_t vertexCodeSize,
 			uint32_t* pFragmentCode, size_t fragmentCodeSize,
@@ -44,8 +46,8 @@ namespace Tether::Rendering::Vulkan
 		VkPipeline Get();
 		VkPipelineLayout GetLayout();
 	private:
-		Device* device = nullptr;
-		DeviceLoader* dloader = nullptr;
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 
 		VkPipeline pipeline = nullptr;
 		std::optional<PipelineLayout> layout;

@@ -3,10 +3,10 @@
 namespace Tether::Rendering::Vulkan
 {
 	CommandBufferDescriptor::CommandBufferDescriptor(VkCommandBuffer commandBuffer,
-		DeviceLoader* dloader)
+		DeviceLoader& dloader)
 		:
 		commandBuffer(commandBuffer),
-		dloader(dloader)
+		m_Dloader(dloader)
 	{
 
 	}
@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 		if (pBoundPipeline == pPipeline)
 			return;
 
-		dloader->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+		m_Dloader.vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
 			pPipeline->Get());
 
 		pBoundPipeline = pPipeline;
@@ -29,8 +29,8 @@ namespace Tether::Rendering::Vulkan
 
 		VkBuffer vbuffers[] = { pVertexBuffer->GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
-		dloader->vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
-		dloader->vkCmdBindIndexBuffer(commandBuffer, pVertexBuffer->GetIndexBuffer(),
+		m_Dloader.vkCmdBindVertexBuffers(commandBuffer, 0, 1, vbuffers, offsets);
+		m_Dloader.vkCmdBindIndexBuffer(commandBuffer, pVertexBuffer->GetIndexBuffer(),
 			0, VK_INDEX_TYPE_UINT32);
 
 		pBoundVertexBuffer = pVertexBuffer;

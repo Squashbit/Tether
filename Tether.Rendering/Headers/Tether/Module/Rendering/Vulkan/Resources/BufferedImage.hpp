@@ -4,6 +4,8 @@
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+
 #include <vk_mem_alloc.h>
 #include <optional>
 
@@ -14,9 +16,8 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferedImage(
-			Device& device, VmaAllocator allocator, 
-			VkCommandPool commandPool, VkQueue graphicsQueue,
-			VkSampler sampler, uint32_t framesInFlight,
+			VulkanContext& context,
+			VkSampler sampler,
 			VkDescriptorSetLayout pipelineSetLayout,
 			const Resources::BufferedImageInfo& info
 		);
@@ -34,11 +35,10 @@ namespace Tether::Rendering::Vulkan
 		VkImageView m_ImageView = nullptr;
 		VmaAllocation m_ImageAllocation = nullptr;
 
-		Device& m_Device;
-		DeviceLoader* m_Dloader = nullptr;
-		VmaAllocator m_Allocator = nullptr;
-		VkCommandPool m_CommandPool = nullptr;
-		VkQueue m_GraphicsQueue = nullptr;
+		VulkanContext& m_Context;
+
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
 		VkSampler m_Sampler = nullptr;
 
 		std::optional<DescriptorPool> m_Pool;

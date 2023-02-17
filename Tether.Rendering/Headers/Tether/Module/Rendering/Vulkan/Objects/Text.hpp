@@ -18,8 +18,8 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector2<int> windowSize;
 		};
 
-		Text(Device& device, Pipeline& pipeline, VertexBuffer& rectBuffer,
-			SimpleWindow& window);
+		Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
+			Pipeline& pipeline, VertexBuffer& rectBuffer);
 		TETHER_NO_COPY(Text);
 
 		void AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
@@ -28,12 +28,11 @@ namespace Tether::Rendering::Vulkan
 		void RenderCharacter(CommandBufferDescriptor& commandBuffer,
 			uint32_t index, Font::Character& character, float offset);
 
-		Device& m_Device;
-		DeviceLoader* m_Dloader;
-
+		VkDevice m_Device = nullptr;
+		DeviceLoader& m_Dloader;
+		VkExtent2D& m_SwapchainExtent;
 		Pipeline& m_Pipeline;
 		VertexBuffer& m_RectBuffer;
-		SimpleWindow& m_Window;
 
 		PushConstants pushConstants;
 	};

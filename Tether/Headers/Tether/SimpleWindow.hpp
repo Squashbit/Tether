@@ -142,14 +142,14 @@ namespace Tether
 
 		void OnDispose();
 
+		bool closeRequested = false;
+
 		// Each event has a list of handlers to handle that specific event.
 		std::unordered_map<Events::EventType, 
 			std::vector<Events::EventHandler*>> handlers;
 
 		std::unordered_map<Input::InputType, 
 			std::vector<Input::InputListener*>> inputListeners;
-		
-		bool closeRequested = false;
 
 		Native::SimpleWindowNative* native = nullptr;
 		Application* app;

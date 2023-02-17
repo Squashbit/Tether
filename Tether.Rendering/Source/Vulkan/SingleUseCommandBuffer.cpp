@@ -3,26 +3,25 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	SingleUseCommandBuffer::SingleUseCommandBuffer(Device& device, 
-		VkCommandPool commandPool, VkQueue queue)
+	SingleUseCommandBuffer::SingleUseCommandBuffer(VulkanContext& context)
 		:
-		m_Device(device),
-		m_Dloader(m_Device.GetLoader()),
-		m_CommandPool(commandPool),
-		m_Queue(queue)
+		m_Device(context.device),
+		m_Dloader(context.deviceLoader),
+		m_CommandPool(context.commandPool),
+		m_Queue(context.graphicsQueue)
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = m_CommandPool;
 		allocInfo.commandBufferCount = 1;
 
-		m_Dloader->vkAllocateCommandBuffers(m_Device.Get(), &allocInfo, &m_CommandBuffer);
+		m_Dloader.vkAllocateCommandBuffers(m_Device, &allocInfo, &m_CommandBuffer);
 
 		VkFenceCreateInfo fenceInfo{};
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 
-		if (m_Dloader->vkCreateFence(m_Device.Get(), &fenceInfo, nullptr, &m_Fence)
+		if (m_Dloader.vkCreateFence(m_Device, &fenceInfo, nullptr, &m_Fence)
 			!= VK_SUCCESS)
 			throw std::runtime_error("Failed to create fence");
 	}
@@ -44,8 +43,8 @@ namespace Tether::Rendering::Vulkan
 		if (m_Moved)
 			return;
 
-		m_Dloader->vkDestroyFence(m_Device.Get(), m_Fence, nullptr);
-		m_Dloader->vkFreeCommandBuffers(m_Device.Get(), m_CommandPool, 1, &m_CommandBuffer);
+		m_Dloader.vkDestroyFence(m_Device, m_Fence, nullptr);
+		m_Dloader.vkFreeCommandBuffers(m_Device, m_CommandPool, 1, &m_CommandBuffer);
 	}
 
 	VkCommandBuffer SingleUseCommandBuffer::Begin()
@@ -54,14 +53,14 @@ namespace Tether::Rendering::Vulkan
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-		m_Dloader->vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
+		m_Dloader.vkBeginCommandBuffer(m_CommandBuffer, &beginInfo);
 
 		return m_CommandBuffer;
 	}
 
 	void SingleUseCommandBuffer::End()
 	{
-		m_Dloader->vkEndCommandBuffer(m_CommandBuffer);
+		m_Dloader.vkEndCommandBuffer(m_CommandBuffer);
 	}
 
 	void SingleUseCommandBuffer::Submit(bool wait)
@@ -71,7 +70,7 @@ namespace Tether::Rendering::Vulkan
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
-		m_Dloader->vkQueueSubmit(m_Queue, 1, &submitInfo, m_Fence);
+		m_Dloader.vkQueueSubmit(m_Queue, 1, &submitInfo, m_Fence);
 
 		if (wait)
 			Wait();
@@ -79,7 +78,7 @@ namespace Tether::Rendering::Vulkan
 
 	void SingleUseCommandBuffer::Wait()
 	{
-		m_Dloader->vkWaitForFences(m_Device.Get(), 1, &m_Fence, VK_TRUE,
+		m_Dloader.vkWaitForFences(m_Device, 1, &m_Fence, VK_TRUE,
 			UINT64_MAX);
 	}
 
@@ -103,7 +102,7 @@ namespace Tether::Rendering::Vulkan
 			1
 		};
 
-		m_Dloader->vkCmdCopyBufferToImage(
+		m_Dloader.vkCmdCopyBufferToImage(
 			m_CommandBuffer,
 			buffer,
 			image,
@@ -151,7 +150,7 @@ namespace Tether::Rendering::Vulkan
 		else
 			throw std::invalid_argument("Unsupported layout transition");
 
-		m_Dloader->vkCmdPipelineBarrier(
+		m_Dloader.vkCmdPipelineBarrier(
 			m_CommandBuffer,
 			sourceStage, destinationStage,
 			0,

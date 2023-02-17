@@ -20,22 +20,19 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Rectangle(
-			Device& device,
-			VmaAllocator allocator,
-			Pipeline* pPipeline,
-			VertexBuffer* pRectBuffer,
-			uint32_t framesInFlight
+			VulkanContext& context,
+			Pipeline& pipeline,
+			VertexBuffer& rectBuffer
 		);
 		TETHER_NO_COPY(Rectangle);
 
 		void AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 			uint32_t index) override;
 	private:
-		Device& m_Device;
-		DeviceLoader* m_Dloader;
+		VkDevice m_Device = nullptr;
 		VmaAllocator m_Allocator = nullptr;
-		
-		Pipeline* m_pPipeline;
-		VertexBuffer* m_pRectBuffer;
+		DeviceLoader& m_Dloader;
+		Pipeline& m_Pipeline;
+		VertexBuffer& m_RectBuffer;
 	};
 }

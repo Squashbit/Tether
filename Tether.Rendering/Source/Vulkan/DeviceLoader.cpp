@@ -1,19 +1,13 @@
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 #include <Tether/Application.hpp>
 
-#define TETHER_INCLUDE_VULKAN
-#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
-
 using namespace Tether::Rendering::Vulkan;
 
 #define TETHER_DEVICE_FUNC(name) \
-	vk##name = (PFN_vk##name)iloader->vkGetDeviceProcAddr(*pDevice, "vk"#name)
+	vk##name = (PFN_vk##name)instanceLoader.vkGetDeviceProcAddr(device, "vk"#name)
 
-void DeviceLoader::Load(InstanceLoader* iloader, VkDevice* pDevice)
+void DeviceLoader::Load(InstanceLoader& instanceLoader, VkDevice device)
 {
-	if (!iloader || !pDevice)
-		return;
-
 	TETHER_DEVICE_FUNC(AcquireNextImageKHR);
 	TETHER_DEVICE_FUNC(AllocateCommandBuffers);
 	TETHER_DEVICE_FUNC(AllocateDescriptorSets);

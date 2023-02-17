@@ -2,7 +2,7 @@
 #include <Tether/Common/Stopwatch.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/SimpleRenderer.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
 #include <iostream>
@@ -13,7 +13,7 @@ using namespace Tether;
 using namespace Rendering;
 using namespace Vulkan;
 
-class DebugLogger : public Rendering::Vulkan::DebugCallback
+class DebugLogger : public DebugCallback
 {
 public:
 	void OnDebugLog(
@@ -41,18 +41,19 @@ public:
 	RendererTestApp()
 		:
 		window(1280, 720, "Text testing"),
-		renderer(&window)
+		m_VulkanContext(window),
+		m_Renderer(window, m_VulkanContext)
 	{
-		font = renderer.CreateResource<Resources::Font>("font.ttf");
+		font = m_Renderer.CreateResource<Resources::Font>("font.ttf");
 		font->SetSize(64);
 
-		text = renderer.CreateObject<Objects::Text>();
+		text = m_Renderer.CreateObject<Objects::Text>();
 		text->SetX(0.05f);
 		text->SetY(0.5f);
 		text->SetFont(font.get());
 		text->SetText("FPS = 0");
 		
-		renderer.AddObject(text.get());
+		m_Renderer.AddObject(text.get());
 
 		window.SetVisible(true);
 	}
@@ -64,6 +65,8 @@ public:
 
 	void Run()
 	{
+		size_t frames = 0;
+		float time = 0.0f;
 		while (!window.IsCloseRequested())
 		{
 			float delta = deltaTimer.GetElapsedSeconds();
@@ -84,15 +87,14 @@ public:
 			}
 
 			window.PollEvents();
-			renderer.RenderFrame();
+			m_Renderer.RenderFrame();
 		}
 	}
 private:
-	size_t frames = 0;
-	float time = 0.0f;
-
 	SimpleWindow window;
-	Vulkan::VulkanRenderer renderer;
+
+	SimpleVulkanContext m_VulkanContext;
+	SimpleRenderer m_Renderer;
 
 	Scope<Resources::Font> font;
 	Scope<Objects::Text> text;
@@ -100,8 +102,6 @@ private:
 	Stopwatch printFpsTimer;
 	Stopwatch deltaTimer;
 };
-
-#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
 #if defined(_WIN32) && !defined(_DEBUG)
 #include <Windows.h>
@@ -112,7 +112,7 @@ int main()
 #endif
 {
 	DebugLogger vulkanLogger;
-	GlobalVulkan::Get().AddDebugMessenger(&vulkanLogger);
+	GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
 
 	RendererTestApp testApp;
 	testApp.Run();
