@@ -4,7 +4,6 @@
 #include <unordered_map>
 
 #include <Tether/Common/Defs.hpp>
-#include <Tether/Common/IDisposable.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
@@ -37,10 +36,7 @@ namespace Tether::Rendering::Vulkan
 		~Instance();
 		TETHER_NO_COPY(Instance);
 
-		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device,
-			VkSurfaceKHR surface);
-		SwapchainDetails QuerySwapchainSupport(VkPhysicalDevice device, 
-			VkSurfaceKHR surface);
+		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 		bool CheckDeviceExtentionSupport(VkPhysicalDevice device, 
 			const char*const * deviceExtentions, uint64_t extentionCount);
 		

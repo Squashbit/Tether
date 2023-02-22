@@ -9,7 +9,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public SimpleWindow
+class TestWindow : public Window
 {
 public:
 	class EventHandler : public Events::EventHandler
@@ -99,7 +99,7 @@ public:
 
 	TestWindow()
 		:
-		SimpleWindow(1280, 720, "sup", false),
+		Window(1280, 720, "sup", false),
 		handler(this)
 	{
 		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);

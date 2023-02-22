@@ -1,9 +1,9 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
+#include <Tether/Module/Rendering/WindowUI.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/SimpleRenderer.hpp>
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
 
 #include <iostream>
 #include <vector>
@@ -11,9 +11,8 @@
 
 using namespace Tether;
 using namespace Rendering;
-using namespace Vulkan;
 
-class DebugLogger : public DebugCallback
+class DebugLogger : public Vulkan::DebugCallback
 {
 public:
 	void OnDebugLog(
@@ -40,68 +39,27 @@ class RendererTestApp
 public:
 	RendererTestApp()
 		:
-		window(1280, 720, "Text testing"),
-		m_VulkanContext(window),
-		m_Renderer(window, m_VulkanContext)
+		window(Window::Create(1280, 720, L"Text testing")),
+		m_Renderer(m_VulkanContext),
+		m_Compositor(m_Renderer, *window, m_VulkanContext),
+		m_WindowUI(*window, m_Renderer, m_Compositor)
 	{
-		font = m_Renderer.CreateResource<Resources::Font>("font.ttf");
-		font->SetSize(64);
+		m_WindowUI.SetBackgroundColor(0.1f);
 
-		text = m_Renderer.CreateObject<Objects::Text>();
-		text->SetX(0.05f);
-		text->SetY(0.5f);
-		text->SetFont(font.get());
-		text->SetText("FPS = 0");
-		
-		m_Renderer.AddObject(text.get());
-		m_Renderer.SetClearColor(0.2f);
-
-		window.SetVisible(true);
-	}
-
-	~RendererTestApp()
-	{
-		window.SetVisible(false);
+		window->SetVisible(true);
 	}
 
 	void Run()
 	{
-		size_t frames = 0;
-		float time = 0.0f;
-		while (!window.IsCloseRequested())
-		{
-			float delta = deltaTimer.GetElapsedSeconds();
-			deltaTimer.Set();
-
-			time += delta;
-			frames++;
-
-			if (printFpsTimer.GetElapsedSeconds() >= 1.0f)
-			{
-				printFpsTimer.Set();
-
-				int fps = (int)round(1.0f / (time / frames));
-				text->SetText("FPS = " + std::to_string(fps));
-
-				time = 0;
-				frames = 0;
-			}
-
-			window.PollEvents();
-			m_Renderer.RenderFrame();
-		}
+		window->Run();
 	}
 private:
-	SimpleWindow window;
+	Scope<Window> window;
 
-	SimpleVulkanContext m_VulkanContext;
-	SimpleRenderer m_Renderer;
-
-	Scope<Resources::Font> font;
-	Scope<Objects::Text> text;
-
-	Stopwatch printFpsTimer;
-	Stopwatch deltaTimer;
+	Vulkan::SimpleVulkanContext m_VulkanContext;
+	Vulkan::SimpleVulkanRenderer m_Renderer;
+	
+	WindowUI m_WindowUI;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)
@@ -113,7 +71,7 @@ int main()
 #endif
 {
 	DebugLogger vulkanLogger;
-	GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
+	Vulkan::GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
 
 	RendererTestApp testApp;
 	testApp.Run();

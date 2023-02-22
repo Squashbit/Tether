@@ -7,7 +7,7 @@
 
 namespace Tether
 {
-	class SimpleWindow;
+	class Window;
 }
 
 namespace Tether::Devices
@@ -23,7 +23,7 @@ namespace Tether::Devices
 
 	class TETHER_EXPORT Monitor
 	{
-		friend SimpleWindow;
+		friend Window;
 		friend class DeviceManager;
 	public:
 		uint64_t GetIndex() const;

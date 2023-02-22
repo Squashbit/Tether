@@ -20,9 +20,9 @@ namespace Tether
         ~Application();
         TETHER_NO_COPY(Application);
         
-        Storage::AppVarStorage* GetStorage();
-        int16_t*const GetKeycodes();
-        int16_t*const GetScancodes();
+        Storage::AppVarStorage* GetStorage() const;
+        const int16_t*const GetKeycodes() const;
+        const int16_t*const GetScancodes() const;
         
         static Application& Get();
     private:

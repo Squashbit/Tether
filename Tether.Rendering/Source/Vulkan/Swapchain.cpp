@@ -7,7 +7,8 @@ using namespace Tether::Rendering::Vulkan;
 
 Swapchain::Swapchain(
 	VulkanContext& context,
-	const QueueFamilyIndices& queueIndices,
+	uint32_t graphicsFamilyIndex,
+	uint32_t presentFamilyIndex,
 	const SwapchainDetails& details,
 	VkSurfaceFormatKHR surfaceFormat,
 	VkSurfaceKHR surface,
@@ -39,15 +40,12 @@ Swapchain::Swapchain(
 	createInfo.clipped = true;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (queueIndices.graphicsFamilyIndex != queueIndices.presentFamilyIndex)
+	if (graphicsFamilyIndex != presentFamilyIndex)
 	{
-		if (!queueIndices.hasPresentFamily)
-			throw std::runtime_error("Device doesn't have a present family!");
-
 		uint32_t queueFamilyIndices[] =
 		{
-			queueIndices.graphicsFamilyIndex,
-			queueIndices.presentFamilyIndex
+			graphicsFamilyIndex,
+			presentFamilyIndex
 		};
 		
 		createInfo.queueFamilyIndexCount = sizeof(queueFamilyIndices) / sizeof(uint32_t);

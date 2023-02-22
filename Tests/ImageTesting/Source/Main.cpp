@@ -126,7 +126,7 @@ private:
 	size_t frames = 0;
 	float time = 0.0f;
 
-	SimpleWindow window;
+	Window window;
 	Vulkan::VulkanRenderer renderer;
 
 	Scope<Resources::BufferedImage> testImage;

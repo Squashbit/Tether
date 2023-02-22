@@ -2,40 +2,41 @@
 #include <Tether/Native.hpp>
 #include <stdexcept>
 
-using namespace Tether;
-
-Application::Application()
+namespace Tether
 {
-	storage = std::make_unique<Storage::AppVarStorage>();
-	
-	if (!OnInit())
-		throw std::runtime_error("Failed to initialize Application");
-}
+	Application::Application()
+	{
+		storage = std::make_unique<Storage::AppVarStorage>();
 
-Application::~Application()
-{
-	OnAppDispose();
-}
+		if (!OnInit())
+			throw std::runtime_error("Failed to initialize Application");
+	}
 
-Storage::AppVarStorage* Application::GetStorage()
-{
-	return storage.get();
-}
+	Application::~Application()
+	{
+		OnAppDispose();
+	}
 
-int16_t*const Application::GetKeycodes()
-{
-	return keycodes;
-}
+	Tether::Storage::AppVarStorage* Tether::Application::GetStorage() const
+	{
+		return storage.get();
+	}
 
-int16_t*const Application::GetScancodes()
-{
-	return scancodes;
-}
+	const int16_t* const Tether::Application::GetKeycodes() const
+	{
+		return keycodes;
+	}
 
-Application& Application::Get()
-{
-	if (!internal.get())
-		internal = std::unique_ptr<Application>(new Application());
+	const int16_t* const Tether::Application::GetScancodes() const
+	{
+		return scancodes;
+	}
 
-	return *internal;
+	Application& Application::Get()
+	{
+		if (!internal.get())
+			internal = std::unique_ptr<Application>(new Application());
+
+		return *internal;
+	}
 }

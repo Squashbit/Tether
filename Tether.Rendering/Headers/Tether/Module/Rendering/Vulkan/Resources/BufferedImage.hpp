@@ -44,6 +44,6 @@ namespace Tether::Rendering::Vulkan
 		std::optional<DescriptorPool> m_Pool;
 		std::optional<DescriptorSet> m_Set;
 
-		const VkFormat m_ImageFormat = VK_FORMAT_R8G8B8A8_UNORM;
+		const VkFormat m_ImageFormat = VK_FORMAT_R8G8B8A8_SRGB;
 	};
 }

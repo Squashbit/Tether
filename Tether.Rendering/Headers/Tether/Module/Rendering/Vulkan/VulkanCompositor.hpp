@@ -3,6 +3,7 @@
 #include <Tether/Events/EventHandler.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
 #include <Tether/Module/Rendering/Vulkan/SimpleVulkanContext.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
@@ -11,37 +12,51 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT SimpleRenderer : public VulkanRenderer
+	class TETHER_EXPORT VulkanCompositor : public VulkanRenderer
 	{
 	public:
-		SimpleRenderer(SimpleWindow& window, SimpleVulkanContext& context);
-		~SimpleRenderer();
-		TETHER_NO_COPY(SimpleRenderer);
+		VulkanCompositor(VulkanRenderer& renderer, VulkanWindowContext& context);
+		~VulkanCompositor();
+		TETHER_NO_COPY(VulkanCompositor);
 
-		bool RenderFrame();
+		bool RenderFrame() override;
 	private:
+		void Init();
+
+		void CreatePresentQueue();
 		void CreateSwapchain();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandBuffers();
+
+		void QuerySwapchainSupport();
+		void ChooseSurfaceFormat();
 
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();
 
-		SimpleWindow& m_Window;
+		VulkanRenderer& m_Renderer;
+		Window& m_Window;
 		SimpleVulkanContext& m_Context;
+		Surface m_Surface;
 		DeviceLoader& m_Dloader;
+
+		uint32_t m_PresentFamilyIndex = 0;
+		
+		SwapchainDetails m_SwapchainDetails;
+
+		VkQueue m_PresentQueue = nullptr;
 		
 		class ResizeHandler : public Events::EventHandler
 		{
 		public:
-			ResizeHandler(SimpleRenderer& renderer);
+			ResizeHandler(VulkanCompositor& renderer);
 
 			void OnWindowResize(Events::WindowResizeEvent event) override;
 		private:
-			SimpleRenderer& m_Renderer;
+			VulkanCompositor& m_Renderer;
 		};
 		ResizeHandler m_ResizeHandler;
 
@@ -56,6 +71,8 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkFence> m_InFlightFences;
 
 		bool m_ShouldRecreateSwapchain = false;
+
+		Math::Vector3f m_ClearColor;
 		
 		uint32_t m_CurrentFrame = 0;
 	};

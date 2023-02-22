@@ -64,7 +64,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		ImageStager stager(
 			m_Context, m_Image,
-			info.width, info.height, 4, info.pixelData, VK_FORMAT_R8G8B8A8_UNORM
+			info.width, info.height, 4, info.pixelData, m_ImageFormat
 		);
 
 		stager.Upload();

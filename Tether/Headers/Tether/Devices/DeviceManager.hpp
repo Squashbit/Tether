@@ -6,24 +6,21 @@
 
 namespace Tether
 {
-    class SimpleWindow;
+    class Window;
 }
 
 namespace Tether::Devices
 {
     class TETHER_EXPORT DeviceManager
     {
-        friend SimpleWindow;
+        friend Window;
     public:
-        TETHER_NO_COPY(DeviceManager);
-
-        DeviceManager(SimpleWindow* pWindow);
+        DeviceManager();
         
         uint64_t GetMonitorCount();
 		// Not yet implemented on Windows
         bool GetMonitor(uint64_t index, Monitor* pMonitor);
     private:
-        SimpleWindow* pWindow = nullptr;
-        Application* app = nullptr;
+        Application& app;
     };
 }

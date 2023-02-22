@@ -8,7 +8,7 @@
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Math/Types.hpp>
-#include <Tether/SimpleWindow.hpp>
+#include <Tether/Window.hpp>
 
 namespace Tether
 {
@@ -17,7 +17,7 @@ namespace Tether
         class Control;
     }
 
-    class TETHER_EXPORT NativeWindow : public SimpleWindow
+    class TETHER_EXPORT NativeWindow : public Window
     {
         friend Tether::Controls::Control;
     public:

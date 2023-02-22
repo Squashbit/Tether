@@ -17,7 +17,6 @@ namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT VulkanRenderer : public Rendering::Renderer
 	{
-		friend class SimpleRenderer;
 	public:
 		VulkanRenderer(const VulkanContext& context);
 		~VulkanRenderer();
@@ -25,7 +24,7 @@ namespace Tether::Rendering::Vulkan
 
 		void SetSwapchainExtent(VkExtent2D swapchainExtent);
 		void PopulateCommandBuffer(VkCommandBuffer commandBuffer);
-	protected:
+	private:
 		void OnCreateObject(Scope<Objects::Rectangle>& object) override;
 		void OnCreateObject(Scope<Objects::Image>& object) override;
 		void OnCreateObject(Scope<Objects::Text>& object) override;
@@ -34,7 +33,7 @@ namespace Tether::Rendering::Vulkan
 			const Resources::BufferedImageInfo& info) override;
 		void OnCreateResource(Scope<Resources::Font>& font,
 			const std::string& fontPath) override;
-	private:
+		
 		void CreateAllocator();
 		void CreateSolidPipeline();
 		void CreateTexturedPipeline();

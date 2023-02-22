@@ -5,7 +5,6 @@
 #include <Tether/Events/WindowClosingEvent.hpp>
 #include <Tether/Events/WindowRepaintEvent.hpp>
 #include <Tether/Events/WindowResizeEvent.hpp>
-#include <Tether/Events/WindowErrorEvent.hpp>
 #include <Tether/Events/WindowMoveEvent.hpp>
 
 #include <vector>
@@ -19,6 +18,5 @@ namespace Tether::Events
 		virtual void OnWindowRepaint(WindowRepaintEvent event) {}
 		virtual void OnWindowResize(WindowResizeEvent event) {}
 		virtual void OnWindowMove(WindowMoveEvent event) {}
-		virtual void OnWindowError(WindowErrorEvent event) {}
 	};
 }

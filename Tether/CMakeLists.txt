@@ -1,33 +1,17 @@
 cmake_minimum_required (VERSION 3.8)
 project ("tether")
 
-file(GLOB_RECURSE SOURCES 
-	"Source/*.cpp" "Source/*.c" 
-	"Headers/*.hpp" "Headers/*.h" 
-)
-
-add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} ${SOURCES} "Source/Common/Stopwatch.cpp")
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Application.cpp" "Source/Common/HashedString.cpp"  "Source/Common/Stopwatch.cpp" "Source/Common/StringTools.cpp" "Source/Controls/Control.cpp" "Source/Devices/DeviceManager.cpp" "Source/Devices/Monitor.cpp"  "Source/Events/WindowMoveEvent.cpp" "Source/Events/WindowResizeEvent.cpp" "Source/Input/KeyCharInfo.cpp" "Source/Input/KeyInfo.cpp" "Source/Input/MouseMoveInfo.cpp" "Source/Input/RawMouseMoveInfo.cpp" "Source/Module.cpp" "Source/Platform/CreateWindow.cpp"  "Source/Window.cpp" "Source/Common/Stopwatch.cpp" )
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
 	"Headers"
 )
 
-# Set the sources of platform specific files
 if (WIN32)
-	file(GLOB_RECURSE PLATFORM 
-		"Platform/Win32/*.cpp" "Platform/Win32/*.c" 
-	)
-
-	target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM})
-
-	target_link_libraries(${PROJECT_NAME})
+	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Win32/Win32_Application.cpp" "Source/Platform/Win32/Win32_DeviceManager.cpp" "Source/Platform/Win32/Win32_LibraryLoader.cpp" "Source/Platform/Win32/Win32Window.cpp" )
 elseif (UNIX)
-	file(GLOB_RECURSE PLATFORM 
-		"Platform/Linux/*.cpp" "Platform/Linux/*.c" 
-	)
-
-	target_sources(${PROJECT_NAME} PRIVATE ${PLATFORM})
+	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Linux/Linux_Application.cpp" "Source/Platform/Linux/Linux_DeviceManager.cpp" "Source/Platform/Linux/Linux_LibraryLoader.cpp" "Source/Platform/Linux/Linux_Window.cpp")
 
 	target_link_libraries(${PROJECT_NAME}
 		X11 Xrandr

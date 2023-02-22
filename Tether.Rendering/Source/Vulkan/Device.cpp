@@ -10,33 +10,25 @@ namespace Tether::Rendering::Vulkan
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	Device::Device(
-		Instance& instance,
-		VkSurfaceKHR surface
-	)
+	Device::Device(Instance& instance)
 		:
 		m_Instance(instance),
-		m_Iloader(instance.GetLoader()),
-		m_Surface(surface)
+		m_Iloader(instance.GetLoader())
 	{
 		PickDevice();
 
-		QueueFamilyIndices queueIndices =
-			instance.FindQueueFamilies(m_PhysicalDevice, surface);
-
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-		std::set<uint32_t> uniqueQueueFamilies = {
 
-			queueIndices.graphicsFamilyIndex,
-			queueIndices.presentFamilyIndex
-		};
+		uint32_t familyCount = 0;
+		m_Iloader.vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, 
+			&familyCount, nullptr);
 
 		float queuePriority = 1.0f;
-		for (uint32_t queueFamily : uniqueQueueFamilies)
+		for (uint32_t i = 0; i < familyCount; i++)
 		{
 			VkDeviceQueueCreateInfo queueCreateInfo{};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = queueFamily;
+			queueCreateInfo.queueFamilyIndex = i;
 			queueCreateInfo.queueCount = 1;
 			queueCreateInfo.pQueuePriorities = &queuePriority;
 
@@ -139,26 +131,15 @@ namespace Tether::Rendering::Vulkan
 		m_Iloader.vkGetPhysicalDeviceProperties(device, &deviceProperties);
 		m_Iloader.vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-		QueueFamilyIndices families = m_Instance.FindQueueFamilies(device, m_Surface);
+		QueueFamilyIndices families = m_Instance.FindQueueFamilies(device);
 
 		bool extentionsSupported = CheckDeviceExtentionSupport(device,
 			deviceExtensions.data(), deviceExtensions.size());
-
-		bool swapChainGood = false;
-		if (extentionsSupported)
-		{
-			SwapchainDetails details = m_Instance.QuerySwapchainSupport(device,
-				m_Surface);
-			swapChainGood = !details.formats.empty()
-				&& !details.presentModes.empty();
-		}
 
 		return
 			deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 			&& deviceFeatures.geometryShader
 			&& families.hasGraphicsFamily
-			&& families.hasPresentFamily
-			&& swapChainGood
 			&& extentionsSupported;
 	}
 

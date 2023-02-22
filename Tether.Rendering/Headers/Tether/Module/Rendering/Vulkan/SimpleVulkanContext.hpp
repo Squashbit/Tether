@@ -8,30 +8,23 @@
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 
-#include <Tether/SimpleWindow.hpp>
+#include <Tether/Window.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT SimpleVulkanContext : public VulkanContext
 	{
 	public:
-		SimpleVulkanContext(SimpleWindow& window);
+		SimpleVulkanContext();
 		~SimpleVulkanContext();
 		TETHER_NO_COPY(SimpleVulkanContext);
 
-		VkQueue presentQueue = nullptr;
-		Instance& m_Instance;
-		Surface surface;
+		
 		QueueFamilyIndices queueIndices;
-		VkSurfaceFormatKHR surfaceFormat;
-		SwapchainDetails swapchainDetails;
 	private:
-		void CreateRenderPass();
 		void CreateCommandPool();
 
-		void QuerySwapchainSupport();
-		void ChooseSurfaceFormat();
-
+		Instance& m_Instance;
 		Device m_Device;
 	};
 }

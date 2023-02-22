@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Tether/Common/Defs.hpp>
-#include <Tether/Common/IDisposable.hpp>
 
 namespace Tether
 {

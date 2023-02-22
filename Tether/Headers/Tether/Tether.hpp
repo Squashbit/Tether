@@ -10,5 +10,5 @@
 #include <Tether/Common/Ref.hpp>
 
 #include <Tether/Application.hpp>
-#include <Tether/SimpleWindow.hpp>
+#include <Tether/Window.hpp>
 #include <Tether/NativeWindow.hpp>

@@ -127,8 +127,7 @@ namespace Tether::Rendering::Vulkan
 		loader.vkDestroyInstance(instance, nullptr);
 	}
 
-	QueueFamilyIndices Instance::FindQueueFamilies(
-		VkPhysicalDevice device, VkSurfaceKHR surface)
+	QueueFamilyIndices Instance::FindQueueFamilies(VkPhysicalDevice device)
 	{
 		QueueFamilyIndices queueFamilies;
 
@@ -141,65 +140,23 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkQueueFamilyProperties> families(familyCount);
 		loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount,
 			families.data());
-
-		int i = 0;
-		for (const auto& queueFamily : families)
+		
+		for (size_t i = 0; i < families.size(); i++)
 		{
+			const VkQueueFamilyProperties& queueFamily = families[i];
+
 			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT
 				&& !queueFamilies.hasGraphicsFamily)
 			{
 				queueFamilies.hasGraphicsFamily = true;
-				queueFamilies.graphicsFamilyIndex = i;
+				queueFamilies.graphicsFamilyIndex = static_cast<uint32_t>(i);
 			}
 
-			VkBool32 presentSupport = false;
-			loader.vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface,
-				&presentSupport);
-			if (presentSupport && !queueFamilies.hasPresentFamily)
-			{
-				queueFamilies.hasPresentFamily = true;
-				queueFamilies.presentFamilyIndex = i;
-			}
-
-			if (queueFamilies.hasGraphicsFamily && queueFamilies.hasPresentFamily)
+			if (queueFamilies.hasGraphicsFamily)
 				break;
-
-			i++;
 		}
 
 		return queueFamilies;
-	}
-
-	SwapchainDetails Instance::QuerySwapchainSupport(
-		VkPhysicalDevice device, VkSurfaceKHR surface)
-	{
-		SwapchainDetails details;
-		loader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface,
-			&details.capabilities);
-
-		uint32_t formatCount;
-		loader.vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
-			nullptr);
-
-		if (formatCount != 0)
-		{
-			details.formats.resize(formatCount);
-			loader.vkGetPhysicalDeviceSurfaceFormatsKHR(device, surface, &formatCount,
-				details.formats.data());
-		}
-
-		uint32_t presentModeCount;
-		loader.vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
-			&presentModeCount, details.presentModes.data());
-
-		if (presentModeCount != 0)
-		{
-			details.presentModes.resize(presentModeCount);
-			loader.vkGetPhysicalDeviceSurfacePresentModesKHR(device, surface,
-				&presentModeCount, details.presentModes.data());
-		}
-
-		return details;
 	}
 
 	void Instance::AddDebugMessenger(DebugCallback& callback)

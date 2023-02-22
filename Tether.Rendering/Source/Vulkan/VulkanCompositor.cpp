@@ -1,25 +1,32 @@
-﻿#include <Tether/Module/Rendering/Vulkan/SimpleRenderer.hpp>
+﻿#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
-	SimpleRenderer::ResizeHandler::ResizeHandler(SimpleRenderer& renderer)
+	VulkanCompositor::ResizeHandler::ResizeHandler(VulkanCompositor& renderer)
 		:
 		m_Renderer(renderer)
 	{}
 
-	void SimpleRenderer::ResizeHandler::OnWindowResize(
+	void VulkanCompositor::ResizeHandler::OnWindowResize(
 		Events::WindowResizeEvent event)
 	{
 		m_Renderer.RecreateSwapchain();
 	}
 
-	SimpleRenderer::SimpleRenderer(SimpleWindow& window, SimpleVulkanContext& context)
+	VulkanCompositor::VulkanCompositor(VulkanRenderer& renderer, Window& window, SimpleVulkanContext& context)
 		:
-		VulkanRenderer(context),
+		m_Renderer(renderer),
 		m_Window(window),
+		m_RenderPass(context, m_SurfaceFormat),
 		m_Context(context),
+		m_Surface(context, window),
 		m_Dloader(m_Context.deviceLoader),
 		m_ResizeHandler(*this)
+	{
+		Init();
+	}
+
+	void VulkanCompositor::Init()
 	{
 		CreateSwapchain();
 		CreateFramebuffers();
@@ -29,7 +36,7 @@ namespace Tether::Rendering::Vulkan
 		m_Window.AddEventHandler(m_ResizeHandler, Events::EventType::WINDOW_RESIZE);
 	}
 
-	SimpleRenderer::~SimpleRenderer()
+	VulkanCompositor::~VulkanCompositor()
 	{
 		DestroySwapchain();
 
@@ -45,7 +52,7 @@ namespace Tether::Rendering::Vulkan
 		m_Window.RemoveEventHandler(m_ResizeHandler);
 	}
 
-	bool SimpleRenderer::RenderFrame()
+	bool VulkanCompositor::RenderFrame()
 	{
 		if (m_ShouldRecreateSwapchain)
 		{
@@ -100,7 +107,7 @@ namespace Tether::Rendering::Vulkan
 		presentInfo.pSwapchains = swapchains;
 		presentInfo.pImageIndices = &imageIndex;
 
-		if (m_Dloader.vkQueuePresentKHR(m_Context.presentQueue, &presentInfo) 
+		if (m_Dloader.vkQueuePresentKHR(m_PresentQueue, &presentInfo)
 			!= VK_SUCCESS)
 			return false;
 
@@ -108,14 +115,49 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void SimpleRenderer::CreateSwapchain()
+	void VulkanCompositor::CreatePresentQueue()
+	{
+		uint32_t familyCount = 0;
+		m_Context.instanceLoader.vkGetPhysicalDeviceQueueFamilyProperties(
+			m_Context.physicalDevice, &familyCount, nullptr);
+
+		if (familyCount == 0)
+			return;
+
+		std::vector<VkQueueFamilyProperties> families(familyCount);
+		m_Context.instanceLoader.vkGetPhysicalDeviceQueueFamilyProperties(
+			m_Context.physicalDevice, &familyCount, families.data());
+
+		for (size_t i = 0; i < families.size(); i++)
+		{
+			const VkQueueFamilyProperties& queueFamily = families[i];
+
+			VkBool32 presentSupport = false;
+			m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceSupportKHR(
+				m_Context.physicalDevice, i, m_Surface.Get(), &presentSupport);
+			if (presentSupport)
+			{
+				m_PresentFamilyIndex = i;
+
+				m_Dloader.vkGetDeviceQueue(m_Context.device, m_PresentFamilyIndex, 1,
+					&m_PresentQueue);
+
+				return;
+			}
+		}
+
+		throw std::runtime_error("Device has no present queue family");
+	}
+
+	void VulkanCompositor::CreateSwapchain()
 	{	
 		m_Swapchain.emplace(
 			m_Context,
-			m_Context.queueIndices, 
-			m_Context.swapchainDetails, 
-			m_Context.surfaceFormat,
-			m_Context.surface.Get(),
+			m_Context.queueIndices.graphicsFamilyIndex, 
+			m_PresentFamilyIndex,
+			m_SwapchainDetails,
+			m_SurfaceFormat,
+			m_Surface.Get(),
 			m_Window.GetWidth(), m_Window.GetHeight(),
 			true
 		);
@@ -123,10 +165,10 @@ namespace Tether::Rendering::Vulkan
 		m_SwapchainImages = m_Swapchain->GetImages();
 		m_Swapchain->CreateImageViews(&m_SwapchainImageViews);
 
-		SetSwapchainExtent(m_Swapchain->GetExtent());
+		m_Renderer.SetSwapchainExtent(m_Swapchain->GetExtent());
 	}
 
-	void SimpleRenderer::CreateFramebuffers()
+	void VulkanCompositor::CreateFramebuffers()
 	{
 		VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
 
@@ -154,7 +196,7 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	void SimpleRenderer::CreateSyncObjects()
+	void VulkanCompositor::CreateSyncObjects()
 	{
 		m_ImageAvailableSemaphores.resize(m_Context.framesInFlight);
 		m_RenderFinishedSemaphores.resize(m_Context.framesInFlight);
@@ -183,7 +225,7 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	void SimpleRenderer::CreateCommandBuffers()
+	void VulkanCompositor::CreateCommandBuffers()
 	{
 		m_CommandBuffers.resize(m_Context.framesInFlight);
 
@@ -198,7 +240,65 @@ namespace Tether::Rendering::Vulkan
 			throw std::runtime_error("Command buffer allocation failed");
 	}
 
-	void SimpleRenderer::RecordCommandBuffer(VkCommandBuffer commandBuffer,
+	void VulkanCompositor::ChooseSurfaceFormat()
+	{
+		if (m_SwapchainDetails.formats.size() == 0)
+			throw std::runtime_error("No available swapchain image formats");
+
+		for (VkSurfaceFormatKHR availableFormat : m_SwapchainDetails.formats)
+			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
+			{
+				m_SurfaceFormat = availableFormat;
+				return;
+			}
+
+		m_SurfaceFormat = m_SwapchainDetails.formats[0];
+	}
+
+	void VulkanCompositor::QuerySwapchainSupport()
+	{
+		VkSurfaceKHR vkSurface = m_Surface.Get();
+
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+			m_Context.physicalDevice,
+			vkSurface, &m_SwapchainDetails.capabilities
+		);
+
+		uint32_t formatCount;
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_Context.physicalDevice, vkSurface,
+			&formatCount, nullptr
+		);
+
+		if (formatCount != 0)
+		{
+			m_SwapchainDetails.formats.resize(formatCount);
+			m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+				m_Context.physicalDevice,
+				vkSurface, &formatCount,
+				m_SwapchainDetails.formats.data()
+			);
+		}
+
+		uint32_t presentModeCount;
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfacePresentModesKHR(
+			m_Context.physicalDevice,
+			vkSurface, &presentModeCount,
+			m_SwapchainDetails.presentModes.data()
+		);
+
+		if (presentModeCount != 0)
+		{
+			m_SwapchainDetails.presentModes.resize(presentModeCount);
+			m_Context.instanceLoader.vkGetPhysicalDeviceSurfacePresentModesKHR(
+				m_Context.physicalDevice,
+				vkSurface, &presentModeCount,
+				m_SwapchainDetails.presentModes.data()
+			);
+		}
+	}
+
+	void VulkanCompositor::RecordCommandBuffer(VkCommandBuffer commandBuffer,
 		uint32_t imageIndex)
 	{
 		m_Dloader.vkResetCommandBuffer(commandBuffer, 0);
@@ -244,7 +344,7 @@ namespace Tether::Rendering::Vulkan
 			scissor.extent.height = swapchainExtent.height;
 			m_Dloader.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-			PopulateCommandBuffer(commandBuffer);
+			m_Renderer.PopulateCommandBuffer(commandBuffer);
 
 			m_Dloader.vkCmdEndRenderPass(commandBuffer);
 		}
@@ -252,7 +352,7 @@ namespace Tether::Rendering::Vulkan
 			throw std::runtime_error("Failed to end command buffer!");
 	}
 
-	bool SimpleRenderer::RecreateSwapchain()
+	bool VulkanCompositor::RecreateSwapchain()
 	{
 		if (m_Window.GetWidth() == 0 || m_Window.GetHeight() == 0)
 			return true;
@@ -262,7 +362,7 @@ namespace Tether::Rendering::Vulkan
 		// The min and max window size fields in capabilities change on resize
 		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
 			m_Context.physicalDevice,
-			m_Context.surface.Get(), &m_Context.swapchainDetails.capabilities
+			m_Surface.Get(), &m_SwapchainDetails.capabilities
 		);
 
 		CreateSwapchain();
@@ -271,7 +371,7 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
-	void SimpleRenderer::DestroySwapchain()
+	void VulkanCompositor::DestroySwapchain()
 	{
 		m_Dloader.vkDeviceWaitIdle(m_Context.device);
 

@@ -2,10 +2,9 @@
 
 using namespace Tether::Devices;
 
-DeviceManager::DeviceManager(SimpleWindow* pWindow)
+DeviceManager::DeviceManager()
     :
-    pWindow(pWindow),
-    app(&Application::Get())
+    app(Application::Get())
 {
     
 }

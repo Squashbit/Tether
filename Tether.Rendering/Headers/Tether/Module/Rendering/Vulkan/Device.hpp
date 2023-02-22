@@ -14,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT Device
 	{
 	public:
-		Device(Instance& instance, VkSurfaceKHR surface);
+		Device(Instance& instance);
 		~Device();
 		TETHER_NO_COPY(Device);
 		
@@ -48,8 +48,7 @@ namespace Tether::Rendering::Vulkan
 
 		Instance& m_Instance;
 		InstanceLoader& m_Iloader;
-		VkSurfaceKHR m_Surface = nullptr;
-
+		
 		DeviceLoader m_Loader;
 
 		VkPhysicalDevice m_PhysicalDevice = nullptr;

@@ -1,7 +1,7 @@
 #ifdef __linux__
 
 #include <Tether/Devices/DeviceManager.hpp>
-#include <Tether/SimpleWindow.hpp>
+#include <Tether/Window.hpp>
 #include <Tether/Native.hpp>
 
 #include <X11/extensions/Xrandr.h>

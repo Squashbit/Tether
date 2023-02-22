@@ -11,14 +11,14 @@
 
 namespace Tether
 {
-    class SimpleWindow;
+    class Window;
 }
 
 namespace Tether::Input
 {
     class TETHER_EXPORT InputListener
     {
-        friend SimpleWindow;
+        friend Window;
     public:
         virtual void OnMouseMove(MouseMoveInfo& info) {}
         virtual void OnRawMouseMove(RawMouseMoveInfo& info) {}

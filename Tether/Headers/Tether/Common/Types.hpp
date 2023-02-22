@@ -7,40 +7,17 @@
 
 namespace Tether
 {
-	enum class ErrorCode
+	struct ButtonStyleMask
 	{
-		FAILED_APP_INIT,
-		DOUBLE_INIT,
-		NOT_INITIALIZED,
-		NOT_DISPOSED,
-		LIBRARY_NOT_LOADED
+		static constexpr const uint8_t MINIMIZE_BUTTON = 1 << 0;
+		static constexpr const uint8_t MAXIMIZE_BUTTON = 1 << 1;
 	};
 
-	enum class ErrorSeverity
+	enum class FullscreenFields
 	{
-		NOTE = 0,
-		LOW = 1,
-		MEDIUM = 2,
-		HIGH = 3,
-	};
-
-	enum class WindowState
-	{
-		NORMAL,
-		FULLSCREEN
-	};
-
-	// UNIMPLEMENTED
-	enum class WindowType
-	{
-		NORMAL
-	};
-
-	enum class CursorMode
-	{
-		NORMAL,
-		HIDDEN,
-		DISABLED,
+		WIDTH = 1,
+		HEIGHT = 1 << 1,
+		BITSPERPIXEL = 1 << 2
 	};
 
 	// This comment right here (yes, this comment right here) is the start

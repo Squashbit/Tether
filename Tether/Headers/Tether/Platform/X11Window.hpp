@@ -1,7 +1,7 @@
 #pragma once
 #ifdef __linux__
 
-#include <Tether/Native/SimpleWindowNative.hpp>
+#include <Tether/Native/WindowNative.hpp>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -11,7 +11,7 @@
 
 namespace Tether::Native
 {
-	class TETHER_EXPORT X11SimpleWindow : public SimpleWindowNative
+	class TETHER_EXPORT X11Window : public WindowNative
 	{
 	public:
 	private:

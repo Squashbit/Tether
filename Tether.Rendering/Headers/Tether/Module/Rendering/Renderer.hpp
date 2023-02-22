@@ -9,13 +9,13 @@
 #include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
 #include <Tether/Module/Rendering/Resources/Font.hpp>
 
-#include <Tether/Common/IDisposable.hpp>
 #include <Tether/Common/TypeTools.hpp>
 #include <Tether/Common/HashedString.hpp>
 #include <Tether/Common/Types.hpp>
 
 #include <Tether/Math/Types.hpp>
 
+#include <type_traits>
 #include <vector>
 
 namespace Tether::Rendering
@@ -37,6 +37,7 @@ namespace Tether::Rendering
 		virtual bool RenderFrame() { return true; }
 
 		template<typename T, typename... Args>
+			requires std::is_base_of_v<Objects::Object, T>
 		Scope<T> CreateObject(Args... args)
 		{
 			Scope<T> object;
@@ -48,6 +49,7 @@ namespace Tether::Rendering
 		}
 
 		template<typename T>
+			requires std::is_base_of_v<Objects::Object, T>
 		Scope<T> CreateOtherObject()
 		{
 			Scope<T> object;
@@ -59,6 +61,7 @@ namespace Tether::Rendering
 		}
 
 		template<typename T, typename... Args>
+			requires std::is_base_of_v<Resources::Resource, T>
 		Scope<T> CreateResource(Args... args)
 		{
 			Scope<T> resource;
