@@ -1,15 +1,19 @@
 #include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanWindow::VulkanWindow(VulkanContext& context, VkFormat colorAttachmentFormat)
+	VulkanWindow::VulkanWindow(Window& window)
 		:
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader)
+		VulkanContext(GlobalVulkan::Get()),
+		window(window),
+		m_Surface(*this, window)
 	{
+		ChooseSurfaceFormat();
+
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = colorAttachmentFormat;
+		colorAttachment.format = m_SurfaceFormat.format;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -49,18 +53,43 @@ namespace Tether::Rendering::Vulkan
 		desc.dependencyCount = 1;
 		desc.pDependencies = &dependency;
 
-		if (m_Dloader.vkCreateRenderPass(m_Device, &desc, nullptr,
-			&m_RenderPass) != VK_SUCCESS)
+		if (deviceLoader.vkCreateRenderPass(device, &desc, nullptr,
+			&renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Render pass creation failed");
 	}
 
 	VulkanWindow::~VulkanWindow()
 	{
-		m_Dloader.vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
+		deviceLoader.vkDestroyRenderPass(device, renderPass, nullptr);
 	}
 
-	VkRenderPass VulkanWindow::Get()
+	void VulkanWindow::ChooseSurfaceFormat()
 	{
-		return m_RenderPass;
+		uint32_t formatCount;
+		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			physicalDevice, m_Surface.Get(),
+			&formatCount, nullptr
+		);
+
+		if (formatCount == 0)
+			throw std::runtime_error("Physical device has no surface formats");
+
+		std::vector<VkSurfaceFormatKHR> formats;
+		formats.resize(formatCount);
+
+		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			physicalDevice,
+			m_Surface.Get(), &formatCount,
+			formats.data()
+		);
+
+		for (const VkSurfaceFormatKHR& availableFormat : formats)
+			if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB)
+			{
+				m_SurfaceFormat = availableFormat;
+				return;
+			}
+
+		m_SurfaceFormat = formats[0];
 	}
 }

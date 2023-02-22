@@ -3,9 +3,10 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Ref.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
-
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Module/Rendering/Vulkan/Device.hpp>
 
 #include <optional>
 
@@ -14,7 +15,7 @@ namespace Tether::Rendering::Vulkan
 	struct VulkanNative;
 	class DebugCallback;
 
-	class TETHER_EXPORT GlobalVulkan
+	class TETHER_EXPORT GlobalVulkan : public VulkanContext
 	{
 	public:
 		~GlobalVulkan();
@@ -25,7 +26,7 @@ namespace Tether::Rendering::Vulkan
 		void RemoveDebugMessenger(DebugCallback& debugCallback);
 
 		Instance& GetInstance();
-		PFN_vkGetInstanceProcAddr GetGetInstanceProcAddr();
+		const QueueFamilyIndices& GetQueueFamilyIndices() const;
 		
 		static void Create(bool debugMode);
 		static bool IsAlive();
@@ -34,6 +35,8 @@ namespace Tether::Rendering::Vulkan
 	private:
 		GlobalVulkan(bool debugMode);
 
+		void CreateCommandPool();
+
 		void LoadVulkan();
 
 		void* handle = nullptr;
@@ -41,9 +44,11 @@ namespace Tether::Rendering::Vulkan
 		TETHER_VULKAN_FUNC_VAR(CreateInstance);
 		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceExtensionProperties);
 		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
-		TETHER_VULKAN_FUNC_VAR(GetInstanceProcAddr);
+		
+		std::optional<Instance> m_Instance;
+		std::optional<Device> m_Device;
 
-		std::optional<Instance> instance;
+		QueueFamilyIndices queueIndices;
 
 		static GlobalVulkan* internal;
 	};

@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 		VkInstance instance = nullptr;
 		InstanceLoader instanceLoader; // Must have had Load called
 		VkDevice device = nullptr;
-		VkQueue graphicsQueue = nullptr;
+		VkQueue queue = nullptr;
 		DeviceLoader deviceLoader; // Must have had Load called
 		VkPhysicalDevice physicalDevice = nullptr;
 		VkRenderPass renderPass = nullptr;

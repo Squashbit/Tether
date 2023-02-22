@@ -8,7 +8,7 @@ namespace Tether::Rendering::Vulkan
 		m_Device(context.device),
 		m_Dloader(context.deviceLoader),
 		m_CommandPool(context.commandPool),
-		m_Queue(context.graphicsQueue)
+		m_Queue(context.queue)
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

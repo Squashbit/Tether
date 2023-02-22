@@ -8,7 +8,6 @@ using namespace Tether::Rendering::Vulkan;
 Swapchain::Swapchain(
 	VulkanContext& context,
 	uint32_t graphicsFamilyIndex,
-	uint32_t presentFamilyIndex,
 	const SwapchainDetails& details,
 	VkSurfaceFormatKHR surfaceFormat,
 	VkSurfaceKHR surface,
@@ -39,21 +38,7 @@ Swapchain::Swapchain(
 	createInfo.presentMode = ChoosePresentMode(details.presentModes, vsync);
 	createInfo.clipped = true;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-	if (graphicsFamilyIndex != presentFamilyIndex)
-	{
-		uint32_t queueFamilyIndices[] =
-		{
-			graphicsFamilyIndex,
-			presentFamilyIndex
-		};
-		
-		createInfo.queueFamilyIndexCount = sizeof(queueFamilyIndices) / sizeof(uint32_t);
-		createInfo.pQueueFamilyIndices = queueFamilyIndices;
-		createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-	}
-	else
-		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (m_Dloader.vkCreateSwapchainKHR(m_Device, &createInfo, nullptr,
 		&m_Swapchain) != VK_SUCCESS)

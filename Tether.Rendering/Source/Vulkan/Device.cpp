@@ -17,32 +17,25 @@ namespace Tether::Rendering::Vulkan
 	{
 		PickDevice();
 
-		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-
-		uint32_t familyCount = 0;
-		m_Iloader.vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, 
-			&familyCount, nullptr);
+		QueueFamilyIndices families = m_Instance.FindQueueFamilies(m_PhysicalDevice);
 
 		float queuePriority = 1.0f;
-		for (uint32_t i = 0; i < familyCount; i++)
-		{
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = i;
-			queueCreateInfo.queueCount = 1;
-			queueCreateInfo.pQueuePriorities = &queuePriority;
-
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
+		VkDeviceQueueCreateInfo queueCreateInfos[1] = {};
+		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		queueCreateInfos[0].queueFamilyIndex = families.graphicsFamilyIndex;
+		queueCreateInfos[0].queueCount = 1;
+		queueCreateInfos[0].pQueuePriorities = &queuePriority;
 
 		VkPhysicalDeviceFeatures features{};
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		createInfo.pQueueCreateInfos = queueCreateInfos.data();
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.pQueueCreateInfos = queueCreateInfos;
+		createInfo.queueCreateInfoCount = sizeof(queueCreateInfos) 
+			/ sizeof(queueCreateInfos[0]);
 		createInfo.pEnabledFeatures = &features;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		createInfo.enabledExtensionCount = 
+			static_cast<uint32_t>(deviceExtensions.size());
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 		if (instance.IsDebugMode())

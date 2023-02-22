@@ -49,7 +49,7 @@ namespace Tether::Rendering::Vulkan
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
 		m_Dloader.vkResetFences(m_Device, 1, &m_CompletedFence);
-		m_Dloader.vkQueueSubmit(m_Context.graphicsQueue, 1, &submitInfo, 
+		m_Dloader.vkQueueSubmit(m_Context.queue, 1, &submitInfo, 
 			m_CompletedFence);
 	}
 

@@ -20,12 +20,26 @@ namespace Tether::Rendering::Vulkan
 		info.EnumerateInstanceLayerProperties = EnumerateInstanceLayerProperties;
 		info.GetInstanceProcAddr = GetInstanceProcAddr;
 
-		instance.emplace(info, debugMode);
+		m_Instance.emplace(info, debugMode);
+		m_Device.emplace(*m_Instance);
+
+		instance = m_Instance->Get();
+		instanceLoader = m_Instance->GetLoader();
+		device = m_Device->Get();
+		deviceLoader = m_Device->GetLoader();
+		physicalDevice = m_Device->GetPhysicalDevice();
+		queueIndices = m_Instance->FindQueueFamilies(physicalDevice);
+		queue = m_Device->GetDeviceQueue(queueIndices.graphicsFamilyIndex, 0);
+
+		CreateCommandPool();
 	}
 
 	GlobalVulkan::~GlobalVulkan()
 	{
-		instance.reset();
+		deviceLoader.vkDestroyCommandPool(device, commandPool, nullptr);
+		
+		m_Device.reset();
+		m_Instance.reset();
 
 		LibraryLoader::FreeLibrary(handle);
 	}
@@ -33,23 +47,23 @@ namespace Tether::Rendering::Vulkan
 	void GlobalVulkan::AddDebugMessenger(DebugCallback& debugCallback)
 	{
 		debugCallback.m_IsInGlobalVulkan = true;
-		instance->AddDebugMessenger(debugCallback);
+		m_Instance->AddDebugMessenger(debugCallback);
 	}
 
 	void GlobalVulkan::RemoveDebugMessenger(DebugCallback& debugCallback)
 	{
 		debugCallback.m_IsInGlobalVulkan = false;
-		instance->RemoveDebugMessenger(debugCallback);
+		m_Instance->RemoveDebugMessenger(debugCallback);
 	}
 
 	Instance& GlobalVulkan::GetInstance()
 	{
-		return *instance;
+		return *m_Instance;
 	}
 
-	PFN_vkGetInstanceProcAddr GlobalVulkan::GetGetInstanceProcAddr()
+	const QueueFamilyIndices& GlobalVulkan::GetQueueFamilyIndices() const
 	{
-		return GetInstanceProcAddr;
+		return queueIndices;
 	}
 
 	void GlobalVulkan::LoadVulkan()
@@ -105,5 +119,17 @@ namespace Tether::Rendering::Vulkan
 		}
 
 		return *internal;
+	}
+
+	void GlobalVulkan::CreateCommandPool()
+	{
+		VkCommandPoolCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		createInfo.queueFamilyIndex = queueIndices.graphicsFamilyIndex;
+
+		if (deviceLoader.vkCreateCommandPool(device, &createInfo, nullptr,
+			&commandPool) != VK_SUCCESS)
+			throw std::runtime_error("Command pool creation failed");
 	}
 }

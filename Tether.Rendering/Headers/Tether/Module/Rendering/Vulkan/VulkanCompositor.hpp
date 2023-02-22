@@ -3,8 +3,8 @@
 #include <Tether/Events/EventHandler.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Compositor.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
-#include <Tether/Module/Rendering/Vulkan/SimpleVulkanContext.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
 
@@ -12,10 +12,10 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VulkanCompositor : public VulkanRenderer
+	class TETHER_EXPORT VulkanCompositor : public Compositor
 	{
 	public:
-		VulkanCompositor(VulkanRenderer& renderer, VulkanWindowContext& context);
+		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& context);
 		~VulkanCompositor();
 		TETHER_NO_COPY(VulkanCompositor);
 
@@ -23,28 +23,23 @@ namespace Tether::Rendering::Vulkan
 	private:
 		void Init();
 
-		void CreatePresentQueue();
+		void CheckPresentSupport();
 		void CreateSwapchain();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandBuffers();
 
 		void QuerySwapchainSupport();
-		void ChooseSurfaceFormat();
-
+		
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		bool RecreateSwapchain();
 		void DestroySwapchain();
 
 		VulkanRenderer& m_Renderer;
-		Window& m_Window;
-		SimpleVulkanContext& m_Context;
-		Surface m_Surface;
+		VulkanWindow& m_Context;
 		DeviceLoader& m_Dloader;
 
-		uint32_t m_PresentFamilyIndex = 0;
-		
 		SwapchainDetails m_SwapchainDetails;
 
 		VkQueue m_PresentQueue = nullptr;
@@ -72,8 +67,6 @@ namespace Tether::Rendering::Vulkan
 
 		bool m_ShouldRecreateSwapchain = false;
 
-		Math::Vector3f m_ClearColor;
-		
 		uint32_t m_CurrentFrame = 0;
 	};
 }

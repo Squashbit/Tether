@@ -40,11 +40,12 @@ public:
 	RendererTestApp()
 		:
 		window(Window::Create(1280, 720, L"Text testing")),
-		m_Renderer(m_VulkanContext),
-		m_Compositor(m_Renderer, *window, m_VulkanContext),
+		m_VulkanWindow(*window),
+		m_Renderer(m_VulkanWindow),
+		m_Compositor(m_Renderer, m_VulkanWindow),
 		m_WindowUI(*window, m_Renderer, m_Compositor)
 	{
-		m_WindowUI.SetBackgroundColor(0.1f);
+		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.05f, 0.05f, 0.05f, 1.0f));
 
 		window->SetVisible(true);
 	}
@@ -56,8 +57,9 @@ public:
 private:
 	Scope<Window> window;
 
-	Vulkan::SimpleVulkanContext m_VulkanContext;
-	Vulkan::SimpleVulkanRenderer m_Renderer;
+	Vulkan::VulkanWindow m_VulkanWindow;
+	Vulkan::VulkanRenderer m_Renderer;
+	Vulkan::VulkanCompositor m_Compositor;
 	
 	WindowUI m_WindowUI;
 };
