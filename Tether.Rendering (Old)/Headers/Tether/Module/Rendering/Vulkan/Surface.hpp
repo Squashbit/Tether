@@ -14,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT Surface
 	{
 	public:
-		Surface(VulkanContext& context, Window& window);
+		Surface(Context& context, Window& window);
 		~Surface();
 		TETHER_NO_COPY(Surface);
 

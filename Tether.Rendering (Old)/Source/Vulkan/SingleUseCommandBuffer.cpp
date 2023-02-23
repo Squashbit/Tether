@@ -3,7 +3,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	SingleUseCommandBuffer::SingleUseCommandBuffer(VulkanContext& context)
+	SingleUseCommandBuffer::SingleUseCommandBuffer(Context& context)
 		:
 		m_Device(context.device),
 		m_Dloader(context.deviceLoader),

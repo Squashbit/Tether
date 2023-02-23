@@ -4,7 +4,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	Image::Image(
-		VulkanContext& context,
+		Context& context,
 		Pipeline& pipeline,
 		VertexBuffer& rectBuffer
 	)

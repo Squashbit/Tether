@@ -7,7 +7,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VulkanWindow : public VulkanContext
+	class TETHER_EXPORT VulkanWindow : public Context
 	{
 		friend class VulkanCompositor;
 	public:

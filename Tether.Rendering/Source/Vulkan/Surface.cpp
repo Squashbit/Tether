@@ -19,10 +19,10 @@
 using namespace Tether::Rendering::Vulkan;
 using namespace Tether;
 
-Surface::Surface(VulkanContext& context, Window& window)
+Surface::Surface(VkInstance instance, InstanceLoader& loader, Window& window)
 	:
-	m_Instance(context.instance),
-	m_Loader(context.instanceLoader)
+	m_Instance(instance),
+	m_Loader(loader)
 {
 #ifdef __linux__
 	Native::X11Window& windowNative =

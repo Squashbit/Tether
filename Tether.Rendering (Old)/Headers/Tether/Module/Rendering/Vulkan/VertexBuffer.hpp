@@ -14,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VertexBuffer
 	{
 	public:
-		VertexBuffer(VulkanContext& context, size_t vertexBufferSize, 
+		VertexBuffer(Context& context, size_t vertexBufferSize, 
 			size_t indexCount);
 		~VertexBuffer();
 		TETHER_NO_COPY(VertexBuffer);
@@ -49,6 +49,6 @@ namespace Tether::Rendering::Vulkan
 		std::optional<BufferStager> m_VertexStager;
 		std::optional<BufferStager> m_IndexStager;
 		
-		VulkanContext& m_Context;
+		Context& m_Context;
 	};
 }

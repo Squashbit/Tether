@@ -26,7 +26,7 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Font(
-			VulkanContext& context,
+			Context& context,
 			VkDescriptorSetLayout setLayout, 
 			VkSampler sampler,
 			const std::string& fontPath
@@ -52,7 +52,7 @@ namespace Tether::Rendering::Vulkan
 		
 		VkDevice m_Device = nullptr;
 		DeviceLoader& m_Dloader;
-		VulkanContext& m_Context;
+		Context& m_Context;
 		
 		VkDescriptorPool m_Pool = nullptr;
 		VkDescriptorSetLayout m_SetLayout = nullptr;

@@ -3,7 +3,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	AllocatorManager::AllocatorManager(VulkanContext& context)
+	AllocatorManager::AllocatorManager(Context& context)
 		:
 		m_Context(context)
 	{

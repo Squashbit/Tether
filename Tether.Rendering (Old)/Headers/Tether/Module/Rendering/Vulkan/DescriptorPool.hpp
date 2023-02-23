@@ -8,7 +8,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		friend class DescriptorSet;
 	public:
-		DescriptorPool(VulkanContext& context, uint32_t maxSets, uint32_t sizeCount,
+		DescriptorPool(Context& context, uint32_t maxSets, uint32_t sizeCount,
 			VkDescriptorPoolSize* sizes);
 		~DescriptorPool();
 		TETHER_NO_COPY(DescriptorPool);

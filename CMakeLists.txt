@@ -44,7 +44,8 @@ else()
 endif()
 
 if (TETHER_BUILD_TESTS)
-    add_subdirectory("Tests")
+    add_subdirectory("Tether/Tests")
+	add_subdirectory("Tether.Rendering/Tests")
 endif()
 
 add_subdirectory("Tether")

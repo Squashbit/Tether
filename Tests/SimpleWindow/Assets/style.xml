@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<root>
-    <control type="panel" name="testPanel">
-        <bounds x="100" y="100" width="100" height="100" />
-        <backgroundColor rgb="255" />
-    </control>
-</root>

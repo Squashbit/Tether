@@ -6,7 +6,7 @@ namespace Tether::Rendering::Vulkan
 {
 	VulkanWindow::VulkanWindow(Window& window)
 		:
-		VulkanContext(GlobalVulkan::Get()),
+		Context(GlobalVulkan::Get()),
 		window(window),
 		m_Surface(*this, window)
 	{

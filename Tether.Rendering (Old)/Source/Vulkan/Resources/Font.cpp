@@ -4,7 +4,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	Font::Font(
-		VulkanContext& context,
+		Context& context,
 		VkDescriptorSetLayout setLayout,
 		VkSampler sampler,
 		const std::string& fontPath

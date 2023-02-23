@@ -2,7 +2,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	Text::Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
+	Text::Text(Context& context, VkExtent2D& swapchainExtent, 
 		Pipeline& pipeline, VertexBuffer& rectBuffer)
 		:
 		Objects::Text(this),

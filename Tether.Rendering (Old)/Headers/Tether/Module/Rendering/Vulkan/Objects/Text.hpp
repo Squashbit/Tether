@@ -18,7 +18,7 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector2<int> windowSize;
 		};
 
-		Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
+		Text(Context& context, VkExtent2D& swapchainExtent, 
 			Pipeline& pipeline, VertexBuffer& rectBuffer);
 		TETHER_NO_COPY(Text);
 

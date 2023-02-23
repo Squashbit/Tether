@@ -4,7 +4,7 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-PipelineLayout::PipelineLayout(VulkanContext& context,
+PipelineLayout::PipelineLayout(Context& context,
 	VkPipelineLayoutCreateInfo* createInfo)
 	:
 	m_Device(context.device),
@@ -26,7 +26,7 @@ VkPipelineLayout PipelineLayout::Get()
 }
 
 Pipeline::Pipeline(
-	VulkanContext& context,
+	Context& context,
 	VkExtent2D viewportExtent, uint32_t subpass,
 	uint32_t* pVertexCode, size_t vertexCodeSize,
 	uint32_t* pFragmentCode, size_t fragmentCodeSize,

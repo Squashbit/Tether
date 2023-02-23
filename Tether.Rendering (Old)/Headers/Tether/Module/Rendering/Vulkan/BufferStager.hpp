@@ -8,7 +8,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferStager(
-			VulkanContext& context,
+			Context& context,
 			VkBuffer buffer,
 			size_t bufferSize
 		);
@@ -36,7 +36,7 @@ namespace Tether::Rendering::Vulkan
 		VkCommandBuffer m_CommandBuffer = nullptr;
 		VkFence m_CompletedFence = nullptr;
 
-		VulkanContext& m_Context;
+		Context& m_Context;
 
 		VkDevice m_Device = nullptr;
 		DeviceLoader& m_Dloader;

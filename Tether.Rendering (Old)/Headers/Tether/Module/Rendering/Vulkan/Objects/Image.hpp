@@ -21,7 +21,7 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Image(
-			VulkanContext& context,
+			Context& context,
 			Pipeline& pPipeline,
 			VertexBuffer& pRectBuffer
 		);

@@ -19,7 +19,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanRenderer::VulkanRenderer(const VulkanContext& context)
+	VulkanRenderer::VulkanRenderer(const Context& context)
 		:
 		m_Context(context),
 		m_Dloader(m_Context.deviceLoader)

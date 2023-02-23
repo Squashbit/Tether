@@ -38,7 +38,7 @@ namespace Tether::Rendering
 		return true;
 	}
 
-	Resources::BufferedImageInfo& ImageLoader::GetImageInfo()
+	const ImageLoader::ImageInfo& ImageLoader::GetImageInfo() const
 	{
 		return imageInfo;
 	}

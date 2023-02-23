@@ -6,10 +6,12 @@
 
 namespace Tether::Rendering::Vulkan
 {
+    class Context;
     class TETHER_EXPORT DebugCallback
     {
-        friend class GlobalVulkan;
+        friend Context;
     public:
+        DebugCallback(Context& context);
         ~DebugCallback();
 
         virtual void OnDebugLog(
@@ -19,6 +21,7 @@ namespace Tether::Rendering::Vulkan
         )
         {}
     protected:
-        bool m_IsInGlobalVulkan = false;
+        bool m_IsInContext = false;
+        Context& m_Context;
     };
 }

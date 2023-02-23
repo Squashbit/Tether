@@ -15,7 +15,7 @@ namespace Tether::Rendering::Vulkan
 	struct VulkanNative;
 	class DebugCallback;
 
-	class TETHER_EXPORT GlobalVulkan : public VulkanContext
+	class TETHER_EXPORT GlobalVulkan : public Context
 	{
 	public:
 		~GlobalVulkan();

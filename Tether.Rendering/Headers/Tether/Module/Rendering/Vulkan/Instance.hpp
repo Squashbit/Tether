@@ -4,15 +4,11 @@
 #include <unordered_map>
 
 #include <Tether/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
-#include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
-
-#define TETHER_VULKAN_FUNC_VAR(name) PFN_vk##name name = nullptr
 
 namespace Tether::Rendering::Vulkan
 {
@@ -20,10 +16,10 @@ namespace Tether::Rendering::Vulkan
 	{
 		const char* applicationName = "VulkanApp";
 		const char* engineName = "VulkanEngine";
-		TETHER_VULKAN_FUNC_VAR(CreateInstance);
-		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceExtensionProperties);
-		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
-		TETHER_VULKAN_FUNC_VAR(GetInstanceProcAddr);
+		PFN_vkCreateInstance CreateInstance = nullptr;
+		PFN_vkEnumerateInstanceExtensionProperties EnumerateInstanceExtensionProperties = nullptr;
+		PFN_vkEnumerateInstanceLayerProperties EnumerateInstanceLayerProperties = nullptr;
+		PFN_vkGetInstanceProcAddr GetInstanceProcAddr = nullptr;
 	};
 
 	class TETHER_EXPORT Instance
@@ -79,7 +75,7 @@ namespace Tether::Rendering::Vulkan
 		VkInstance instance = nullptr;
 		VkDebugUtilsMessengerEXT debugMessenger = nullptr;
 
-		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
+		PFN_vkEnumerateInstanceLayerProperties EnumerateInstanceLayerProperties = nullptr;
 
 		Vulkan::InstanceLoader loader;
 		

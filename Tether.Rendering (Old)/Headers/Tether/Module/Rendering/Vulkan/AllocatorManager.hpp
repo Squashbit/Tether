@@ -11,10 +11,10 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT AllocatorManager
 	{
 	public:
-		AllocatorManager(VulkanContext& context);
+		AllocatorManager(Context& context);
 		~AllocatorManager();
 		TETHER_NO_COPY(AllocatorManager);
 	private:
-		VulkanContext& m_Context;
+		Context& m_Context;
 	};
 }

@@ -15,7 +15,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT PipelineLayout
 	{
 	public:
-		PipelineLayout(VulkanContext& context, 
+		PipelineLayout(Context& context, 
 			VkPipelineLayoutCreateInfo* createInfo);
 		~PipelineLayout();
 		TETHER_NO_COPY(PipelineLayout);
@@ -32,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Pipeline(
-			VulkanContext& context,
+			Context& context,
 			VkExtent2D viewportExtent, uint32_t subpass,
 			uint32_t* pVertexCode, size_t vertexCodeSize,
 			uint32_t* pFragmentCode, size_t fragmentCodeSize,

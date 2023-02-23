@@ -18,7 +18,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VulkanRenderer : public Rendering::Renderer
 	{
 	public:
-		VulkanRenderer(const VulkanContext& context);
+		VulkanRenderer(const Context& context);
 		~VulkanRenderer();
 		TETHER_NO_COPY(VulkanRenderer);
 
@@ -41,7 +41,7 @@ namespace Tether::Rendering::Vulkan
 		void CreateVertexBuffers();
 		void CreateSampler();
 
-		VulkanContext m_Context;
+		Context m_Context;
 		DeviceLoader& m_Dloader;
 
 		std::optional<AllocatorManager> m_Allocator;

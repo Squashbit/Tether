@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferedImage(
-			VulkanContext& context,
+			Context& context,
 			VkSampler sampler,
 			VkDescriptorSetLayout pipelineSetLayout,
 			const Resources::BufferedImageInfo& info
@@ -35,7 +35,7 @@ namespace Tether::Rendering::Vulkan
 		VkImageView m_ImageView = nullptr;
 		VmaAllocation m_ImageAllocation = nullptr;
 
-		VulkanContext& m_Context;
+		Context& m_Context;
 
 		VkDevice m_Device = nullptr;
 		DeviceLoader& m_Dloader;

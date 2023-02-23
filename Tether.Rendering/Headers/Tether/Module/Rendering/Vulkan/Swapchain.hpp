@@ -3,7 +3,7 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Context.hpp>
 
 #include <vulkan/vulkan.hpp>
 
@@ -13,7 +13,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Swapchain(
-			VulkanContext& context,
+			Context& context,
 			uint32_t graphicsFamilyIndex,
 			const SwapchainDetails& details,
 			VkSurfaceFormatKHR format,

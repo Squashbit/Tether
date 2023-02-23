@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT UniformBuffer : public DescriptorSetWritable
 	{
 	public:
-		UniformBuffer(VulkanContext& context, size_t bufferSize,
+		UniformBuffer(Context& context, size_t bufferSize,
 			DescriptorSet& set, uint32_t binding);
 		~UniformBuffer();
 		TETHER_NO_COPY(UniformBuffer);

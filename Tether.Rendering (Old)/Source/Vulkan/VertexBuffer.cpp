@@ -3,7 +3,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	VertexBuffer::VertexBuffer(VulkanContext& context,
+	VertexBuffer::VertexBuffer(Context& context,
 		size_t vertexBufferSize, size_t indexCount)
 		:
 		m_Context(context)

@@ -7,7 +7,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	BufferedImage::BufferedImage(
-		VulkanContext& context,
+		Context& context,
 		VkSampler sampler,
 		VkDescriptorSetLayout pipelineSetLayout,
 		const Resources::BufferedImageInfo& info

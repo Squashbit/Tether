@@ -4,7 +4,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	ImageStager::ImageStager(
-		VulkanContext& context,
+		Context& context,
 		VkImage image, uint32_t imageWidth,
 		uint32_t imageHeight, uint32_t bytesPerPixel, void* imageData,
 		VkFormat imageFormat

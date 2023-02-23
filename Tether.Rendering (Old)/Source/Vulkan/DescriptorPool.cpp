@@ -3,7 +3,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	DescriptorPool::DescriptorPool(VulkanContext& context, uint32_t maxSets,
+	DescriptorPool::DescriptorPool(Context& context, uint32_t maxSets,
 		uint32_t sizeCount, VkDescriptorPoolSize* sizes)
 		:
 		m_Device(context.device),

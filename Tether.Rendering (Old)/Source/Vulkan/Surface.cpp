@@ -19,7 +19,7 @@
 using namespace Tether::Rendering::Vulkan;
 using namespace Tether;
 
-Surface::Surface(VulkanContext& context, Window& window)
+Surface::Surface(Context& context, Window& window)
 	:
 	m_Instance(context.instance),
 	m_Loader(context.instanceLoader)

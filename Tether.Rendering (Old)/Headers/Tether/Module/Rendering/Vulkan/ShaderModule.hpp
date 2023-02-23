@@ -12,7 +12,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		ShaderModule(
-			VulkanContext& context,
+			Context& context,
 			VkShaderStageFlagBits stage,
 			uint32_t* pCode, size_t codeSize
 		);

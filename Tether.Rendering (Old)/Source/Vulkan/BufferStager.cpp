@@ -6,7 +6,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	BufferStager::BufferStager(
-		VulkanContext& context,
+		Context& context,
 		VkBuffer buffer,
 		size_t bufferSize
 	)

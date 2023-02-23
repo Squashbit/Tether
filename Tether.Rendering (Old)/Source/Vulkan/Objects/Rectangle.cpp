@@ -3,7 +3,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	Rectangle::Rectangle(
-		VulkanContext& context,
+		Context& context,
 		Pipeline& pipeline,
 		VertexBuffer& rectBuffer
 	)

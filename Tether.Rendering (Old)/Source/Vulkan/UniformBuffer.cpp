@@ -3,7 +3,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	UniformBuffer::UniformBuffer(VulkanContext& context,
+	UniformBuffer::UniformBuffer(Context& context,
 		size_t bufferSize, DescriptorSet& set, uint32_t binding)
 		:
 		m_BufferSize(bufferSize),

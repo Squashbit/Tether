@@ -2,8 +2,6 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
-
 #include <string>
 #include <vector>
 
@@ -12,19 +10,27 @@ namespace Tether::Rendering
 	class TETHER_EXPORT ImageLoader
 	{
 	public:
+		struct ImageInfo
+		{
+			uint32_t width;
+			uint32_t height;
+			uint32_t channels;
+			uint32_t* pixelData;
+		};
+
 		ImageLoader(const std::string& path);
 		~ImageLoader();
 		TETHER_NO_COPY(ImageLoader);
 
 		bool Load();
 
-		Resources::BufferedImageInfo& GetImageInfo();
+		const ImageInfo& GetImageInfo() const;
 	private:
 		void FreeImage();
 
 		std::string m_Path = "";
 
 		bool loaded = false;
-		Resources::BufferedImageInfo imageInfo;
+		ImageInfo imageInfo;
 	};
 }

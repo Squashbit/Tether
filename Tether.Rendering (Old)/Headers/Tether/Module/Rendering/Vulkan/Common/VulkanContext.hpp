@@ -8,7 +8,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class VulkanContext
+	class Context
 	{
 	public:
 		PFN_vkGetInstanceProcAddr GetInstanceProcAddr;

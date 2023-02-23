@@ -7,7 +7,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT SingleUseCommandBuffer
 	{
 	public:
-		SingleUseCommandBuffer(VulkanContext& context);
+		SingleUseCommandBuffer(Context& context);
 		SingleUseCommandBuffer(SingleUseCommandBuffer&& other) noexcept;
 		~SingleUseCommandBuffer();
 		

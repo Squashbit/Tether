@@ -1,18 +1,19 @@
 #include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
+#include <Tether/Module/Rendering/Vulkan/Context.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanWindow::VulkanWindow(Window& window)
+	VulkanWindow::VulkanWindow(Context& context, Window& window)
 		:
-		VulkanContext(GlobalVulkan::Get()),
 		window(window),
-		m_Surface(*this, window)
+		m_Surface(context.instance, context.instanceLoader, window),
+		m_Device(context.device),
+		m_Dloader(context.deviceLoader)
 	{
-		indices = GlobalVulkan::Get().GetQueueFamilyIndices();
+		indices = context.indices;
 
-		ChooseSurfaceFormat();
+		ChooseSurfaceFormat(context.instanceLoader, context.physicalDevice);
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SurfaceFormat.format;
@@ -55,20 +56,21 @@ namespace Tether::Rendering::Vulkan
 		desc.dependencyCount = 1;
 		desc.pDependencies = &dependency;
 
-		if (deviceLoader.vkCreateRenderPass(device, &desc, nullptr,
+		if (m_Dloader.vkCreateRenderPass(m_Device, &desc, nullptr,
 			&renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Render pass creation failed");
 	}
 
 	VulkanWindow::~VulkanWindow()
 	{
-		deviceLoader.vkDestroyRenderPass(device, renderPass, nullptr);
+		m_Dloader.vkDestroyRenderPass(m_Device, renderPass, nullptr);
 	}
 
-	void VulkanWindow::ChooseSurfaceFormat()
+	void VulkanWindow::ChooseSurfaceFormat(InstanceLoader& iloader,
+		VkPhysicalDevice physicalDevice)
 	{
 		uint32_t formatCount;
-		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+		iloader.vkGetPhysicalDeviceSurfaceFormatsKHR(
 			physicalDevice, m_Surface.Get(),
 			&formatCount, nullptr
 		);
@@ -79,7 +81,7 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkSurfaceFormatKHR> formats;
 		formats.resize(formatCount);
 
-		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+		iloader.vkGetPhysicalDeviceSurfaceFormatsKHR(
 			physicalDevice,
 			m_Surface.Get(), &formatCount,
 			formats.data()

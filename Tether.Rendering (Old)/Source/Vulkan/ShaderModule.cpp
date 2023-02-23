@@ -4,7 +4,7 @@
 using namespace Tether::Rendering::Vulkan;
 
 ShaderModule::ShaderModule(
-	VulkanContext& context,
+	Context& context,
 	VkShaderStageFlagBits stage,
 	uint32_t* pCode, size_t codeSize
 )
