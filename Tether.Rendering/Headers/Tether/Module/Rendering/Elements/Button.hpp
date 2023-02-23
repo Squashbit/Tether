@@ -9,11 +9,17 @@
 
 namespace Tether::Rendering::Elements
 {
-	class TETHER_EXPORT Division : public Element
+	class TETHER_EXPORT Button : public Element
 	{
 	public:
-		Division(WindowUI& windowUI);
+		Button(WindowUI& windowUI);
 	private:
+		class ClickListener : public Input::InputListener
+		{
+		public:
+			void OnMouseClick();
+		};
+
 		void UpdateTransform();
 		void UpdateStyle();
 

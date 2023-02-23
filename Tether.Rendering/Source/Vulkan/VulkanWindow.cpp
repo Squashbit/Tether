@@ -10,6 +10,8 @@ namespace Tether::Rendering::Vulkan
 		window(window),
 		m_Surface(*this, window)
 	{
+		indices = GlobalVulkan::Get().GetQueueFamilyIndices();
+
 		ChooseSurfaceFormat();
 
 		VkAttachmentDescription colorAttachment{};

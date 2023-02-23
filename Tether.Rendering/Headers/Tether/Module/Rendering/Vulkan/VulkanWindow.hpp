@@ -2,6 +2,7 @@
 
 #include <Tether/Window.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 
 namespace Tether::Rendering::Vulkan
@@ -17,6 +18,7 @@ namespace Tether::Rendering::Vulkan
 		Window& window;
 		Surface m_Surface;
 		VkSurfaceFormatKHR m_SurfaceFormat;
+		QueueFamilyIndices indices;
 	private:
 		void ChooseSurfaceFormat();
 	};

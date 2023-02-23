@@ -1,7 +1,5 @@
 #include <Tether/Tether.hpp>
-#include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
 
@@ -48,11 +46,6 @@ public:
 		m_WindowUI(*window, m_Renderer, m_Compositor),
 		m_Button(m_WindowUI)
 	{
-		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
-
-		m_Button.SetBackgroundColor(Math::Vector4f(0.1f));
-		m_WindowUI.AddElement(m_Button);
-
 		window->SetVisible(true);
 	}
 

@@ -4,7 +4,7 @@
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <vk_mem_alloc.h>
 #include <optional>

@@ -3,7 +3,7 @@
 #include <Tether/Common/Defs.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <optional>
 #include <vector>

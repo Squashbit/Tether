@@ -32,6 +32,7 @@ namespace Tether::Rendering
 		 */
 		void SetBackgroundColor(Math::Vector4f backgroundColor);
 
+		Window& GetWindow();
 		Renderer& GetRenderer();
 	private:
 		void Repaint();

@@ -1,8 +1,8 @@
-#include <Tether/Module/Rendering/Elements/Division.hpp>
+#include <Tether/Module/Rendering/Elements/Button.hpp>
 
 namespace Tether::Rendering::Elements
 {
-	Division::Division(WindowUI& windowUI)
+	Button::Button(WindowUI& windowUI)
 		:
 		Element(windowUI),
 		m_BackgroundRect(m_Renderer.CreateObject<Objects::Rectangle>())
@@ -10,7 +10,7 @@ namespace Tether::Rendering::Elements
 		m_Objects.push_back(*m_BackgroundRect);
 	}
 
-	void Division::UpdateTransform()
+	void Button::UpdateTransform()
 	{
 		m_BackgroundRect->SetX(m_X);
 		m_BackgroundRect->SetY(m_Y);
@@ -18,7 +18,7 @@ namespace Tether::Rendering::Elements
 		m_BackgroundRect->SetHeight(m_Height);
 	}
 
-	void Division::UpdateStyle()
+	void Button::UpdateStyle()
 	{
 		m_BackgroundRect->SetColor(m_BackgroundColor);
 	}

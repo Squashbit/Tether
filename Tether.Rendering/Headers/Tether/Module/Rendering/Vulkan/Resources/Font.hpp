@@ -3,7 +3,7 @@
 #include <Tether/Math/Vector2.hpp>
 
 #include <Tether/Module/Rendering/Resources/Font.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 
 #include <unordered_map>

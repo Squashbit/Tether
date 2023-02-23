@@ -31,13 +31,19 @@ namespace Tether::Rendering
 
 	WindowUI::~WindowUI()
 	{
-		if (m_Repainter.has_value())
+		if (m_Compositor)
 			m_Window.RemoveEventHandler(*m_Repainter);
 	}
 
 	void WindowUI::AddElement(Elements::Element& element, bool repaint)
 	{
+		if (element.m_IsInWindowUI)
+			return;
+
 		m_Elements.push_back(&element);
+
+		element.OnAdd();
+		element.m_IsInWindowUI = true;
 
 		if (repaint)
 			Repaint();
@@ -45,10 +51,16 @@ namespace Tether::Rendering
 
 	bool WindowUI::RemoveElement(Elements::Element& element, bool repaint)
 	{
+		if (!element.m_IsInWindowUI)
+			return false;
+
 		for (uint64_t i = 0; i < m_Elements.size(); i++)
 			if (m_Elements[i] == &element)
 			{
 				m_Elements.erase(m_Elements.begin() + i);
+
+				element.OnRemove();
+				element.m_IsInWindowUI = false;
 
 				if (repaint)
 					Repaint();
@@ -61,6 +73,9 @@ namespace Tether::Rendering
 
 	void WindowUI::ClearElements()
 	{
+		for (uint64_t i = 0; i < m_Elements.size(); i++)
+			m_Elements[i]->m_IsInWindowUI = false;
+
 		m_Elements.clear();
 	}
 
@@ -69,11 +84,17 @@ namespace Tether::Rendering
 		if (!m_Compositor)
 			return;
 
-		m_Compositor->SetClearColor(Math::Vector3f(
-			backgroundColor.x * backgroundColor.w,
-			backgroundColor.y * backgroundColor.w,
-			backgroundColor.z * backgroundColor.w
-		));
+		m_Compositor->SetClearColor(backgroundColor);
+	}
+
+	Window& WindowUI::GetWindow()
+	{
+		return m_Window;
+	}
+
+	Renderer& WindowUI::GetRenderer()
+	{
+		return m_Renderer;
 	}
 
 	void WindowUI::Repaint()

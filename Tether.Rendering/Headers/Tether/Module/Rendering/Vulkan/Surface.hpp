@@ -3,7 +3,7 @@
 #include <Tether/Window.hpp>
 #include <Tether/Module/Rendering/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <vulkan/vulkan.h>
 

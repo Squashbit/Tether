@@ -25,12 +25,12 @@ namespace Tether::Rendering::Objects
 	}
 
 	float Rectangle::GetWidth() const
-{
+	{
 		return width;
 	}
 
 	float Rectangle::GetHeight() const
-{
+	{
 		return height;
 	}
 

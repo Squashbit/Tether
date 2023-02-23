@@ -27,9 +27,9 @@ namespace Tether::Rendering
 		virtual ~Renderer();
 		TETHER_NO_COPY(Renderer);
 
-		void AddObject(Objects::Object* pObject);
-		bool RemoveObject(Objects::Object* pObject);
-		bool HasObject(Objects::Object* pObject);
+		void AddObject(Objects::Object& object);
+		bool RemoveObject(Objects::Object& object);
+		bool HasObject(Objects::Object& object);
 		void ClearObjects();
 
 		void SetClearColor(const Math::Vector3f& clearColor);

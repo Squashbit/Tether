@@ -7,25 +7,25 @@ namespace Tether::Rendering
 		ClearObjects();
 	}
 
-	void Renderer::AddObject(Objects::Object* pObject)
+	void Renderer::AddObject(Objects::Object& object)
 	{
-		if (pObject->m_IsInRenderer || pObject->GetRenderer() != this)
+		if (object.m_IsInRenderer || object.GetRenderer() != this)
 			return;
 
-		objects.push_back(pObject);
+		objects.push_back(&object);
 
-		pObject->m_IsInRenderer = true;
+		object.m_IsInRenderer = true;
 	}
 
-	bool Renderer::RemoveObject(Objects::Object* pObject)
+	bool Renderer::RemoveObject(Objects::Object& object)
 	{
-		if (!pObject->m_IsInRenderer)
+		if (!object.m_IsInRenderer)
 			return false;
 
 		for (size_t i = 0; i < objects.size(); i++)
-			if (objects[i] == pObject)
+			if (objects[i] == &object)
 			{
-				pObject->m_IsInRenderer = false;
+				object.m_IsInRenderer = false;
 				objects.erase(objects.begin() + i);
 
 				return true;
@@ -34,13 +34,9 @@ namespace Tether::Rendering
 		return false;
 	}
 
-	bool Renderer::HasObject(Objects::Object* pObject)
+	bool Renderer::HasObject(Objects::Object& object)
 	{
-		for (size_t i = 0; i < objects.size(); i++)
-			if (objects[i] == pObject)
-				return true;
-
-		return false;
+		return object.m_IsInRenderer && object.GetRenderer() == this;
 	}
 
 	void Renderer::ClearObjects()

@@ -10,7 +10,7 @@ namespace Tether::Rendering::Objects
 
 	Object::~Object()
 	{
-		m_pRenderer->RemoveObject(this);
+		m_pRenderer->RemoveObject(*this);
 	}
 
 	void Object::SetX(float value)

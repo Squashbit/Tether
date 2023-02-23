@@ -9,7 +9,7 @@
 #include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <optional>
 

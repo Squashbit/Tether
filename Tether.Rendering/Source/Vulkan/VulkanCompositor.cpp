@@ -119,11 +119,9 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanCompositor::CheckPresentSupport()
 	{
-		const QueueFamilyIndices& indices = GlobalVulkan::Get().GetQueueFamilyIndices();
-
 		VkBool32 presentSupport = false;
 		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceSupportKHR(
-			m_Context.physicalDevice, indices.graphicsFamilyIndex, 
+			m_Context.physicalDevice, m_Context.indices.graphicsFamilyIndex, 
 			m_Context.m_Surface.Get(), &presentSupport
 		);
 
@@ -133,11 +131,9 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanCompositor::CreateSwapchain()
 	{	
-		const QueueFamilyIndices& indices = GlobalVulkan::Get().GetQueueFamilyIndices();
-		
 		m_Swapchain.emplace(
 			m_Context,
-			indices.graphicsFamilyIndex,
+			m_Context.indices.graphicsFamilyIndex,
 			m_SwapchainDetails,
 			m_Context.m_SurfaceFormat,
 			m_Context.m_Surface.Get(),
@@ -281,7 +277,7 @@ namespace Tether::Rendering::Vulkan
 		{
 			VkClearValue clearColor{};
 			clearColor.color = { m_ClearColor.x, m_ClearColor.y, m_ClearColor.z, 
-				1.0f };
+				m_ClearColor.w };
 
 			VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
 
