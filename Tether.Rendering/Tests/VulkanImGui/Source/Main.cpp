@@ -3,6 +3,10 @@
 #include <Tether/Module/Rendering/Vulkan/Context.hpp>
 #include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
 
+#include <ImGui/imgui.h>
+#include <ImGui/backends/imgui_impl_win32.h>
+#include <ImGui/backends/imgui_impl_vulkan.h>
+
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -49,6 +53,23 @@ public:
 		m_VulkanWindow(m_Context, *m_Window),
 		m_Renderer(m_Context, m_VulkanWindow)
 	{
+		ImGui_ImplGlfw_InitForVulkan(window, true);
+
+		ImGui_ImplVulkan_InitInfo init_info = {};
+		init_info.Instance = m_Context.instance;
+		init_info.PhysicalDevice = m_Context.physicalDevice;
+		init_info.Device = m_Context.device;
+		init_info.QueueFamily = m_Context.indices.graphicsFamilyIndex;
+		init_info.Queue = m_Context.queue;
+		init_info.DescriptorPool = m_Context.p;
+		init_info.Subpass = 0;
+		init_info.MinImageCount = g_MinImageCount;
+		init_info.ImageCount = wd->ImageCount;
+		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+		init_info.Allocator = g_Allocator;
+		init_info.CheckVkResultFn = check_vk_result;
+		ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
+
 		m_Window->SetVisible(true);
 	}
 
@@ -68,6 +89,8 @@ private:
 
 	Vulkan::VulkanWindow m_VulkanWindow;
 	Vulkan::Renderer m_Renderer;
+
+	VkPipelineCache pipelineCache;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)

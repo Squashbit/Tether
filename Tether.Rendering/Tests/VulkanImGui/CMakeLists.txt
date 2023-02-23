@@ -1,17 +1,14 @@
 cmake_minimum_required (VERSION 3.8)
 project ("VulkanImGui")
 
-file(GLOB_RECURSE SOURCES 
-	"Source/*.cpp" "Source/*.c"
-	"Headers/*.hpp" "Headers/*.h"
-)
+set(IMGUI_DIR ${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/ImGui)
+set (SOURCES Source/Main.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp)
 
 if (WIN32 AND ("${CMAKE_BUILD_TYPE}" MATCHES "Release"))
     add_executable(
         ${PROJECT_NAME} 
         WIN32 
         ${SOURCES} 
-
     )
 else()
     add_executable(
@@ -28,6 +25,7 @@ PUBLIC
 	${TETHER_PROJECT_DIR}/Tether/Headers
 	${TETHER_PROJECT_DIR}/Tether.Rendering/Headers
 PRIVATE
+	${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/
 	${Vulkan_INCLUDE_DIR}
 )
 
