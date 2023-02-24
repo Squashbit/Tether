@@ -14,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 		VulkanWindow(Context& context, Window& window);
 		~VulkanWindow();
 		TETHER_NO_COPY(VulkanWindow);
-	protected:
+		
 		VkRenderPass renderPass = nullptr;
 		Window& window;
 		Surface m_Surface;

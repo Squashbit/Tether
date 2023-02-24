@@ -10,6 +10,3 @@
 [submodule "Tether.Rendering/Vendor/freetype"]
 	path = Tether.Rendering/Vendor/freetype
 	url = https://github.com/freetype/freetype
-[submodule "Tether.Rendering/Vendor/ImGui"]
-	path = Tether.Rendering/Vendor/ImGui
-	url = https://github.com/ocornut/imgui

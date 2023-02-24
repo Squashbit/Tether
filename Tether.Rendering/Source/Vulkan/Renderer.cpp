@@ -111,6 +111,11 @@ namespace Tether::Rendering::Vulkan
 		return true;
 	}
 
+	uint32_t Renderer::GetSwapchainImageCount()
+	{
+		return m_Swapchain->GetImageCount();
+	}
+
 	void Renderer::CheckPresentSupport()
 	{
 		VkBool32 presentSupport = false;

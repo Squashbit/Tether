@@ -3,9 +3,9 @@
 #include <Tether/Module/Rendering/Vulkan/Context.hpp>
 #include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
 
-#include <ImGui/imgui.h>
-#include <ImGui/backends/imgui_impl_win32.h>
-#include <ImGui/backends/imgui_impl_vulkan.h>
+#include <imgui.h>
+#include <backends/imgui_impl_win32.h>
+#include <backends/imgui_impl_vulkan.h>
 
 #include <iostream>
 #include <vector>
@@ -53,7 +53,9 @@ public:
 		m_VulkanWindow(m_Context, *m_Window),
 		m_Renderer(m_Context, m_VulkanWindow)
 	{
-		ImGui_ImplGlfw_InitForVulkan(window, true);
+		ImGui_ImplWin32_Init();
+
+		uint32_t imageCount = m_Renderer.GetSwapchainImageCount();
 
 		ImGui_ImplVulkan_InitInfo init_info = {};
 		init_info.Instance = m_Context.instance;
@@ -63,12 +65,10 @@ public:
 		init_info.Queue = m_Context.queue;
 		init_info.DescriptorPool = m_Context.p;
 		init_info.Subpass = 0;
-		init_info.MinImageCount = g_MinImageCount;
-		init_info.ImageCount = wd->ImageCount;
+		init_info.MinImageCount = imageCount;
+		init_info.ImageCount = imageCount;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.Allocator = g_Allocator;
-		init_info.CheckVkResultFn = check_vk_result;
-		ImGui_ImplVulkan_Init(&init_info, wd->RenderPass);
+		ImGui_ImplVulkan_Init(&init_info, m_VulkanWindow.renderPass);
 
 		m_Window->SetVisible(true);
 	}

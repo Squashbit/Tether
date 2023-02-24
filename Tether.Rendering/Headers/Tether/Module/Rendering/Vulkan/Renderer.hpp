@@ -19,6 +19,8 @@ namespace Tether::Rendering::Vulkan
 		TETHER_NO_COPY(Renderer);
 
 		bool RenderFrame();
+
+		uint32_t GetSwapchainImageCount();
 	private:
 		void CheckPresentSupport();
 

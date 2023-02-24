@@ -24,8 +24,8 @@ PUBLIC
 	"Headers"
 	${TETHER_PROJECT_DIR}/Tether/Headers
 	${TETHER_PROJECT_DIR}/Tether.Rendering/Headers
+	${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/ImGui
 PRIVATE
-	${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/
 	${Vulkan_INCLUDE_DIR}
 )
 
