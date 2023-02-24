@@ -24,6 +24,16 @@ namespace Tether::Rendering::Vulkan
 		m_Context(context),
 		m_Dloader(m_Context.deviceLoader)
 	{
+		TETHER_ASSERT(
+			m_Context.instance != nullptr &&
+			m_Context.device != nullptr &&
+			m_Context.queue != nullptr &&
+			m_Context.physicalDevice != nullptr &&
+			m_Context.renderPass != nullptr &&
+			m_Context.commandPool != nullptr &&
+			m_Context.framesInFlight != 0
+		);
+
 		CreateAllocator();
 		CreateSolidPipeline();
 		CreateTexturedPipeline();
@@ -34,6 +44,8 @@ namespace Tether::Rendering::Vulkan
 
 	VulkanRenderer::~VulkanRenderer()
 	{
+		m_Dloader.vkDeviceWaitIdle(m_Context.device);
+
 		m_Dloader.vkDestroySampler(m_Context.device, sampler, nullptr);
 
 		m_Dloader.vkDestroyDescriptorSetLayout(m_Context.device, texturedPipelineSetLayout,

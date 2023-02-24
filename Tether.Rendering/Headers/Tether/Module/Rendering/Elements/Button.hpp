@@ -19,8 +19,14 @@ namespace Tether::Rendering::Elements
 		class ClickListener : public Input::InputListener
 		{
 		public:
-			void OnMouseClick();
+			ClickListener(Button& button);
+
+			void OnMouseClick(Input::MouseClickInfo& info) override;
+		private:
+			Button& m_Button;
 		};
+
+		void Click();
 
 		void UpdateTransform();
 		void UpdateStyle();

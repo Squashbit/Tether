@@ -1,7 +1,28 @@
 #include <Tether/Module/Rendering/Elements/Button.hpp>
+#include <iostream>
 
 namespace Tether::Rendering::Elements
 {
+	Button::ClickListener::ClickListener(Button& button)
+		:
+		m_Button(button)
+	{}
+
+	void Button::ClickListener::OnMouseClick(Input::MouseClickInfo& info)
+	{
+		bool withinX = info.GetRelativeX() >= m_Button.m_X - m_Button.m_BorderSize;
+		bool withinY = info.GetRelativeY() >= m_Button.m_Y - m_Button.m_BorderSize;
+		bool withinWidth = info.GetRelativeY() < m_Button.m_X + m_Button.m_Width 
+			+ m_Button.m_BorderSize;
+		bool withinHeight = info.GetRelativeY() < m_Button.m_Y + m_Button.m_Height 
+			+ m_Button.m_BorderSize;;
+		
+		if (!withinX || !withinY || !withinWidth || !withinHeight)
+			return;
+
+		m_Button.Click();
+	}
+
 	Button::Button(WindowUI& windowUI)
 		:
 		Element(windowUI),
@@ -15,6 +36,11 @@ namespace Tether::Rendering::Elements
 	void Button::SetBorderSize(float borderSize)
 	{
 		m_BorderSize = borderSize;
+	}
+
+	void Button::Click()
+	{
+		std::cout << "Button clicked\n";
 	}
 
 	void Button::UpdateTransform()

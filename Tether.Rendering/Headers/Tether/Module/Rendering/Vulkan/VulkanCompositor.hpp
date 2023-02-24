@@ -15,7 +15,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VulkanCompositor : public Compositor
 	{
 	public:
-		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& context);
+		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window);
 		~VulkanCompositor();
 		TETHER_NO_COPY(VulkanCompositor);
 
@@ -37,7 +37,10 @@ namespace Tether::Rendering::Vulkan
 		void DestroySwapchain();
 
 		VulkanRenderer& m_Renderer;
-		VulkanWindow& m_Context;
+		VulkanWindow& m_VulkanWindow;
+		Window& m_Window;
+		VulkanContext& m_Context;
+
 		DeviceLoader& m_Dloader;
 
 		SwapchainDetails m_SwapchainDetails;

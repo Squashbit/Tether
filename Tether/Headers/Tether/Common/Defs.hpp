@@ -2,6 +2,8 @@
 
 #include <Tether/Platform/PlatformDefs.hpp>
 
+#include <cassert>
+
 #define TETHER_NO_COPY(typename) \
     typename(const typename&) = delete; \
 	typename(typename&&) = delete; \
@@ -17,7 +19,7 @@
 #endif
 
 #ifdef _DEBUG
-#define TETHER_ASSERT(check) if (!(check)) { TETHER_DEBUG_BREAK(); }
+#define TETHER_ASSERT(check) assert(check)
 #else
 #define TETHER_ASSERT(check)
 #endif

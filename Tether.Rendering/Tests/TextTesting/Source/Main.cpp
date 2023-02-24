@@ -1,11 +1,10 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
-
-#include <Tether/Module/Rendering/Elements/Button.hpp>
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 
 #include <iostream>
 #include <vector>
@@ -13,8 +12,9 @@
 
 using namespace Tether;
 using namespace Rendering;
+using namespace Vulkan;
 
-class DebugLogger : public Vulkan::DebugCallback
+class DebugLogger : public Rendering::Vulkan::DebugCallback
 {
 public:
 	void OnDebugLog(
@@ -41,38 +41,65 @@ class RendererTestApp
 public:
 	RendererTestApp()
 		:
-		window(Window::Create(1280, 720, L"Text testing")),
-		m_VulkanWindow(*window),
-		m_Renderer(m_VulkanWindow),
-		m_Compositor(m_Renderer, m_VulkanWindow),
-		m_WindowUI(*window, m_Renderer, m_Compositor),
-		m_Button(m_WindowUI)
+		m_Window(Window::Create(1280, 720, L"Text testing")),
+		m_VulkanWindow(*m_Window),
+		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
+		m_Compositor(m_Renderer, m_VulkanWindow)
 	{
-		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
+		font = m_Renderer.CreateResource<Resources::Font>("font.ttf");
+		font->SetSize(64);
 
-		m_Button.SetWidth(100.0f);
-		m_Button.SetHeight(100.0f);
-		m_Button.SetBackgroundColor(Math::Vector4f(0.4f));
-		m_Button.SetColor(Math::Vector4f(1.0f));
-		m_WindowUI.AddElement(m_Button);
+		text = m_Renderer.CreateObject<Objects::Text>();
+		text->SetX(100.0f);
+		text->SetY(100.0f);
+		text->SetFont(font.get());
+		text->SetText("FPS = 0");
 
-		window->SetVisible(true);
+		m_Renderer.AddObject(*text);
+
+		m_Window->SetVisible(true);
 	}
 
 	void Run()
 	{
-		window->Run();
+		while (!m_Window->IsCloseRequested())
+		{
+			float delta = deltaTimer.GetElapsedSeconds();
+			deltaTimer.Set();
+
+			time += delta;
+			frames++;
+
+			if (printFpsTimer.GetElapsedSeconds() >= 1.0f)
+			{
+				printFpsTimer.Set();
+
+				int fps = (int)round(1.0f / (time / frames));
+				text->SetText("FPS = " + std::to_string(fps));
+
+				time = 0;
+				frames = 0;
+			}
+
+			m_Window->PollEvents();
+			m_Compositor.RenderFrame();
+		}
 	}
 private:
-	Scope<Window> window;
+	size_t frames = 0;
+	float time = 0.0f;
+
+	Scope<Window> m_Window;
 
 	Vulkan::VulkanWindow m_VulkanWindow;
 	Vulkan::VulkanRenderer m_Renderer;
 	Vulkan::VulkanCompositor m_Compositor;
 
-	WindowUI m_WindowUI;
+	Scope<Resources::Font> font;
+	Scope<Objects::Text> text;
 
-	Elements::Button m_Button;
+	Stopwatch printFpsTimer;
+	Stopwatch deltaTimer;
 };
 
 #if defined(_WIN32) && !defined(_DEBUG)
@@ -84,7 +111,7 @@ int main()
 #endif
 {
 	DebugLogger vulkanLogger;
-	Vulkan::GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
+	GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
 
 	RendererTestApp testApp;
 	testApp.Run();

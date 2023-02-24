@@ -4,11 +4,11 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanWindow::VulkanWindow(Window& window)
+	VulkanWindow::VulkanWindow(Window& window, VulkanContext& context)
 		:
-		VulkanContext(GlobalVulkan::Get()),
+		m_Context(context),
 		window(window),
-		m_Surface(*this, window)
+		m_Surface(m_Context, window)
 	{
 		indices = GlobalVulkan::Get().GetQueueFamilyIndices();
 
@@ -55,21 +55,30 @@ namespace Tether::Rendering::Vulkan
 		desc.dependencyCount = 1;
 		desc.pDependencies = &dependency;
 
-		if (deviceLoader.vkCreateRenderPass(device, &desc, nullptr,
-			&renderPass) != VK_SUCCESS)
+		if (m_Context.deviceLoader.vkCreateRenderPass(m_Context.device, &desc, 
+			nullptr, &renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Render pass creation failed");
 	}
 
 	VulkanWindow::~VulkanWindow()
 	{
-		deviceLoader.vkDestroyRenderPass(device, renderPass, nullptr);
+		m_Context.deviceLoader.vkDestroyRenderPass(m_Context.device, renderPass, 
+			nullptr);
+	}
+
+	VulkanContext VulkanWindow::MakeVulkanContext()
+	{
+		VulkanContext context = m_Context;
+		context.renderPass = renderPass;
+
+		return context;
 	}
 
 	void VulkanWindow::ChooseSurfaceFormat()
 	{
 		uint32_t formatCount;
-		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
-			physicalDevice, m_Surface.Get(),
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_Context.physicalDevice, m_Surface.Get(),
 			&formatCount, nullptr
 		);
 
@@ -79,8 +88,8 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkSurfaceFormatKHR> formats;
 		formats.resize(formatCount);
 
-		instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
-			physicalDevice,
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_Context.physicalDevice,
 			m_Surface.Get(), &formatCount,
 			formats.data()
 		);

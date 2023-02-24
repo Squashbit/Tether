@@ -56,6 +56,8 @@ namespace Tether::Rendering::Vulkan
 
 	BufferedImage::~BufferedImage()
 	{
+		m_Dloader.vkDeviceWaitIdle(m_Device);
+
 		m_Dloader.vkDestroyImageView(m_Device, m_ImageView, nullptr);
 		vmaDestroyImage(m_Context.allocator, m_Image, m_ImageAllocation);
 	}

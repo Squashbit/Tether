@@ -3,19 +3,16 @@
 #include <Tether/Math/Constants.hpp>
 
 #include <Tether/Module/Rendering/ImageLoader.hpp>
-#include <Tether/Module/Rendering/RendererException.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
-
 #include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
 
 #include <iostream>
 #include <vector>
 #include <chrono>
 #include <stdexcept>
-
-#define TETHER_INCLUDE_VULKAN
-#include <Tether/Module/Rendering/Vulkan/NativeVulkan.hpp>
 
 using namespace Tether;
 using namespace Rendering;
@@ -48,43 +45,34 @@ class RendererTestApp
 public:
 	RendererTestApp()
 		:
-		window(1280, 720, "Renderer testing"),
-		renderer(&window)
+		m_Window(Window::Create(1280, 720, L"Renderer testing")),
+		m_VulkanWindow(*m_Window),
+		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
+		m_Compositor(m_Renderer, m_VulkanWindow)
 	{
 		ImageLoader imageLoader("Test.png");
 		if (!imageLoader.Load())
 			throw std::runtime_error("Failed to load image");
 
-		testImage = renderer.CreateResource<Resources::BufferedImage>(
+		testImage = m_Renderer.CreateResource<Resources::BufferedImage>(
 			imageLoader.GetImageInfo());
 		
-		const float imageSize = 1.0f / numObjects;
-
 		objects.resize(numObjects);
 		for (size_t i = 0; i < numObjects; i++)
 		{
-			objects[i] = renderer.CreateObject<Objects::Image>();
+			objects[i] = m_Renderer.CreateObject<Objects::Image>();
 			Objects::Image* image = objects[i].get();
-
-			image->SetX(i / (float)numObjects);
-			image->SetWidth(imageSize);
-			image->SetHeight(imageSize);
-			image->SetImage(testImage.get());
+			image->SetImage(*testImage);
 			
-			renderer.AddObject(image);
+			m_Renderer.AddObject(*image);
 		}
 
-		window.SetVisible(true);
-	}
-
-	~RendererTestApp()
-	{
-		window.SetVisible(false);
+		m_Window->SetVisible(true);
 	}
 
 	void Run()
 	{
-		while (!window.IsCloseRequested())
+		while (!m_Window->IsCloseRequested())
 		{
 			float delta = deltaTimer.GetElapsedSeconds();
 			deltaTimer.Set();
@@ -102,6 +90,11 @@ public:
 				fpsTimer.Set();
 			}
 
+			int windowWidth = m_Window->GetWidth();
+			int windowHeight = m_Window->GetHeight();
+			const float imageWidth = (1.0f / numObjects) * windowWidth;
+			const float imageHeight = (1.0f / numObjects) * windowHeight;
+			
 			for (size_t i = 0; i < numObjects; i++)
 			{
 				Objects::Image* image = objects[i].get();
@@ -112,11 +105,14 @@ public:
 				float ypos = abs(sin(yTime * Math::PI));
 				ypos *= 1 - lineSpacing;
 
-				image->SetY(1 - ypos - lineSpacing);
+				image->SetX((i / (float)numObjects) * windowWidth);
+				image->SetY((1 - ypos - lineSpacing) * windowHeight);
+				image->SetWidth(imageWidth);
+				image->SetHeight(imageHeight);
 			}
 
-			window.PollEvents();
-			renderer.RenderFrame();
+			m_Window->PollEvents();
+			m_Compositor.RenderFrame();
 		}
 	}
 private:
@@ -126,8 +122,11 @@ private:
 	size_t frames = 0;
 	float time = 0.0f;
 
-	Window window;
-	Vulkan::VulkanRenderer renderer;
+	Scope<Window> m_Window;
+
+	Vulkan::VulkanWindow m_VulkanWindow;
+	Vulkan::VulkanRenderer m_Renderer;
+	Vulkan::VulkanCompositor m_Compositor;
 
 	Scope<Resources::BufferedImage> testImage;
 	
@@ -147,17 +146,10 @@ int main()
 #endif
 {
 	DebugLogger vulkanLogger;
-	GlobalVulkan::Get().AddDebugMessenger(&vulkanLogger);
+	Vulkan::GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
 
-	try
-	{
-		RendererTestApp testApp;
-		testApp.Run();
-	}
-	catch (std::exception& e)
-	{
-		std::cout << e.what() << std::endl;
-	}
+	RendererTestApp testApp;
+	testApp.Run();
 
 	return 0;
 }

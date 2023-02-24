@@ -32,10 +32,6 @@ namespace Tether::Rendering
 		bool HasObject(Objects::Object& object);
 		void ClearObjects();
 
-		void SetClearColor(const Math::Vector3f& clearColor);
-
-		virtual bool RenderFrame() { return true; }
-
 		template<typename T, typename... Args>
 			requires std::is_base_of_v<Objects::Object, T>
 		Scope<T> CreateObject(Args... args)
@@ -87,7 +83,5 @@ namespace Tether::Rendering
 			const std::string& fontPath) = 0;
 
 		std::vector<Objects::Object*> objects;
-
-		Math::Vector3f m_ClearColor;
 	};
 }

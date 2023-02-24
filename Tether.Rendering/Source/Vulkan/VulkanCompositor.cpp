@@ -14,10 +14,12 @@ namespace Tether::Rendering::Vulkan
 		m_Renderer.RecreateSwapchain();
 	}
 
-	VulkanCompositor::VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& context)
+	VulkanCompositor::VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window)
 		:
 		m_Renderer(renderer),
-		m_Context(context),
+		m_VulkanWindow(window),
+		m_Window(m_VulkanWindow.window),
+		m_Context(m_VulkanWindow.m_Context),
 		m_Dloader(m_Context.deviceLoader),
 		m_ResizeHandler(*this)
 	{
@@ -34,7 +36,7 @@ namespace Tether::Rendering::Vulkan
 		CreateSyncObjects();
 		CreateCommandBuffers();
 
-		m_Context.window.AddEventHandler(m_ResizeHandler, 
+		m_Window.AddEventHandler(m_ResizeHandler, 
 			Events::EventType::WINDOW_RESIZE);
 	}
 
@@ -51,7 +53,7 @@ namespace Tether::Rendering::Vulkan
 			m_Dloader.vkDestroyFence(m_Context.device, m_InFlightFences[i], nullptr);
 		}
 
-		m_Context.window.RemoveEventHandler(m_ResizeHandler);
+		m_Window.RemoveEventHandler(m_ResizeHandler);
 	}
 
 	bool VulkanCompositor::RenderFrame()
@@ -121,8 +123,8 @@ namespace Tether::Rendering::Vulkan
 	{
 		VkBool32 presentSupport = false;
 		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceSupportKHR(
-			m_Context.physicalDevice, m_Context.indices.graphicsFamilyIndex, 
-			m_Context.m_Surface.Get(), &presentSupport
+			m_Context.physicalDevice, m_VulkanWindow.indices.graphicsFamilyIndex, 
+			m_VulkanWindow.m_Surface.Get(), &presentSupport
 		);
 
 		if (!presentSupport)
@@ -133,12 +135,12 @@ namespace Tether::Rendering::Vulkan
 	{	
 		m_Swapchain.emplace(
 			m_Context,
-			m_Context.indices.graphicsFamilyIndex,
+			m_VulkanWindow.indices.graphicsFamilyIndex,
 			m_SwapchainDetails,
-			m_Context.m_SurfaceFormat,
-			m_Context.m_Surface.Get(),
-			m_Context.window.GetWidth(),
-			m_Context.window.GetHeight(),
+			m_VulkanWindow.m_SurfaceFormat,
+			m_VulkanWindow.m_Surface.Get(),
+			m_Window.GetWidth(),
+			m_Window.GetHeight(),
 			true
 		);
 
@@ -163,7 +165,7 @@ namespace Tether::Rendering::Vulkan
 
 			VkFramebufferCreateInfo createInfo{};
 			createInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			createInfo.renderPass = m_Context.renderPass;
+			createInfo.renderPass = m_VulkanWindow.renderPass;
 			createInfo.attachmentCount = 1;
 			createInfo.pAttachments = attachments;
 			createInfo.width = swapchainExtent.width;
@@ -222,7 +224,7 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanCompositor::QuerySwapchainSupport()
 	{
-		VkSurfaceKHR vkSurface = m_Context.m_Surface.Get();
+		VkSurfaceKHR vkSurface = m_VulkanWindow.m_Surface.Get();
 
 		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
 			m_Context.physicalDevice,
@@ -283,7 +285,7 @@ namespace Tether::Rendering::Vulkan
 
 			VkRenderPassBeginInfo renderPassInfo{};
 			renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-			renderPassInfo.renderPass = m_Context.renderPass;
+			renderPassInfo.renderPass = m_VulkanWindow.renderPass;
 			renderPassInfo.framebuffer = m_SwapchainFramebuffers[imageIndex];
 			renderPassInfo.renderArea.offset = { 0, 0 };
 			renderPassInfo.renderArea.extent = swapchainExtent;
@@ -319,7 +321,7 @@ namespace Tether::Rendering::Vulkan
 
 	bool VulkanCompositor::RecreateSwapchain()
 	{
-		if (m_Context.window.GetWidth() == 0 || m_Context.window.GetHeight() == 0)
+		if (m_Window.GetWidth() == 0 || m_Window.GetHeight() == 0)
 			return true;
 
 		DestroySwapchain();
@@ -327,7 +329,7 @@ namespace Tether::Rendering::Vulkan
 		// The min and max window size fields in capabilities change on resize
 		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
 			m_Context.physicalDevice,
-			m_Context.m_Surface.Get(), &m_SwapchainDetails.capabilities
+			m_VulkanWindow.m_Surface.Get(), &m_SwapchainDetails.capabilities
 		);
 
 		CreateSwapchain();

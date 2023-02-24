@@ -47,11 +47,6 @@ namespace Tether::Rendering
 		objects.clear();
 	}
 
-	void Renderer::SetClearColor(const Math::Vector3f& clearColor)
-	{
-		m_ClearColor = clearColor;
-	}
-
 	const std::vector<Objects::Object*>& Renderer::GetObjects() const
 	{
 		return objects;
