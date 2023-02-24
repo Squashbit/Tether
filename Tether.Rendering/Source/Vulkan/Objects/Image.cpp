@@ -6,7 +6,8 @@ namespace Tether::Rendering::Vulkan
 	Image::Image(
 		VulkanContext& context,
 		Pipeline& pipeline,
-		VertexBuffer& rectBuffer
+		VertexBuffer& rectBuffer,
+		VkExtent2D& swapchainExtent
 	)
 		:
 		Objects::Image(this),
@@ -14,7 +15,8 @@ namespace Tether::Rendering::Vulkan
 		m_Dloader(context.deviceLoader),
 		m_Allocator(context.allocator),
 		m_Pipeline(pipeline),
-		m_RectBuffer(rectBuffer)
+		m_RectBuffer(rectBuffer),
+		m_SwapchainExtent(swapchainExtent)
 	{}
 
 	void Image::SetImage(Resources::BufferedImage& image)
@@ -37,10 +39,10 @@ namespace Tether::Rendering::Vulkan
 		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
 
 		PushConstants pushConstants;
-		pushConstants.position.x = x;
-		pushConstants.position.y = y;
-		pushConstants.scale.x = width;
-		pushConstants.scale.y = height;
+		pushConstants.position.x = x / m_SwapchainExtent.width;
+		pushConstants.position.y = y / m_SwapchainExtent.height;
+		pushConstants.scale.x = width / m_SwapchainExtent.width;
+		pushConstants.scale.y = height / m_SwapchainExtent.height;
 		
 		m_Dloader.vkCmdPushConstants(
 			vkCommandBuffer, m_Pipeline.GetLayout(),

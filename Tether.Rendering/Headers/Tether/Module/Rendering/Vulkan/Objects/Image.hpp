@@ -23,7 +23,8 @@ namespace Tether::Rendering::Vulkan
 		Image(
 			VulkanContext& context,
 			Pipeline& pPipeline,
-			VertexBuffer& pRectBuffer
+			VertexBuffer& pRectBuffer,
+			VkExtent2D& swapchainExtent
 		);
 		TETHER_NO_COPY(Image);
 
@@ -38,6 +39,8 @@ namespace Tether::Rendering::Vulkan
 		
 		Pipeline& m_Pipeline;
 		VertexBuffer& m_RectBuffer;
+
+		VkExtent2D& m_SwapchainExtent;
 
 		BufferedImage* m_pImage = nullptr;
 	};

@@ -46,14 +46,12 @@ namespace Tether::Rendering::Vulkan
 	{
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		float startX = pushConstants.windowSize.x * x;
-		float startY = pushConstants.windowSize.y * y;
 		float bearingX = character.bearing.x * m_Scale;
 		float bearingY = (float)character.size.y - character.bearing.y;
 		float baseDistance = bearingY - character.size.y;
 
-		pushConstants.position.x = startX + offset + bearingX;
-		pushConstants.position.y = startY + baseDistance * m_Scale;
+		pushConstants.position.x = x + offset + bearingX;
+		pushConstants.position.y = y + baseDistance * m_Scale;
 		pushConstants.scale.x = (float)character.size.x * m_Scale;
 		pushConstants.scale.y = (float)character.size.y * m_Scale;
 

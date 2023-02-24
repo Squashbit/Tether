@@ -13,6 +13,8 @@ namespace Tether::Rendering::Elements
 	{
 	public:
 		Button(WindowUI& windowUI);
+
+		void SetBorderSize(float borderSize);
 	private:
 		class ClickListener : public Input::InputListener
 		{
@@ -23,6 +25,9 @@ namespace Tether::Rendering::Elements
 		void UpdateTransform();
 		void UpdateStyle();
 
+		float m_BorderSize = 1.0f;
+
 		Scope<Objects::Rectangle> m_BackgroundRect;
+		Scope<Objects::Rectangle> m_BorderRect;
 	};
 }

@@ -69,14 +69,14 @@ namespace Tether::Rendering::Vulkan
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Rectangle>& object)
 	{
 		object = std::make_unique<Rectangle>(
-			m_Context, solidPipeline.value(), square.value()
+			m_Context, solidPipeline.value(), square.value(), m_SwapchainExtent
 		);
 	}
 
 	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
 	{
 		object = std::make_unique<Image>(
-			m_Context, texturedPipeline.value(), square.value()
+			m_Context, texturedPipeline.value(), square.value(), m_SwapchainExtent
 		);
 	}
 

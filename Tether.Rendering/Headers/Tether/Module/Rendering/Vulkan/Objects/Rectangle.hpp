@@ -22,7 +22,8 @@ namespace Tether::Rendering::Vulkan
 		Rectangle(
 			VulkanContext& context,
 			Pipeline& pipeline,
-			VertexBuffer& rectBuffer
+			VertexBuffer& rectBuffer,
+			VkExtent2D& swapchainExtent
 		);
 		TETHER_NO_COPY(Rectangle);
 
@@ -34,5 +35,7 @@ namespace Tether::Rendering::Vulkan
 		DeviceLoader& m_Dloader;
 		Pipeline& m_Pipeline;
 		VertexBuffer& m_RectBuffer;
+
+		VkExtent2D& m_SwapchainExtent;
 	};
 }

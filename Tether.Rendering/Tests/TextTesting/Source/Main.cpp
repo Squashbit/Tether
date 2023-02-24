@@ -50,7 +50,10 @@ public:
 	{
 		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
 
-		m_Button.SetBackgroundColor(Math::Vector4f(0.1f));
+		m_Button.SetWidth(100.0f);
+		m_Button.SetHeight(100.0f);
+		m_Button.SetBackgroundColor(Math::Vector4f(0.4f));
+		m_Button.SetColor(Math::Vector4f(1.0f));
 		m_WindowUI.AddElement(m_Button);
 
 		window->SetVisible(true);
