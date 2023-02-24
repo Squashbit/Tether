@@ -3,6 +3,8 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Math/Types.hpp>
 
+#include <Tether/Window.hpp>
+
 #include <Tether/Module/Rendering/Renderer.hpp>
 
 namespace Tether::Rendering
@@ -47,6 +49,7 @@ namespace Tether::Rendering::Elements
 		Math::Vector4f m_BackgroundColor;
 
 		WindowUI& m_WindowUI;
+		Window& m_Window;
 		Renderer& m_Renderer;
 
 		std::vector<std::reference_wrapper<Objects::Object>> m_Objects;

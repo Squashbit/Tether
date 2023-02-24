@@ -58,6 +58,18 @@ namespace Tether::Platform
 	protected:
 		LRESULT HandleMessage(HWND hwnd, DWORD msg, WPARAM wparam, LPARAM lparam);
 	private:
+		void SpawnMouseClick(
+			LPARAM lParam,
+			Input::MouseClickInfo::ClickType type,
+			bool pressed
+		);
+
+		bool SpawnXbuttonClick(
+			LPARAM lParam,
+			WPARAM wParam,
+			bool pressed
+		);
+
 		void GenerateClassName();
 
 		RECT GetAdjustedRect(int x, int y, int width, int height);

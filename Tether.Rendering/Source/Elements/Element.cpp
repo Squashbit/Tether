@@ -6,6 +6,7 @@ namespace Tether::Rendering::Elements
 	Element::Element(WindowUI& windowUI)
 		:
 		m_WindowUI(windowUI),
+		m_Window(m_WindowUI.GetWindow()),
 		m_Renderer(m_WindowUI.GetRenderer())
 	{}
 

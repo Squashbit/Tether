@@ -10,6 +10,8 @@
 #include <cmath>
 #include <cstring>
 
+#include <WindowsX.h>
+
 #undef ERROR
 
 namespace Tether::Platform
@@ -583,11 +585,14 @@ namespace Tether::Platform
 		LPARAM lParam)
 	{
 		using namespace Events;
+		using namespace Input;
 
 		// The hwnd variable should never be used in this function because
 		// the CreateWindow function sends events before it has finished execution;
 		// therefore, it is possible for the hwnd variable to be null. 
 		// Use hWnd instead. Why does WinAPI do this? I have no idea.
+
+		using ClickType = MouseClickInfo::ClickType;
 
 		uint32_t wParam32 = (uint32_t)wParam;
 
@@ -667,9 +672,9 @@ namespace Tether::Platform
 					);
 
 				SpawnInput(Input::InputType::KEY_CHAR,
-					[&](Input::InputListener* pInputListener)
+					[&](Input::InputListener& inputListener)
 				{
-					pInputListener->OnKeyChar(event);
+					inputListener.OnKeyChar(event);
 				});
 			}
 			break;
@@ -708,9 +713,9 @@ namespace Tether::Platform
 					);
 
 				SpawnInput(Input::InputType::MOUSE_MOVE,
-					[&](Input::InputListener* pInputListener)
+					[&](Input::InputListener& inputListener)
 				{
-					pInputListener->OnMouseMove(event);
+					inputListener.OnMouseMove(event);
 				});
 
 				m_MouseX = mouse.x;
@@ -757,9 +762,9 @@ namespace Tether::Platform
 							);
 
 						SpawnInput(Input::InputType::RAW_MOUSE_MOVE,
-							[&](Input::InputListener* pInputListener)
+							[&](Input::InputListener& inputListener)
 						{
-							pInputListener->OnRawMouseMove(event);
+							inputListener.OnRawMouseMove(event);
 						});
 					}
 				}
@@ -813,10 +818,113 @@ namespace Tether::Platform
 			}
 			break;
 
+			case WM_LBUTTONDOWN:
+			{
+				SpawnMouseClick(lParam, ClickType::LEFT_BUTTON, true);
+			}
+			break;
+
+			case WM_LBUTTONUP:
+			{
+				SpawnMouseClick(lParam, ClickType::LEFT_BUTTON, false);
+			}
+			break;
+
+			case WM_MBUTTONDOWN:
+			{
+				SpawnMouseClick(lParam, ClickType::MIDDLE_BUTTON, true);
+			}
+			break;
+
+			case WM_MBUTTONUP:
+			{
+				SpawnMouseClick(lParam, ClickType::MIDDLE_BUTTON, false);
+			}
+			break;
+
+			case WM_RBUTTONDOWN:
+			{
+				SpawnMouseClick(lParam, ClickType::RIGHT_BUTTON, true);
+			}
+			break;
+
+			case WM_RBUTTONUP:
+			{
+				SpawnMouseClick(lParam, ClickType::RIGHT_BUTTON, false);
+			}
+			break;
+
+			case WM_XBUTTONDOWN:
+			{
+				SpawnXbuttonClick(lParam, wParam, true);
+			}
+			break;
+
+			case WM_XBUTTONUP:
+			{
+				SpawnXbuttonClick(lParam, wParam, false);
+			}
+			break;
+
 			default: return DefWindowProc(hWnd, msg, wParam, lParam);
 		}
 
 		return 0;
+	}
+
+	void Win32Window::SpawnMouseClick(
+		LPARAM lParam,
+		Input::MouseClickInfo::ClickType type,
+		bool pressed
+	)
+	{
+		using namespace Input;
+
+		int x = GET_X_LPARAM(lParam);
+		int y = GET_Y_LPARAM(lParam);
+
+		POINT mouse;
+		mouse.x = x;
+		mouse.y = y;
+
+		ClientToScreen(m_Hwnd, &mouse);
+
+		MouseClickInfo event(
+			(int)mouse.x,
+			(int)mouse.y,
+			x,
+			y,
+			type,
+			pressed
+		);
+
+		SpawnInput(InputType::MOUSE_CLICK,
+			[&](InputListener& inputListener)
+		{
+			inputListener.OnMouseClick(event);
+		});
+	}
+
+	bool Win32Window::SpawnXbuttonClick(
+		LPARAM lParam,
+		WPARAM wParam,
+		bool pressed
+	)
+	{
+		using ClickType = Input::MouseClickInfo::ClickType;
+
+		ClickType type = ClickType::SIDE_BUTTON1;
+		switch (GET_XBUTTON_WPARAM(wParam))
+		{
+			case XBUTTON1: type = ClickType::SIDE_BUTTON1;
+			case XBUTTON2: type = ClickType::SIDE_BUTTON2;
+
+			default: return false;
+		}
+
+		SpawnMouseClick(lParam, type, pressed);
+
+		return true;
 	}
 
 	void Win32Window::GenerateClassName()

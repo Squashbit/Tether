@@ -52,10 +52,11 @@ public:
 
 		m_Button.SetX(100.0f);
 		m_Button.SetY(100.0f);
-		m_Button.SetWidth(100.0f);
-		m_Button.SetHeight(100.0f);
-		m_Button.SetBackgroundColor(Math::Vector4f(0.0f, 0.0f, 0.0f, 1.0f));
-		m_Button.SetColor(Math::Vector4f(1.0f));
+		m_Button.SetWidth(140.0f);
+		m_Button.SetHeight(80.0f);
+		m_Button.SetBorderSize(0.0f);
+		m_Button.SetBackgroundColor(Math::Vector4f(0.1f, 0.1f, 0.1f, 1.0f));
+		m_Button.SetOnClickFunction(std::bind(&RendererTestApp::ButtonClick, this));
 		m_WindowUI.AddElement(m_Button);
 
 		window->SetVisible(true);
@@ -64,6 +65,11 @@ public:
 	void Run()
 	{
 		window->Run();
+	}
+
+	void ButtonClick()
+	{
+		std::cout << "Clicked\n";
 	}
 private:
 	Scope<Window> window;

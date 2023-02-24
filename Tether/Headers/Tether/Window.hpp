@@ -70,7 +70,7 @@ namespace Tether
 
 		void SpawnInput(
 			Input::InputType inputType,
-			std::function<void(Input::InputListener*)> callInputFun
+			std::function<void(Input::InputListener&)> callInputFun
 		);
 
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
