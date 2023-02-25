@@ -61,6 +61,22 @@ namespace Tether::Rendering::Vulkan
 
 	void VulkanRenderer::PopulateCommandBuffer(VkCommandBuffer commandBuffer)
 	{
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)m_SwapchainExtent.width;
+		viewport.height = (float)m_SwapchainExtent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		m_Dloader.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		scissor.extent.width = m_SwapchainExtent.width;
+		scissor.extent.height = m_SwapchainExtent.height;
+		m_Dloader.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
 		CommandBufferDescriptor commandBufferDesc(commandBuffer, m_Dloader);
 		for (size_t i = 0; i < objects.size(); i++)
 		{

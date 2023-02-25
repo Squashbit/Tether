@@ -9,7 +9,7 @@ message(STATUS "TETHER_RENDERING_OPENGL_API = ${TETHER_RENDERING_OPENGL_API}")
 add_subdirectory(Assets)
 add_subdirectory(Vendor/freetype)
 
-add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Resources/BufferedImage.cpp" "Source/Objects/Object.cpp" "Source/Objects/Rectangle.cpp" "Source/WindowUI.cpp" "Source/Renderer.cpp" "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Objects/Text.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp" "Source/Compositor.cpp" "Source/Elements/Button.cpp")
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Resources/BufferedImage.cpp" "Source/Objects/Object.cpp" "Source/Objects/Rectangle.cpp" "Source/WindowUI.cpp" "Source/Renderer.cpp" "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Objects/Text.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp" "Source/Compositor.cpp" "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp")
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets freetype VulkanMemoryAllocator)
 

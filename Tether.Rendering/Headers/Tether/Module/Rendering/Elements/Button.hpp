@@ -16,9 +16,6 @@ namespace Tether::Rendering::Elements
 		Button(WindowUI& windowUI);
 		~Button();
 
-		void SetBorderSize(float borderSize);
-		void SetBorderColor(const Math::Vector4f& color);
-
 		void SetText(std::string_view text);
 		void SetFont(Resources::Font& font);
 
@@ -34,11 +31,10 @@ namespace Tether::Rendering::Elements
 			Button& m_Button;
 		};
 
+		void Click();
+
 		void UpdateTransform();
 		void UpdateStyle();
-		
-		float m_BorderSize = 1.0f;
-		Math::Vector4f m_BorderColor;
 
 		Scope<Objects::Rectangle> m_BackgroundRect;
 		Scope<Objects::Rectangle> m_BorderRect;

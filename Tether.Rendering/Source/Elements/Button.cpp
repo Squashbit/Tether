@@ -21,8 +21,7 @@ namespace Tether::Rendering::Elements
 			info.IsPressed())
 			return;
 
-		if (m_Button.m_ClickFunction)
-			m_Button.m_ClickFunction();
+		m_Button.Click();
 	}
 
 	Button::Button(WindowUI& windowUI)
@@ -45,18 +44,6 @@ namespace Tether::Rendering::Elements
 		m_Window.RemoveInputListener(m_Listener);
 	}
 
-	void Button::SetBorderSize(float borderSize)
-	{
-		m_BorderSize = borderSize;
-		UpdateTransform();
-	}
-
-	void Button::SetBorderColor(const Math::Vector4f& color)
-	{
-		m_BorderColor = color;
-		UpdateStyle();
-	}
-
 	void Button::SetText(std::string_view text)
 	{
 		m_Text = text;
@@ -73,6 +60,15 @@ namespace Tether::Rendering::Elements
 	void Button::SetOnClickFunction(std::function<void()> clickFunction)
 	{
 		m_ClickFunction = clickFunction;
+	}
+
+	void Button::Click()
+	{
+		if (!m_ClickFunction)
+			return;
+
+		m_ClickFunction();
+		m_WindowUI.Repaint(true);
 	}
 
 	void Button::UpdateTransform()

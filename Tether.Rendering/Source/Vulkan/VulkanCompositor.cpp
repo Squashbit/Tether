@@ -295,22 +295,6 @@ namespace Tether::Rendering::Vulkan
 			m_Dloader.vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
 				VK_SUBPASS_CONTENTS_INLINE);
 
-			VkViewport viewport{};
-			viewport.x = 0.0f;
-			viewport.y = 0.0f;
-			viewport.width = (float)swapchainExtent.width;
-			viewport.height = (float)swapchainExtent.height;
-			viewport.minDepth = 0.0f;
-			viewport.maxDepth = 1.0f;
-			m_Dloader.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-			VkRect2D scissor{};
-			scissor.offset.x = 0;
-			scissor.offset.y = 0;
-			scissor.extent.width = swapchainExtent.width;
-			scissor.extent.height = swapchainExtent.height;
-			m_Dloader.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
 			m_Renderer.PopulateCommandBuffer(commandBuffer);
 
 			m_Dloader.vkCmdEndRenderPass(commandBuffer);

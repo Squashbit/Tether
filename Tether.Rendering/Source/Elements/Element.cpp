@@ -18,46 +18,94 @@ namespace Tether::Rendering::Elements
 
 	void Element::SetX(float x) 
 	{
+		if (m_X == x)
+			return;
+
 		m_X = x;
-		UpdateTransform();
+
+		ChangeTransform();
 	}
 
 	void Element::SetY(float y) 
 	{
+		if (m_Y == y)
+			return;
+
 		m_Y = y;
-		UpdateTransform();
+
+		ChangeTransform();
 	}
 
 	void Element::SetWidth(float width) 
 	{
+		if (m_Width == width)
+			return;
+
 		m_Width = width;
-		UpdateTransform();
+
+		ChangeTransform();
 	}
 
 	void Element::SetHeight(float height) 
 	{
+		if (m_Height == height)
+			return;
+
 		m_Height = height;
-		UpdateTransform();
+
+		ChangeTransform();
+	}
+
+	void Element::SetBorderSize(float borderSize)
+	{
+		m_BorderSize = borderSize;
+		ChangeTransform();
+	}
+
+	void Element::SetBorderColor(Math::Vector4f color)
+	{
+		m_BorderColor = color;
+		ChangeStyle();
 	}
 
 	void Element::SetColor(Math::Vector4f color)
 	{
 		m_Color = color;
-		UpdateStyle();
+		ChangeStyle();
 	}
 
 	void Element::SetBackgroundColor(Math::Vector4f backgroundColor)
 	{
 		m_BackgroundColor = backgroundColor;
-		UpdateStyle();
+		ChangeStyle();
 	}
 
-	Math::Vector4f Element::GetColor()
+	float Element::GetX() const
+	{
+		return m_X;
+	}
+
+	float Element::GetY() const
+	{
+		return m_Y;
+	}
+
+	float Element::GetWidth() const
+	{
+		return m_Width;
+	}
+
+	float Element::GetHeight() const
+	{
+		return m_Height;
+	}
+
+	Math::Vector4f Element::GetColor() const
 	{
 		return m_Color;
 	}
 
-	Math::Vector4f Element::GetBackgroundColor()
+	Math::Vector4f Element::GetBackgroundColor() const
 	{
 		return m_BackgroundColor;
 	}
@@ -72,5 +120,17 @@ namespace Tether::Rendering::Elements
 	{
 		for (Objects::Object& object : m_Objects)
 			m_Renderer.RemoveObject(object);
+	}
+
+	void Element::ChangeTransform()
+	{
+		UpdateTransform();
+		m_WindowUI.Repaint(true);
+	}
+
+	void Element::ChangeStyle()
+	{
+		UpdateStyle();
+		m_WindowUI.Repaint(true);
 	}
 }

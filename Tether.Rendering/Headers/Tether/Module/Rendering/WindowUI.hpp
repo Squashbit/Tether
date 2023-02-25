@@ -12,14 +12,17 @@ namespace Tether::Rendering
 {
 	class TETHER_EXPORT WindowUI
 	{
+		friend Elements::Element;
 	public:
 		WindowUI(Window& window, Renderer& renderer);
 		WindowUI(Window& window, Renderer& renderer, Compositor& compositor);
 		~WindowUI();
 		TETHER_NO_COPY(WindowUI);
+
+		void SetAutoRepaint(bool autoRepaint);
 		
-		void AddElement(Elements::Element& element, bool repaint = true);
-		bool RemoveElement(Elements::Element& element, bool repaint = true);
+		void AddElement(Elements::Element& element);
+		bool RemoveElement(Elements::Element& element);
 
 		/**
 		 * @brief 
@@ -32,11 +35,13 @@ namespace Tether::Rendering
 		 */
 		void SetBackgroundColor(Math::Vector4f backgroundColor);
 
+		void Repaint(bool isAutomatic = false);
+
 		Window& GetWindow();
 		Renderer& GetRenderer();
 	private:
-		void Repaint();
-		
+		bool m_AutoRepaint = true;
+
 		class Repainter : public Events::EventHandler
 		{
 		public:
@@ -55,5 +60,14 @@ namespace Tether::Rendering
 		Compositor* m_Compositor = nullptr;
 
 		Window& m_Window;
+	};
+
+	class TETHER_EXPORT ScopedNoRepaint
+	{
+	public:
+		ScopedNoRepaint(WindowUI& windowUI);
+		~ScopedNoRepaint();
+	private:
+		WindowUI& m_WindowUI;
 	};
 }
