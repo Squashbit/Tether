@@ -50,7 +50,7 @@ public:
 		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
 		m_Compositor(m_Renderer, m_VulkanWindow)
 	{
-		ImageLoader imageLoader("Test.png");
+		ImageLoader imageLoader("Assets/Test.png");
 		if (!imageLoader.Load())
 			throw std::runtime_error("Failed to load image");
 

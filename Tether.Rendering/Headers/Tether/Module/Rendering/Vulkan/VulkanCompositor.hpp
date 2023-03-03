@@ -15,11 +15,14 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VulkanCompositor : public Compositor
 	{
 	public:
-		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window);
+		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window,
+			bool autoRecreateSwapchain = true);
 		~VulkanCompositor();
 		TETHER_NO_COPY(VulkanCompositor);
 
 		bool RenderFrame() override;
+
+		bool RecreateSwapchain();
 	private:
 		void Init();
 
@@ -33,7 +36,6 @@ namespace Tether::Rendering::Vulkan
 		
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-		bool RecreateSwapchain();
 		void DestroySwapchain();
 
 		VulkanRenderer& m_Renderer;
@@ -69,6 +71,7 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkFence> m_InFlightFences;
 
 		bool m_ShouldRecreateSwapchain = false;
+		const bool m_AutoRecreateSwapchain = true;
 
 		uint32_t m_CurrentFrame = 0;
 	};

@@ -3,9 +3,9 @@
 
 namespace Tether::Rendering::Objects
 {
-	Rectangle::Rectangle(ObjectRenderer* pObjectRenderer)
+	Rectangle::Rectangle(ObjectRenderer& objectRenderer)
 		:
-		Objects::Object(pObjectRenderer),
+		Objects::Object(objectRenderer),
 		color(1.0f)
 	{}
 

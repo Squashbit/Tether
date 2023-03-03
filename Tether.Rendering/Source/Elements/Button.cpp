@@ -1,5 +1,4 @@
 #include <Tether/Module/Rendering/Elements/Button.hpp>
-#include <iostream>
 
 namespace Tether::Rendering::Elements
 {
@@ -10,12 +9,14 @@ namespace Tether::Rendering::Elements
 
 	void Button::ClickListener::OnMouseClick(Input::MouseClickInfo& info)
 	{
-		bool withinX = info.GetRelativeX() >= m_Button.m_X - m_Button.m_BorderSize;
-		bool withinY = info.GetRelativeY() >= m_Button.m_Y - m_Button.m_BorderSize;
-		bool withinWidth = info.GetRelativeX() < m_Button.m_X + m_Button.m_Width
-			+ m_Button.m_BorderSize;
-		bool withinHeight = info.GetRelativeY() < m_Button.m_Y + m_Button.m_Height
-			+ m_Button.m_BorderSize;
+		float borderSize = m_Button.GetBorderSize();
+		int clickX = info.GetRelativeX();
+		int clickY = info.GetRelativeY();
+
+		bool withinX = clickX >= m_Button.m_X - borderSize;
+		bool withinY = clickY >= m_Button.m_Y - borderSize;
+		bool withinWidth = clickX < m_Button.m_X + m_Button.m_Width + borderSize;
+		bool withinHeight = clickY < m_Button.m_Y + m_Button.m_Height + borderSize;
 
 		if (!withinX || !withinY || !withinWidth || !withinHeight ||
 			info.IsPressed())
@@ -27,15 +28,15 @@ namespace Tether::Rendering::Elements
 	Button::Button(WindowUI& windowUI)
 		:
 		Element(windowUI),
-		m_BackgroundRect(m_Renderer.CreateObject<Objects::Rectangle>()),
-		m_BorderRect(m_Renderer.CreateObject<Objects::Rectangle>()),
+		BorderedElement(windowUI, *this),
 		m_TextObject(m_Renderer.CreateObject<Objects::Text>()),
 		m_Listener(*this)
 	{
+		AddBorderObjects(m_Objects);
+
 		m_Window.AddInputListener(m_Listener, Input::InputType::MOUSE_CLICK);
 
-		m_Objects.push_back(*m_BorderRect);
-		m_Objects.push_back(*m_BackgroundRect);
+		m_TextObject->SetJustify(Objects::Text::Justify::CENTER);
 		m_Objects.push_back(*m_TextObject);
 	}
 
@@ -46,15 +47,14 @@ namespace Tether::Rendering::Elements
 
 	void Button::SetText(std::string_view text)
 	{
-		m_Text = text;
-		m_TextObject->SetText(m_Text);
-
-		UpdateTransform();
+		m_TextObject->SetText(text.data());
+		m_WindowUI.Repaint(true);
 	}
 
 	void Button::SetFont(Resources::Font& font)
 	{
-		m_TextObject->SetFont(&font);
+		m_TextObject->SetFont(font);
+		m_WindowUI.Repaint(true);
 	}
 
 	void Button::SetOnClickFunction(std::function<void()> clickFunction)
@@ -73,25 +73,15 @@ namespace Tether::Rendering::Elements
 
 	void Button::UpdateTransform()
 	{
-		m_BorderRect->SetX(m_X - m_BorderSize);
-		m_BorderRect->SetY(m_Y - m_BorderSize);
-		m_BorderRect->SetWidth(m_Width + m_BorderSize * 2.0f);
-		m_BorderRect->SetHeight(m_Height + m_BorderSize * 2.0f);
+		UpdateBorderTransform();
 
-		m_BackgroundRect->SetX(m_X);
-		m_BackgroundRect->SetY(m_Y);
-		m_BackgroundRect->SetWidth(m_Width);
-		m_BackgroundRect->SetHeight(m_Height);
-
-		m_TextObject->SetX(m_X);
-		m_TextObject->SetY(m_Y);
+		m_TextObject->SetX(m_X + m_Width / 2.0f);
+		m_TextObject->SetY(m_Y + m_Height / 2.0f);
 	}
 
 	void Button::UpdateStyle()
 	{
-		m_BorderRect->SetColor(m_BorderColor);
-		m_BackgroundRect->SetColor(m_BackgroundColor);
-
+		UpdateBorderStyle();
 		m_TextObject->SetColor(m_Color);
 	}
 }

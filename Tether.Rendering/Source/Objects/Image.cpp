@@ -3,9 +3,9 @@
 
 namespace Tether::Rendering::Objects
 {
-	Image::Image(ObjectRenderer* pObjectRenderer)
+	Image::Image(ObjectRenderer& objectRenderer)
 		:
-		Objects::Object(pObjectRenderer)
+		Objects::Object(objectRenderer)
 	{}
 
 	void Image::SetWidth(float value)

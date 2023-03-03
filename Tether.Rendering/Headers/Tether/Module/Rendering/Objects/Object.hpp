@@ -30,10 +30,9 @@ namespace Tether::Rendering::Objects
 		float GetY();
 		bool IsEnabled();
 		
-		Renderer* GetRenderer();
-		ObjectRenderer* GetObjectRenderer();
+		ObjectRenderer& GetObjectRenderer() const;
 	protected:
-		Object(ObjectRenderer* pObjectRenderer);
+		Object(ObjectRenderer& objectRenderer);
 
 		float x = 0.0f;
 		float y = 0.0f;
@@ -42,6 +41,6 @@ namespace Tether::Rendering::Objects
 		bool m_IsInRenderer = false;
 		Renderer* m_pRenderer = nullptr;
 	private:
-		ObjectRenderer* m_pObjectRenderer = nullptr;
+		ObjectRenderer& m_ObjectRenderer;
 	};
 }

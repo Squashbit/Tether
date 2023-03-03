@@ -11,16 +11,19 @@ namespace Tether::Rendering::Vulkan
 	void VulkanCompositor::ResizeHandler::OnWindowResize(
 		Events::WindowResizeEvent event)
 	{
-		m_Renderer.RecreateSwapchain();
+		if (m_Renderer.m_AutoRecreateSwapchain)
+			m_Renderer.RecreateSwapchain();
 	}
 
-	VulkanCompositor::VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window)
+	VulkanCompositor::VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window,
+		bool autoRecreateSwapchain)
 		:
 		m_Renderer(renderer),
 		m_VulkanWindow(window),
 		m_Window(m_VulkanWindow.window),
 		m_Context(m_VulkanWindow.m_Context),
 		m_Dloader(m_Context.deviceLoader),
+		m_AutoRecreateSwapchain(autoRecreateSwapchain),
 		m_ResizeHandler(*this)
 	{
 		Init();

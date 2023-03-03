@@ -80,17 +80,12 @@ namespace Tether::Rendering::Vulkan
 		CommandBufferDescriptor commandBufferDesc(commandBuffer, m_Dloader);
 		for (size_t i = 0; i < objects.size(); i++)
 		{
-			Objects::Object* pObject = objects[i];
-			if (!pObject->IsEnabled())
+			Objects::Object& object = *objects[i];
+			if (!object.IsEnabled())
 				continue;
 
-			Objects::ObjectRenderer* pObjectRenderer = pObject->GetObjectRenderer();
-			if (!pObjectRenderer)
-				continue;
-
-			ObjectRenderer* pRenderer = (ObjectRenderer*)pObjectRenderer;
-
-			pRenderer->AddToCommandBuffer(commandBufferDesc, currentFrame);
+			ObjectRenderer& renderer = (ObjectRenderer&)object.GetObjectRenderer();
+			renderer.AddToCommandBuffer(commandBufferDesc, currentFrame);
 		}
 	}
 

@@ -10,7 +10,7 @@ namespace Tether::Rendering::Vulkan
 		VkExtent2D& swapchainExtent
 	)
 		:
-		Objects::Image(this),
+		Objects::Image((ObjectRenderer&)*this),
 		m_Device(context.device),
 		m_Dloader(context.deviceLoader),
 		m_Allocator(context.allocator),
@@ -35,8 +35,8 @@ namespace Tether::Rendering::Vulkan
 
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		commandBuffer.BindPipelineIfNotBound(&m_Pipeline);
-		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
+		commandBuffer.BindIfNotBound(&m_Pipeline);
+		commandBuffer.BindIfNotBound(&m_RectBuffer);
 
 		PushConstants pushConstants;
 		pushConstants.position.x = x / m_SwapchainExtent.width;

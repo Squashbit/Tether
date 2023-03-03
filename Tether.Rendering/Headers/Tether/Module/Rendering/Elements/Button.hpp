@@ -4,13 +4,13 @@
 
 #include <Tether/Module/Rendering/WindowUI.hpp>
 
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Objects/Text.hpp>
 #include <Tether/Module/Rendering/Elements/Element.hpp>
+#include <Tether/Module/Rendering/Elements/Common/BorderedElement.hpp>
 
 namespace Tether::Rendering::Elements
 {
-	class TETHER_EXPORT Button : public Element
+	class TETHER_EXPORT Button : public Element, public BorderedElement
 	{
 	public:
 		Button(WindowUI& windowUI);
@@ -36,14 +36,9 @@ namespace Tether::Rendering::Elements
 		void UpdateTransform();
 		void UpdateStyle();
 
-		Scope<Objects::Rectangle> m_BackgroundRect;
-		Scope<Objects::Rectangle> m_BorderRect;
 		Scope<Objects::Text> m_TextObject;
-
-		std::function<void()> m_ClickFunction;
-
-		std::string m_Text;
-
+		
 		ClickListener m_Listener;
+		std::function<void()> m_ClickFunction;
 	};
 }

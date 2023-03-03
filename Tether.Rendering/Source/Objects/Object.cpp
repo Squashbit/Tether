@@ -3,9 +3,9 @@
 
 namespace Tether::Rendering::Objects
 {
-	Object::Object(ObjectRenderer* pObjectRenderer)
+	Object::Object(ObjectRenderer& objectRenderer)
 		:
-		m_pObjectRenderer(pObjectRenderer)
+		m_ObjectRenderer(objectRenderer)
 	{}
 
 	Object::~Object()
@@ -43,13 +43,8 @@ namespace Tether::Rendering::Objects
 		return m_Enabled;
 	}
 
-	Renderer* Object::GetRenderer()
+	ObjectRenderer& Object::GetObjectRenderer() const
 	{
-		return m_pRenderer;
-	}
-
-	ObjectRenderer* Object::GetObjectRenderer()
-	{
-		return m_pObjectRenderer;
+		return m_ObjectRenderer;
 	}
 }

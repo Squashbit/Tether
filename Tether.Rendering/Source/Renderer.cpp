@@ -9,7 +9,7 @@ namespace Tether::Rendering
 
 	void Renderer::AddObject(Objects::Object& object)
 	{
-		if (object.m_IsInRenderer || object.GetRenderer() != this)
+		if (object.m_IsInRenderer || object.m_pRenderer != this)
 			return;
 
 		objects.push_back(&object);
@@ -36,7 +36,7 @@ namespace Tether::Rendering
 
 	bool Renderer::HasObject(Objects::Object& object)
 	{
-		return object.m_IsInRenderer && object.GetRenderer() == this;
+		return object.m_IsInRenderer && object.m_pRenderer == this;
 	}
 
 	void Renderer::ClearObjects()

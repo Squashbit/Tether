@@ -55,19 +55,7 @@ namespace Tether::Rendering::Elements
 
 		ChangeTransform();
 	}
-
-	void Element::SetBorderSize(float borderSize)
-	{
-		m_BorderSize = borderSize;
-		ChangeTransform();
-	}
-
-	void Element::SetBorderColor(Math::Vector4f color)
-	{
-		m_BorderColor = color;
-		ChangeStyle();
-	}
-
+	
 	void Element::SetColor(Math::Vector4f color)
 	{
 		m_Color = color;

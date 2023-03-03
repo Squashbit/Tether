@@ -10,7 +10,13 @@ namespace Tether::Rendering
 
 	void WindowUI::Repainter::OnWindowRepaint(Events::WindowRepaintEvent event)
 	{
-		m_WindowUI.Repaint();
+		m_WindowUI.Repaint(true);
+	}
+
+	void WindowUI::Repainter::OnWindowResize(Events::WindowResizeEvent event)
+	{
+		if (m_WindowUI.m_RepaintOnResize)
+			m_WindowUI.Repaint();
 	}
 
 	WindowUI::WindowUI(Window& window, Renderer& renderer)
@@ -27,6 +33,7 @@ namespace Tether::Rendering
 	{
 		m_Repainter.emplace(*this);
 		m_Window.AddEventHandler(*m_Repainter, Events::EventType::WINDOW_REPAINT);
+		m_Window.AddEventHandler(*m_Repainter, Events::EventType::WINDOW_RESIZE);
 	}
 
 	WindowUI::~WindowUI()
@@ -38,6 +45,11 @@ namespace Tether::Rendering
 	void WindowUI::SetAutoRepaint(bool autoRepaint)
 	{
 		m_AutoRepaint = autoRepaint;
+	}
+
+	void WindowUI::SetRepaintOnResize(bool repaintOnResize)
+	{
+		m_RepaintOnResize = repaintOnResize;
 	}
 
 	void WindowUI::AddElement(Elements::Element& element)

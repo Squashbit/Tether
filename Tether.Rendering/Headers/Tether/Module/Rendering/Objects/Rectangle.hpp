@@ -19,8 +19,8 @@ namespace Tether::Rendering::Objects
 		float GetHeight() const;
 		Math::Vector4f GetColor();
 	protected:
-		Rectangle(ObjectRenderer* pObjectRenderer);
-		
+		Rectangle(ObjectRenderer& objectRenderer);
+
 		float width = 0.0f;
 		float height = 0.0f;
 

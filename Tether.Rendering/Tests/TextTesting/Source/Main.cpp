@@ -46,7 +46,7 @@ public:
 		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
 		m_Compositor(m_Renderer, m_VulkanWindow)
 	{
-		font = m_Renderer.CreateResource<Resources::Font>("font.ttf");
+		font = m_Renderer.CreateResource<Resources::Font>("Assets/font.ttf");
 		font->SetSize(64);
 
 		text = m_Renderer.CreateObject<Objects::Text>();

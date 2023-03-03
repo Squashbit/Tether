@@ -1,11 +1,12 @@
 #include <Tether/Module/Rendering/Vulkan/Objects/Text.hpp>
+#include <limits>
 
 namespace Tether::Rendering::Vulkan
 {
 	Text::Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
 		Pipeline& pipeline, VertexBuffer& rectBuffer)
 		:
-		Objects::Text(this),
+		Objects::Text((ObjectRenderer&)*this),
 		m_Device(context.device),
 		m_Dloader(context.deviceLoader),
 		m_SwapchainExtent(swapchainExtent),
@@ -18,42 +19,85 @@ namespace Tether::Rendering::Vulkan
 	void Text::AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 		uint32_t index)
 	{
+		if (!m_pFont)
+			return;
+
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		commandBuffer.BindPipelineIfNotBound(&m_Pipeline);
-		commandBuffer.BindVertexBufferIfNotBound(&m_RectBuffer);
+		commandBuffer.BindIfNotBound(&m_Pipeline);
+		commandBuffer.BindIfNotBound(&m_RectBuffer);
 
-		pushConstants.windowSize.x = m_SwapchainExtent.width;
-		pushConstants.windowSize.y = m_SwapchainExtent.height;
 		pushConstants.color = m_Color;
 		
 		Font* pFont = (Font*)m_pFont;
 		
-		float offset = 0.0f;
+		float xOffset = 0.0f;
+		float yOffset = std::numeric_limits<float>::min();
+		switch (m_Justify)
+		{
+			case Objects::Text::Justify::CENTER: 
+			{
+				for (size_t i = 0; i < m_Text.size(); i++)
+				{
+					Font::Character& character = pFont->GetCharacter(m_Text[i]);
+
+					float bearingY = (float)character.bearing.y * m_Scale;
+
+					if (bearingY > yOffset)
+						yOffset = bearingY;
+
+					xOffset -= (character.advance >> 6) * m_Scale;
+				}
+
+				xOffset /= 2.0f;
+				yOffset /= 2.0f;
+			}
+			break;
+
+			case Objects::Text::Justify::RIGHT: 
+			{
+				for (size_t i = 0; i < m_Text.size(); i++)
+				{
+					Font::Character& character = pFont->GetCharacter(m_Text[i]);
+					xOffset -= (character.advance >> 6) * m_Scale;
+				}
+			}
+			break;
+		}
+
 		for (size_t i = 0; i < m_Text.size(); i++)
 		{
 			Font::Character& character = pFont->GetCharacter(m_Text[i]);
 
 			if (character.image)
-				RenderCharacter(commandBuffer, index, character, offset);
+				RenderCharacter(commandBuffer, index, character, xOffset, yOffset);
 
-			offset += (character.advance >> 6) * m_Scale;
+			xOffset += (character.advance >> 6) * m_Scale;
 		}
 	}
 
-	void Text::RenderCharacter(CommandBufferDescriptor& commandBuffer,
-		uint32_t index, Font::Character& character, float offset)
+	void Text::RenderCharacter(
+		CommandBufferDescriptor& commandBuffer,
+		uint32_t index, Font::Character& character, float xOffset,
+		float yOffset
+	)
 	{
 		VkCommandBuffer vkCommandBuffer = commandBuffer.Get();
 
-		float bearingX = character.bearing.x * m_Scale;
-		float bearingY = (float)character.size.y - character.bearing.y;
-		float baseDistance = bearingY - character.size.y;
+		float sizeX = (float)character.size.x * m_Scale;
+		float sizeY = (float)character.size.y * m_Scale;
+		float bearingX = (float)character.bearing.x * m_Scale;
+		float bearingY = (float)character.bearing.y * m_Scale;
+		
+		pushConstants.position.x = x + xOffset + bearingX;
+		pushConstants.position.y = y + yOffset - bearingY;
+		pushConstants.scale.x = sizeX;
+		pushConstants.scale.y = sizeY;
 
-		pushConstants.position.x = x + offset + bearingX;
-		pushConstants.position.y = y + baseDistance * m_Scale;
-		pushConstants.scale.x = (float)character.size.x * m_Scale;
-		pushConstants.scale.y = (float)character.size.y * m_Scale;
+		pushConstants.position.x /= m_SwapchainExtent.width;
+		pushConstants.position.y /= m_SwapchainExtent.height;
+		pushConstants.scale.x /= m_SwapchainExtent.width;
+		pushConstants.scale.y /= m_SwapchainExtent.height;
 
 		m_Dloader.vkCmdBindDescriptorSets(
 			vkCommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,

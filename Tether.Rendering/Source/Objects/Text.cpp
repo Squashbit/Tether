@@ -2,9 +2,9 @@
 
 namespace Tether::Rendering::Objects
 {
-	Text::Text(ObjectRenderer* pObjectRenderer)
+	Text::Text(ObjectRenderer& objectRenderer)
 		:
-		Objects::Object(pObjectRenderer),
+		Objects::Object(objectRenderer),
 		m_Color(1.0f)
 	{}
 
@@ -16,17 +16,20 @@ namespace Tether::Rendering::Objects
 			m_pFont->LoadCharactersFromString(m_Text);
 	}
 
-	void Text::SetFont(Resources::Font* pFont)
+	void Text::SetFont(Resources::Font& font)
 	{
-		m_pFont = pFont;
-
-		if (m_pFont)
-			m_pFont->LoadCharactersFromString(m_Text);
+		m_pFont = &font;
+		m_pFont->LoadCharactersFromString(m_Text);
 	}
 
 	void Text::SetScale(float scale)
 	{
 		m_Scale = scale;
+	}
+
+	void Text::SetJustify(Justify justify)
+	{
+		m_Justify = justify;
 	}
 
 	void Text::SetColor(Math::Vector4f color)

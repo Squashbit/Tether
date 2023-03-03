@@ -11,7 +11,7 @@ namespace Tether::Rendering::Vulkan
 
 	}
 
-	void CommandBufferDescriptor::BindPipelineIfNotBound(Pipeline* pPipeline)
+	void CommandBufferDescriptor::BindIfNotBound(Pipeline* pPipeline)
 	{
 		if (pBoundPipeline == pPipeline)
 			return;
@@ -22,7 +22,7 @@ namespace Tether::Rendering::Vulkan
 		pBoundPipeline = pPipeline;
 	}
 
-	void CommandBufferDescriptor::BindVertexBufferIfNotBound(VertexBuffer* pVertexBuffer)
+	void CommandBufferDescriptor::BindIfNotBound(VertexBuffer* pVertexBuffer)
 	{
 		if (pBoundVertexBuffer == pVertexBuffer)
 			return;

@@ -6,17 +6,16 @@
 
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Module/Rendering/Elements/Element.hpp>
+#include <Tether/Module/Rendering/Elements/Common/BorderedElement.hpp>
 
 namespace Tether::Rendering::Elements
 {
-	class TETHER_EXPORT Division : public Element
+	class TETHER_EXPORT Division : public Element, BorderedElement
 	{
 	public:
 		Division(WindowUI& windowUI);
 	private:
-		void UpdateTransform();
-		void UpdateStyle();
-
-		Scope<Objects::Rectangle> m_BackgroundRect;
+		void UpdateTransform() override;
+		void UpdateStyle() override;
 	};
 }

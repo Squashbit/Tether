@@ -15,7 +15,6 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector2f position;
 			Math::Vector2f scale;
 			Math::Vector4f color;
-			Math::Vector2<int> windowSize;
 		};
 
 		Text(VulkanContext& context, VkExtent2D& swapchainExtent, 
@@ -25,8 +24,11 @@ namespace Tether::Rendering::Vulkan
 		void AddToCommandBuffer(CommandBufferDescriptor& commandBuffer,
 			uint32_t index) override;
 	private:
-		void RenderCharacter(CommandBufferDescriptor& commandBuffer,
-			uint32_t index, Font::Character& character, float offset);
+		void RenderCharacter(
+			CommandBufferDescriptor& commandBuffer,
+			uint32_t index, Font::Character& character, float xOffset, 
+			float yOffset
+		);
 
 		VkDevice m_Device = nullptr;
 		DeviceLoader& m_Dloader;

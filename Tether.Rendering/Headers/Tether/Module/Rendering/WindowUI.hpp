@@ -20,6 +20,7 @@ namespace Tether::Rendering
 		TETHER_NO_COPY(WindowUI);
 
 		void SetAutoRepaint(bool autoRepaint);
+		void SetRepaintOnResize(bool repaintOnResize);
 		
 		void AddElement(Elements::Element& element);
 		bool RemoveElement(Elements::Element& element);
@@ -41,6 +42,7 @@ namespace Tether::Rendering
 		Renderer& GetRenderer();
 	private:
 		bool m_AutoRepaint = true;
+		bool m_RepaintOnResize = false;
 
 		class Repainter : public Events::EventHandler
 		{
@@ -48,6 +50,7 @@ namespace Tether::Rendering
 			Repainter(WindowUI& windowUI);
 
 			void OnWindowRepaint(Events::WindowRepaintEvent event) override;
+			void OnWindowResize(Events::WindowResizeEvent event) override;
 		private:
 			WindowUI& m_WindowUI;
 		};

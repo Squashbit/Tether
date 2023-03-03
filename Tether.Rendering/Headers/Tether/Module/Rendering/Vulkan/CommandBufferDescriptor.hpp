@@ -15,8 +15,8 @@ namespace Tether::Rendering::Vulkan
 		CommandBufferDescriptor(VkCommandBuffer commandBuffer, DeviceLoader& dloader);
 		TETHER_NO_COPY(CommandBufferDescriptor);
 
-		void BindPipelineIfNotBound(Pipeline* pPipeline);
-		void BindVertexBufferIfNotBound(VertexBuffer* pVertexBuffer);
+		void BindIfNotBound(Pipeline* pPipeline);
+		void BindIfNotBound(VertexBuffer* pVertexBuffer);
 
 		VkCommandBuffer Get();
 	private:

@@ -9,7 +9,6 @@ layout(push_constant) uniform TextInfo
     vec2 position;
     vec2 scale;
     vec4 color;
-    ivec2 windowSize;
 } text;
 
 void main() 
@@ -18,7 +17,6 @@ void main()
     vertexPosition *= text.scale.xy;
     vertexPosition += text.position.xy;
 
-    vertexPosition /= text.windowSize.xy;
     vertexPosition *= 2;
     vertexPosition -= 1;
 
