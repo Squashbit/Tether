@@ -30,10 +30,6 @@ if (NOT TETHER_BIN2CPP_EXTERNAL)
 	add_subdirectory("Vendor/Bin2cpp")
 endif()
 
-if (NOT TETHER_VMA_EXTERNAL)
-	add_subdirectory("Vendor/VMA")
-endif()
-
 if (TETHER_BUILD_AS_SHARED)
 	set(TETHER_LIBRARY_MODE SHARED)
 	add_definitions(-D_TETHER_BUILD_DLL)

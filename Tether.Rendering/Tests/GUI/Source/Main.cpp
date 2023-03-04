@@ -106,7 +106,7 @@ public:
 		m_WindowUI.AddElement(m_TheVoidText);
 		m_WindowUI.AddElement(m_ProgressBar);
 		m_WindowUI.AddElement(m_Button);
-
+		
 		m_Window->SetVisible(true);
 	}
 
