@@ -1,5 +1,3 @@
-#ifdef _WIN32
-
 #include <Tether/Platform/Win32Window.hpp>
 
 #include <Tether/Common/StringTools.hpp>
@@ -944,5 +942,3 @@ namespace Tether::Platform
 			m_ClassName += allChars[dist(generator)];
 	}
 }
-
-#endif //_WIN32

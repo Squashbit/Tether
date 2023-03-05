@@ -13,6 +13,7 @@
 #include <vector>
 #include <functional>
 #include <shared_mutex>
+#include <atomic>
 
 namespace Tether
 {
@@ -99,6 +100,7 @@ namespace Tether
 		virtual void SetClosable(bool closable) = 0;
 		virtual void SetButtonStyleBitmask(uint8_t mask) = 0;
 		virtual void SetMaximized(bool maximized) = 0;
+		virtual void SetPreferredResizeInc(int x, int y) = 0;
 		virtual void SetFullscreen(bool fullscreen, const FullscreenSettings& settings,
 			const Devices::Monitor& monitor) = 0;
 		virtual void PollEvents() = 0;

@@ -17,17 +17,15 @@ namespace Tether
 	class TETHER_EXPORT Application
     {
     public:
+        Application();
         ~Application();
         TETHER_NO_COPY(Application);
         
-        Storage::AppVarStorage* GetStorage() const;
         const int16_t*const GetKeycodes() const;
         const int16_t*const GetScancodes() const;
         
         static Application& Get();
     private:
-        Application();
-
         bool OnInit();
         void OnAppDispose();
 
@@ -35,7 +33,7 @@ namespace Tether
 		void LoadFunctions();
         void FreeLibraries();
 
-        void CreateKeyLUT();
+        virtual void CreateKeyLUTs() = 0;
 
 		int16_t keycodes[512];
 		int16_t scancodes[Keycodes::KEY_LAST + 1];
