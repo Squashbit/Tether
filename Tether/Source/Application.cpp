@@ -10,14 +10,23 @@
 
 namespace Tether
 {
+	Application::Application()
+	{
+		memset(m_Keycodes, -1, sizeof(m_Keycodes));
+		memset(m_Scancodes, -1, sizeof(m_Scancodes));
+	}
+
+	Application::~Application() 
+	{}
+
 	const int16_t* const Application::GetKeycodes() const
 	{
-		return keycodes;
+		return m_Keycodes;
 	}
 
 	const int16_t* const Application::GetScancodes() const
 	{
-		return scancodes;
+		return m_Scancodes;
 	}
 
 	Application& Application::Get()
@@ -25,10 +34,12 @@ namespace Tether
 		if (!internal.get())
 		{
 #if defined(TETHER_PLATFORM_WINDOWS)
-			internal = std::make_unique<Win32Application>();
+			internal = std::make_unique<Platform::Win32Application>();
 #elif defined(TETHER_PLATFORM_LINUX)
-			internal = std::make_unique<X11Application>();
+			internal = std::make_unique<Platform::X11Application>();
 #endif
+
+			internal->CreateKeyLUTs(internal->m_Keycodes, internal->m_Scancodes);
 		}
 
 		return *internal;

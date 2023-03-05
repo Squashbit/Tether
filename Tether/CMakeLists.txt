@@ -9,7 +9,7 @@ PUBLIC
 )
 
 if (WIN32)
-	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Win32/Win32_Application.cpp" "Source/Platform/Win32/Win32_DeviceManager.cpp" "Source/Platform/Win32/Win32_LibraryLoader.cpp" "Source/Platform/Win32/Win32Window.cpp" )
+	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Win32Application.cpp" "Source/Platform/Win32_DeviceManager.cpp" "Source/Platform/Win32_LibraryLoader.cpp" "Source/Platform/Win32Window.cpp" )
 elseif (UNIX)
 	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Linux/Linux_Application.cpp" "Source/Platform/Linux/Linux_DeviceManager.cpp" "Source/Platform/Linux/Linux_LibraryLoader.cpp" "Source/Platform/Linux/Linux_Window.cpp")
 

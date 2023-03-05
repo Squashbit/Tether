@@ -1,7 +1,7 @@
 #include <Tether/Platform/Win32Window.hpp>
 
 #include <Tether/Common/StringTools.hpp>
-#include <Tether/Native.hpp>
+
 
 #include <algorithm>
 #include <random>
@@ -376,6 +376,9 @@ namespace Tether::Platform
 			else
 				ShowWindow(m_Hwnd, SW_SHOW);
 	}
+
+	void Win32Window::SetPreferredResizeInc(int x, int y)
+	{}
 
 	void Win32Window::SetFullscreen(bool fullscreen, 
 		const FullscreenSettings& settings, const Devices::Monitor& monitor)

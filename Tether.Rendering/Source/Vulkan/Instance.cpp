@@ -1,4 +1,3 @@
-#include <Tether/Native.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
 #include <stdexcept>
 
@@ -10,6 +9,12 @@
 #ifdef __linux__
 #include <vulkan/vulkan_xlib.h>
 #elif _WIN32
+#ifndef UNICODE
+#define UNICODE
+#endif
+
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
 #include <vulkan/vulkan_win32.h>
 #endif
 

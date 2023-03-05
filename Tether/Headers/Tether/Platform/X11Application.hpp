@@ -8,7 +8,7 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/XKBlib.h>
 
-namespace Tether
+namespace Tether::Platform
 {
     class X11Application : public Application
     {

@@ -1,8 +1,7 @@
 #ifdef _WIN32
 
 #include <Tether/Devices/DeviceManager.hpp>
-#include <Tether/Window.hpp>
-#include <Tether/Native.hpp>
+#include <Windows.h>
 
 #include <cmath>
 #include <stdint.h>

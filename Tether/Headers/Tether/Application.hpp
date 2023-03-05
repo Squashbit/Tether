@@ -15,19 +15,24 @@ namespace Tether
 	}
 
 	class TETHER_EXPORT Application
-    {
-    public:
-        Application() = default;
-        virtual ~Application() = 0;
-        
-        const int16_t*const GetKeycodes() const;
-        const int16_t*const GetScancodes() const;
-        
-        static Application& Get();
-    protected:
-		int16_t keycodes[512];
-		int16_t scancodes[Keycodes::KEY_LAST + 1];
-    private:
-        inline static Scope<Application> internal = nullptr;
-    };
+	{
+	public:
+		static constexpr const size_t KEYCODES_LENGTH = 512;
+		static constexpr const size_t SCANCODES_LENGTH = Keycodes::KEY_LAST + 1;
+
+		Application();
+		virtual ~Application() = 0;
+		
+		const int16_t*const GetKeycodes() const;
+		const int16_t*const GetScancodes() const;
+		
+		static Application& Get();
+	private:
+		virtual void CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes) = 0;
+
+		int16_t m_Keycodes[KEYCODES_LENGTH];
+		int16_t m_Scancodes[SCANCODES_LENGTH];
+		
+		inline static Scope<Application> internal = nullptr;
+	};
 }
