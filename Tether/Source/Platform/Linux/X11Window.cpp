@@ -1,5 +1,5 @@
 #include <Tether/Platform/X11Window.hpp>
-#include <Tether/Native.hpp>
+#include <Tether/Platform/X11Application.hpp>
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Controls/Control.hpp>
 
@@ -30,20 +30,18 @@ enum
     MWM_FUNC_CLOSE = (1L << 5)
 };
 
-#define xdisplay m_App->storage->display
-#define xscreen m_App->storage->screen
-
 namespace Tether::Platform
 {
     X11Window::X11Window(int width, int height, std::wstring_view title, 
 		bool visible)
+        :
+        m_App((X11Application&)Application::Get())
     {
-        m_App = &Application::Get();
-        
-        this->setWidth = width;
-        this->setHeight = height;
+        unsigned long root = RootWindow(m_App.GetDisplay(), 
+            m_App.GetScreen());
 
-        unsigned long root = RootWindow(xdisplay, xscreen);
+        XWindowAttributes attrs;
+        XGetWindowAttributes(m_App.GetDisplay(), root, &attrs);
         
         XSetWindowAttributes swa{};
         swa.event_mask = 
@@ -55,107 +53,97 @@ namespace Tether::Platform
             | KeyReleaseMask;
 
         m_Window = XCreateWindow(
-            xdisplay, 
+            m_App.GetDisplay(), 
             root,
-            setX, setY,
+            attrs.x, attrs.y,
             width, height,
             0, // Border width
-            DefaultDepth(xdisplay, xscreen),
+            DefaultDepth(m_App.GetDisplay(), m_App.GetScreen()),
             InputOutput,
-            DefaultVisual(xdisplay, xscreen),
+            DefaultVisual(m_App.GetDisplay(), m_App.GetScreen()),
             CWEventMask,
             &swa
         );
         
-        Atom wmDelete = XInternAtom(xdisplay, "WM_DELETE_WINDOW", true);
-        XSetWMProtocols(xdisplay, m_Window, &wmDelete, 1);
+        Atom wmDelete = XInternAtom(m_App.GetDisplay(), "WM_DELETE_WINDOW", true);
+        XSetWMProtocols(m_App.GetDisplay(), m_Window, &wmDelete, 1);
 
-        if (shouldShow)
-        {
-            XMapWindow(xdisplay, m_Window);
-            visible = true;
-        }
+        SetVisible(visible);
         
-        XMoveWindow(xdisplay, m_Window, setX, setY);
-        XStoreName(xdisplay, m_Window, title);
+        XStoreName(m_App.GetDisplay(), m_Window, 
+            m_WideConverter.to_bytes(title.data()).c_str());
 
-        XFlush(xdisplay);
-
-        initialized = true;
-        OnInit();
-
-        return true;
+        XFlush(m_App.GetDisplay());
     }
 
     X11Window::~X11Window()
     {
-        XLockDisplay(xdisplay);
-            XUnmapWindow(xdisplay, m_Window);
-            XDestroyWindow(xdisplay, m_Window);
-            XFlush(xdisplay);
-        XUnlockDisplay(xdisplay);
-
-        hints.clear();
+        XLockDisplay(m_App.GetDisplay());
+            XUnmapWindow(m_App.GetDisplay(), m_Window);
+            XDestroyWindow(m_App.GetDisplay(), m_Window);
+            XFlush(m_App.GetDisplay());
+        XUnlockDisplay(m_App.GetDisplay());
     }
 
     void X11Window::SetVisible(bool visibility)
     {
         if (visibility)
-            XMapWindow(xdisplay, m_Window);
+            XMapWindow(m_App.GetDisplay(), m_Window);
         else
-            XUnmapWindow(xdisplay, m_Window);
+            XUnmapWindow(m_App.GetDisplay(), m_Window);
         
-        visible = visibility;
+        m_Visible = visibility;
     }
 
     bool X11Window::IsVisible()
     {
-        return visible && initialized;
+        return m_Visible;
     }
 
     void X11Window::SetX(int x)
     {
-        XMoveWindow(xdisplay, m_Window, x, GetY());
+        XMoveWindow(m_App.GetDisplay(), m_Window, x, GetY());
     }
 
     void X11Window::SetY(int y)
     {
-        XMoveWindow(xdisplay, m_Window, GetX(), y);
+        XMoveWindow(m_App.GetDisplay(), m_Window, GetX(), y);
     }
 
     void X11Window::SetPosition(int x, int y)
     {
-        XMoveWindow(xdisplay, m_Window, x, y);
+        XMoveWindow(m_App.GetDisplay(), m_Window, x, y);
     }
 
     void X11Window::SetWidth(int width)
     {
-        XResizeWindow(xdisplay, m_Window, width, GetHeight());
+        XResizeWindow(m_App.GetDisplay(), m_Window, width, GetHeight());
     }
 
     void X11Window::SetHeight(int height)
     {
-        XResizeWindow(xdisplay, m_Window, GetWidth(), height);
+        XResizeWindow(m_App.GetDisplay(), m_Window, GetWidth(), height);
     }
 
     void X11Window::SetSize(int width, int height)
     {
-        XResizeWindow(xdisplay, m_Window, width, height);
+        XResizeWindow(m_App.GetDisplay(), m_Window, width, height);
     }
 
-    void X11Window::SetTitle(const char* title)
+    void X11Window::SetTitle(std::wstring_view title)
     {
-        XStoreName(xdisplay, m_Window, title);
+        XStoreName(m_App.GetDisplay(), m_Window, 
+            m_WideConverter.to_bytes(title.data()).c_str());
     }
 
     void X11Window::SetBoundsEnabled(bool enabled)
     {
-        if (this->boundsEnabled == enabled)
+        if (m_BoundsEnabled == enabled)
             return;
-        this->boundsEnabled = enabled;
+        m_BoundsEnabled = enabled;
 
         if (enabled)
-            SetBounds(minWidth, minHeight, maxWidth, maxHeight);
+            SetBounds(m_MinWidth, m_MinHeight, m_MaxWidth, m_MaxHeight);
         else
             SetBounds(INT32_MIN, INT32_MIN, INT32_MAX, INT32_MAX);
     }
@@ -170,25 +158,25 @@ namespace Tether::Platform
         sizeHints.max_height = maxHeight;
         sizeHints.flags = PMinSize | PMaxSize;
 
-        this->minWidth  = minWidth;
-        this->minHeight = minHeight;
-        this->maxWidth  = maxWidth;
-        this->maxHeight = maxHeight;
+        m_MinWidth  = minWidth;
+        m_MinHeight = minHeight;
+        m_MaxWidth  = maxWidth;
+        m_MaxHeight = maxHeight;
 
-        XSetWMSizeHints(xdisplay, m_Window, &sizeHints, 
+        XSetWMSizeHints(m_App.GetDisplay(), m_Window, &sizeHints, 
             XA_WM_NORMAL_HINTS);
     }
 
     void X11Window::SetDecorated(bool decorated)
     {
-        Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
+        Atom motifWmHints = XInternAtom(m_App.GetDisplay(), "_MOTIF_WM_HINTS", true);
 
         MwmHints hints{};
         hints.flags = MWM_HINTS_DECORATIONS;
         hints.decorations = decorated;
 
         XChangeProperty(
-            xdisplay, m_Window,
+            m_App.GetDisplay(), m_Window,
             motifWmHints,
             motifWmHints, 
             32,
@@ -198,39 +186,30 @@ namespace Tether::Platform
         );
     }
 
+    void X11Window::SetResizable(bool resizable)
+    {
+        m_Resizable = resizable;
+        ProcessMwmFunctions();
+    }
+
     void X11Window::SetClosable(bool closable)
     {
-        if (this->closable == closable)
-            return;
-        this->closable = closable;
-
+        m_Closable = closable;
         ProcessMwmFunctions();
     }
 
-    void X11Window::SetResizable(bool isResizable)
+    void X11Window::SetButtonStyleBitmask(uint8_t mask)
     {
-        if (isResizable == resizable)
-            return;
-        resizable = isResizable;
-
-        ProcessMwmFunctions();
-    }
-
-    void X11Window::SetMinimizeBox(bool enabled)
-    {
-        if (this->minimizeBox == enabled)
-            return;
-        this->minimizeBox = enabled;
-
+        m_StyleMask = mask;
         ProcessMwmFunctions();
     }
 
     void X11Window::SetMaximized(bool maximized)
     {
-        Atom wmState = XInternAtom(xdisplay, "_NET_WM_STATE", true);
-        Atom maxHorzAtom = XInternAtom(xdisplay, 
+        Atom wmState = XInternAtom(m_App.GetDisplay(), "_NET_WM_STATE", true);
+        Atom maxHorzAtom = XInternAtom(m_App.GetDisplay(), 
             "_NET_WM_STATE_MAXIMIZED_HORZ", true);
-        Atom maxVertAtom = XInternAtom(xdisplay, 
+        Atom maxVertAtom = XInternAtom(m_App.GetDisplay(), 
             "_NET_WM_STATE_MAXIMIZED_VERT", true);
         if (maximized)
         {
@@ -243,7 +222,7 @@ namespace Tether::Platform
             fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
             fullscreenEvent.xclient.data.l[2] = maxVertAtom;
             
-            XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            XSendEvent(m_App.GetDisplay(), DefaultRootWindow(m_App.GetDisplay()), 
                 false, 
                 SubstructureRedirectMask | SubstructureNotifyMask, 
                 &fullscreenEvent);
@@ -259,22 +238,13 @@ namespace Tether::Platform
             fullscreenEvent.xclient.data.l[1] = maxHorzAtom;
             fullscreenEvent.xclient.data.l[2] = maxVertAtom;
             
-            XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            XSendEvent(m_App.GetDisplay(), DefaultRootWindow(m_App.GetDisplay()), 
                 false, 
                 SubstructureRedirectMask | SubstructureNotifyMask, 
                 &fullscreenEvent);
         }
 
-        XSync(xdisplay, false);
-    }
-
-    void X11Window::SetMaximizeBox(bool enabled)
-    {
-        if (this->maximizeBox == enabled)
-            return;
-        this->maximizeBox = enabled;
-
-        ProcessMwmFunctions();
+        XSync(m_App.GetDisplay(), false);
     }
 
     void X11Window::SetPreferredResizeInc(int x, int y)
@@ -284,7 +254,7 @@ namespace Tether::Platform
         sizeHints.height_inc = y;
         sizeHints.flags = PResizeInc;
 
-        XSetWMSizeHints(xdisplay, m_Window, &sizeHints, 
+        XSetWMSizeHints(m_App.GetDisplay(), m_Window, &sizeHints, 
             XA_WM_NORMAL_HINTS);
     }
 
@@ -294,11 +264,11 @@ namespace Tether::Platform
 		const Devices::Monitor& monitor
     )
     {
-        if (this->fullscreen == fullscreen)
+        if (m_Fullscreen == fullscreen)
             return;
 
-        Atom wmState = XInternAtom(xdisplay, "_NET_WM_STATE", true);
-        Atom fullscreenAtom = XInternAtom(xdisplay, 
+        Atom wmState = XInternAtom(m_App.GetDisplay(), "_NET_WM_STATE", true);
+        Atom fullscreenAtom = XInternAtom(m_App.GetDisplay(), 
             "_NET_WM_STATE_FULLSCREEN", true);
         if (fullscreen)
         {
@@ -310,30 +280,27 @@ namespace Tether::Platform
             fullscreenEvent.xclient.data.l[0] = 2; // Replace
             fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
             
-            XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            XSendEvent(m_App.GetDisplay(), DefaultRootWindow(m_App.GetDisplay()), 
                 false, 
                 SubstructureRedirectMask | SubstructureNotifyMask, 
                 &fullscreenEvent);
             
-            XSync(xdisplay, false);
+            XSync(m_App.GetDisplay(), false);
             
             Atom wmFullscreenMonitors = 
-                XInternAtom(xdisplay, "_NET_WM_FULLSCREEN_MONITORS", true);
+                XInternAtom(m_App.GetDisplay(), "_NET_WM_FULLSCREEN_MONITORS", true);
             XEvent event{};
             event.type = ClientMessage;
             event.xclient.window = m_Window;
             event.xclient.message_type = wmFullscreenMonitors;
             event.xclient.format = 32;
 
-            if (monitor)
-            {
-                event.xclient.data.l[0] = monitor->index;
-                event.xclient.data.l[1] = monitor->index;
-                event.xclient.data.l[2] = monitor->index;
-                event.xclient.data.l[3] = monitor->index;
-            }
+            event.xclient.data.l[0] = monitor.GetIndex();
+            event.xclient.data.l[1] = monitor.GetIndex();
+            event.xclient.data.l[2] = monitor.GetIndex();
+            event.xclient.data.l[3] = monitor.GetIndex();
 
-            XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            XSendEvent(m_App.GetDisplay(), DefaultRootWindow(m_App.GetDisplay()), 
                 false, 
                 SubstructureRedirectMask | SubstructureNotifyMask, &event);
         }
@@ -347,27 +314,23 @@ namespace Tether::Platform
             fullscreenEvent.xclient.data.l[0] = 0; // Remove
             fullscreenEvent.xclient.data.l[1] = fullscreenAtom;
             
-            XSendEvent(xdisplay, DefaultRootWindow(xdisplay), 
+            XSendEvent(m_App.GetDisplay(), DefaultRootWindow(m_App.GetDisplay()), 
                 false, 
                 SubstructureRedirectMask | SubstructureNotifyMask, 
                 &fullscreenEvent);
         }
 
-        XSync(xdisplay, false);
+        XSync(m_App.GetDisplay(), false);
         
-        this->fullscreen = fullscreen;
+        m_Fullscreen = fullscreen;
     }
 
     void X11Window::SetRawInputEnabled(bool enabled)
     {
-        if (!m_App->storage->xi.handle || !m_App->storage->xi.available)
-        {
-            DispatchError(ErrorCode::LIBRARY_NOT_LOADED, ErrorSeverity::HIGH, 
-                "Window::SetRawInputEnabled");
-            return;
-        }
+        if (!m_App.GetXI().handle || !m_App.GetXI().available)
+            throw std::runtime_error("XI library not loaded");
 
-        if (enabled == rawInputEnabled)
+        if (m_RawInputEnabled == enabled)
             return;
         
         if (enabled)
@@ -380,7 +343,8 @@ namespace Tether::Platform
             eventMask.mask = mask;
             XISetMask(mask, XI_RawMotion);
 
-            XISelectEvents(xdisplay, m_App->storage->root, &eventMask, 1);
+            XISelectEvents(m_App.GetDisplay(), m_App.GetRoot(), 
+                &eventMask, 1);
         }
         else
         {
@@ -391,10 +355,10 @@ namespace Tether::Platform
             eventMask.mask_len = sizeof(mask);
             eventMask.mask = mask;
 
-            XISelectEvents(xdisplay, m_App->storage->root, &eventMask, 1);
+            XISelectEvents(m_App.GetDisplay(), m_App->storage->root, &eventMask, 1);
         }
 
-        rawInputEnabled = enabled;
+        m_RawInputEnabled = enabled;
     }
 
     void X11Window::SetCursorMode(Window::CursorMode mode)
@@ -403,14 +367,14 @@ namespace Tether::Platform
         {
             case Window::CursorMode::NORMAL:
             {
-                XUngrabPointer(xdisplay, CurrentTime);
-                XUndefineCursor(xdisplay, m_Window);
+                XUngrabPointer(m_App.GetDisplay(), CurrentTime);
+                XUndefineCursor(m_App.GetDisplay(), m_Window);
             }
             break;
 
             case Window::CursorMode::HIDDEN:
             {
-                XDefineCursor(xdisplay, m_Window, 
+                XDefineCursor(m_App.GetDisplay(), m_Window, 
                     m_App->storage->hiddenCursor);
             }
             break;
@@ -418,10 +382,10 @@ namespace Tether::Platform
             case Window::CursorMode::DISABLED:
             {
                 XGrabPointer(
-                    xdisplay, m_App->storage->root, true,
+                    m_App.GetDisplay(), m_App.GetRoot(), true,
                     PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
                     GrabModeAsync, GrabModeAsync, 
-                    m_App->storage->root, m_App->storage->hiddenCursor, 
+                    m_App.GetRoot(), m_App->storage->hiddenCursor, 
                     CurrentTime
                 );
             }
@@ -433,50 +397,50 @@ namespace Tether::Platform
 
     void X11Window::SetCursorPos(int x, int y)
     {
-        XWarpPointer(xdisplay, m_Window, m_Window, 0, 0, 
+        XWarpPointer(m_App.GetDisplay(), m_Window, m_Window, 0, 0, 
             0, 0, x, y);
     }
 
     void X11Window::SetCursorRootPos(int x, int y)
     {
-        unsigned int root = DefaultRootWindow(xdisplay);
-        XWarpPointer(xdisplay, root, root, 0, 0, 0, 0, x, y);
+        unsigned int root = DefaultRootWindow(m_App.GetDisplay());
+        XWarpPointer(m_App.GetDisplay(), root, root, 0, 0, 0, 0, x, y);
     }
 
-    int64_t X11Window::GetX()
+    int X11Window::GetX()
     {
         long unsigned int child;
 
         int x, y;
-        XTranslateCoordinates(xdisplay, m_Window, 
-            DefaultRootWindow(xdisplay), 0, 0, &x, &y, &child);
+        XTranslateCoordinates(m_App.GetDisplay(), m_Window, 
+            DefaultRootWindow(m_App.GetDisplay()), 0, 0, &x, &y, &child);
         
         return x;
     }
 
-    int64_t X11Window::GetY()
+    int X11Window::GetY()
     {
         long unsigned int child;
 
         int x, y;
-        XTranslateCoordinates(xdisplay, m_Window, 
-            DefaultRootWindow(xdisplay), 0, 0, &x, &y, &child);
+        XTranslateCoordinates(m_App.GetDisplay(), m_Window, 
+            DefaultRootWindow(m_App.GetDisplay()), 0, 0, &x, &y, &child);
         
         return y;
     }
 
-    uint64_t X11Window::GetWidth()
+    int X11Window::GetWidth()
     {
         XWindowAttributes attribs;
-        XGetWindowAttributes(xdisplay, m_Window, &attribs);
+        XGetWindowAttributes(m_App.GetDisplay(), m_Window, &attribs);
 
         return attribs.width;
     }
 
-    uint64_t X11Window::GetHeight()
+    int X11Window::GetHeight()
     {
         XWindowAttributes attribs;
-        XGetWindowAttributes(xdisplay, m_Window, &attribs);
+        XGetWindowAttributes(m_App.GetDisplay(), m_Window, &attribs);
 
         return attribs.height;
     }
@@ -486,13 +450,13 @@ namespace Tether::Platform
         using namespace Events;
         using namespace Input;
 
-        if (!visible)
+        if (!m_Visible)
             return;
 
         bool eventReceived = false;
-        while (XPending(xdisplay))
+        while (XPending(m_App.GetDisplay()))
         {
-            XNextEvent(xdisplay, &storage->event);
+            XNextEvent(m_App.GetDisplay(), &storage->event);
             eventReceived = true;
             
             switch (storage->event.type)
@@ -503,7 +467,7 @@ namespace Tether::Platform
                         continue;
 
                     XGenericEventCookie* cookie = &storage->event.xcookie;
-                    if (XGetEventData(xdisplay, cookie))
+                    if (XGetEventData(m_App.GetDisplay(), cookie))
                     {
                         if (cookie->extension != m_App->storage->xi.opcode
                             || cookie->evtype != XI_RawMotion)
@@ -538,7 +502,7 @@ namespace Tether::Platform
                             pInputListener->OnRawMouseMove(moveInfo);
                         });
 
-                        XFreeEventData(xdisplay, cookie);
+                        XFreeEventData(m_App.GetDisplay(), cookie);
                         continue;
                     }
                 }
@@ -589,10 +553,10 @@ namespace Tether::Platform
                 {
                     const uint32_t scancode = storage->event.xkey.keycode;
 
-                    if (XEventsQueued(xdisplay, QueuedAfterReading))
+                    if (XEventsQueued(m_App.GetDisplay(), QueuedAfterReading))
                     {
                         XEvent nextEvent;
-                        XPeekEvent(xdisplay, &nextEvent);
+                        XPeekEvent(m_App.GetDisplay(), &nextEvent);
 
                         // The last check is if the time of the key pressed is 
                         // within 20 milliseconds of each other (the interval that
@@ -703,10 +667,10 @@ namespace Tether::Platform
                 {
                     // Check for WM_PROTOCOLS
                     if (storage->event.xclient.message_type != 
-                        XInternAtom(xdisplay, "WM_PROTOCOLS", false))
+                        XInternAtom(m_App.GetDisplay(), "WM_PROTOCOLS", false))
                         break;
                     
-                    m_CloseRequested = true;
+                    SetCloseRequested(true);
 
                     SpawnEvent(Events::EventType::WINDOW_CLOSING, 
                     [this](Events::EventHandler* pEventHandler)
@@ -721,23 +685,23 @@ namespace Tether::Platform
 
     void X11Window::ProcessMwmFunctions()
     {
-        Atom motifWmHints = XInternAtom(xdisplay, "_MOTIF_WM_HINTS", true);
+        Atom motifWmHints = XInternAtom(m_App.GetDisplay(), "_MOTIF_WM_HINTS", true);
 
         MwmHints hints{};
         hints.flags = MWM_HINTS_FUNCTIONS;
         hints.functions = MWM_FUNC_MOVE;
 
-        if (closable)
+        if (m_Closable)
             hints.functions |= MWM_FUNC_CLOSE;
-        if (resizable)
+        if (m_Resizable)
             hints.functions |= MWM_FUNC_RESIZE;
-        if (minimizeBox)
+        if (m_StyleMask & ButtonStyleMask::MINIMIZE_BUTTON)
             hints.functions |= MWM_FUNC_MINIMIZE;
-        if (maximizeBox)
+        if (m_StyleMask & ButtonStyleMask::MAXIMIZE_BUTTON)
             hints.functions |= MWM_FUNC_MAXIMIZE;
         
         XChangeProperty(
-            xdisplay, m_Window,
+            m_App.GetDisplay(), m_Window,
             motifWmHints,
             motifWmHints, 
             32,

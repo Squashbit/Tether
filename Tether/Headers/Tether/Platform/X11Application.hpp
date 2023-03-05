@@ -13,6 +13,9 @@ namespace Tether
     class X11Application : public Application
     {
     public:
+        X11Application();
+        ~X11Application();
+
         struct Library
         {
             void* handle;
@@ -36,6 +39,19 @@ namespace Tether
             PFN_XISelectEvents SelectEvents;
         };
 
+        const XILibrary& GetXI() const;
+        const int GetScreen() const;
+        Display* const GetDisplay() const;
+        const unsigned int GetRoot() const;
+    private:
+        void LoadLibraries();
+		void LoadFunctions();
+        void FreeLibraries();
+
+        void CreateKeyLUTs();
+
+        Keycodes TranslateScancode(const KeySym* keysyms, int width);
+
         XRRLibrary xrr;
 		XILibrary xi;
 		
@@ -49,4 +65,5 @@ namespace Tether
 }
 
 #define XISelectEvents(display, window, masks, numMasks) \
-    ((X11Application&)Application::Get()).xi.SelectEvents(display, window, masks, numMasks)
+    ((X11Application&)Application::Get()).GetXI().SelectEvents(display, \
+        window, masks, numMasks)

@@ -1,33 +1,21 @@
 #include <Tether/Application.hpp>
-#include <Tether/Native.hpp>
 #include <stdexcept>
+
+#include <Tether/Platform/PlatformDefs.hpp>
+#if defined(TETHER_PLATFORM_WINDOWS)
+#include <Tether/Platform/Win32Application.hpp>
+#elif defined(TETHER_PLATFORM_LINUX)
+#include <Tether/Platform/X11Application.hpp>
+#endif
 
 namespace Tether
 {
-	Application::Application()
-	{
-		storage = std::make_unique<Storage::AppVarStorage>();
-
-		if (!OnInit())
-			throw std::runtime_error("Failed to initialize Application");
-	}
-
-	Application::~Application()
-	{
-		OnAppDispose();
-	}
-
-	Tether::Storage::AppVarStorage* Tether::Application::GetStorage() const
-	{
-		return storage.get();
-	}
-
-	const int16_t* const Tether::Application::GetKeycodes() const
+	const int16_t* const Application::GetKeycodes() const
 	{
 		return keycodes;
 	}
 
-	const int16_t* const Tether::Application::GetScancodes() const
+	const int16_t* const Application::GetScancodes() const
 	{
 		return scancodes;
 	}
@@ -35,7 +23,13 @@ namespace Tether
 	Application& Application::Get()
 	{
 		if (!internal.get())
-			internal = std::unique_ptr<Application>(new Application());
+		{
+#if defined(TETHER_PLATFORM_WINDOWS)
+			internal = std::make_unique<Win32Application>();
+#elif defined(TETHER_PLATFORM_LINUX)
+			internal = std::make_unique<X11Application>();
+#endif
+		}
 
 		return *internal;
 	}

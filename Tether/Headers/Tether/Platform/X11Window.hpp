@@ -1,13 +1,15 @@
 #pragma once
-#ifdef __linux__
-
-#include <Tether/Window.hpp>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/Xatom.h>
 #include <X11/extensions/XInput2.h>
 #include <X11/XKBlib.h>
+
+#include <Tether/Window.hpp>
+
+#include <locale>
+#include <codecvt>
 
 namespace Tether::Platform
 {
@@ -59,6 +61,19 @@ namespace Tether::Platform
 		uint64_t prevX = 0, prevY = 0;
 		uint64_t prevWidth = 0, prevHeight = 0;
 
+		bool m_Visible = false;
+		bool m_Closable = true;
+		bool m_Resizable = true;
+		bool m_RawInputEnabled = false;
+		bool m_Fullscreen = false;
+		uint8_t m_StyleMask = ButtonStyleMask::MAXIMIZE_BUTTON
+			                | ButtonStyleMask::MINIMIZE_BUTTON;
+		bool m_BoundsEnabled = false;
+		int m_MinWidth  = INT_MIN; 
+		int m_MinHeight = INT_MIN;
+		int m_MaxWidth  = INT_MAX;
+		int m_MaxHeight = INT_MAX;
+
 		unsigned long m_Window = 0;
 		int screen = 0;
 
@@ -66,7 +81,10 @@ namespace Tether::Platform
 
 		std::unordered_map<uint32_t, Time> pressTimes;
 		uint32_t lastPressed = UINT32_MAX;
+
+		using ConvertType = std::codecvt_utf8<wchar_t>;
+		std::wstring_convert<ConvertType, wchar_t> m_WideConverter;
+
+		X11Application& m_App;
 	};
 }
-
-#endif //__linux__
