@@ -1,48 +1,66 @@
 #include <Tether/Devices/Monitor.hpp>
 
-using namespace Tether::Devices;
-
-int64_t Monitor::GetX() const
+namespace Tether::Devices
 {
-    return x;
-}
+    Monitor::Monitor(
+        size_t index, int x, int y, int width, int height, 
+		std::string_view deviceName, bool primary, DisplayMode currentMode, 
+		const std::vector<DisplayMode>& displayModes
+    )
+        :
+        index(index),
+        x(x),
+        y(y),
+        width(width),
+        height(height),
+        primary(primary),
+        name(deviceName),
+        currentMode(currentMode),
+        modes(displayModes)
+    {}
 
-int64_t Monitor::GetY() const
-{
-    return y;
-}
+    const int Monitor::GetX() const
+    {
+        return x;
+    }
 
-uint64_t Monitor::GetIndex() const
-{
-    return index;
-}
+    const int Monitor::GetY() const
+    {
+        return y;
+    }
 
-uint64_t Monitor::GetWidth() const
-{
-    return width;
-}
+    const size_t Monitor::GetIndex() const
+    {
+        return index;
+    }
 
-uint64_t Monitor::GetHeight() const
-{
-    return height;
-}
+    const int Monitor::GetWidth() const
+    {
+        return width;
+    }
 
-bool Monitor::IsPrimary() const
-{
-    return primary;
-}
+    const int Monitor::GetHeight() const
+    {
+        return height;
+    }
 
-std::string Monitor::GetDeviceName() const
-{
-    return name;
-}
+    bool Monitor::IsPrimary() const
+    {
+        return primary;
+    }
 
-DisplayMode Monitor::GetCurrentMode() const
-{
-    return currentMode;
-}
+    const std::string Monitor::GetDeviceName() const
+    {
+        return name;
+    }
 
-DisplayMode* Monitor::GetDisplayModes() const
-{
-    return const_cast<DisplayMode*>(modes.data());
+    const Monitor::DisplayMode Monitor::GetCurrentMode() const
+    {
+        return currentMode;
+    }
+
+    const std::vector<Monitor::DisplayMode>& Monitor::GetDisplayModes() const
+    {
+        return modes;
+    }
 }

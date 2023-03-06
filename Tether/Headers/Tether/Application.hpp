@@ -4,6 +4,8 @@
 #include <Tether/Common/Ref.hpp>
 #include <Tether/Common/Types.hpp>
 
+#include <Tether/Devices/Monitor.hpp>
+
 #include <vector>
 #include <optional>
 
@@ -22,9 +24,12 @@ namespace Tether
 
 		Application();
 		virtual ~Application() = 0;
-		
+
 		const int16_t*const GetKeycodes() const;
 		const int16_t*const GetScancodes() const;
+
+        virtual size_t GetMonitorCount() = 0;
+        virtual Devices::Monitor GetMonitor(size_t index) = 0;
 		
 		static Application& Get();
 	private:

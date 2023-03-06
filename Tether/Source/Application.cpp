@@ -1,5 +1,7 @@
 #include <Tether/Application.hpp>
+
 #include <stdexcept>
+#include <cstring>
 
 #include <Tether/Platform/PlatformDefs.hpp>
 #if defined(TETHER_PLATFORM_WINDOWS)

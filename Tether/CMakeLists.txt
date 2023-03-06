@@ -11,7 +11,7 @@ PUBLIC
 if (WIN32)
 	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Win32Application.cpp" "Source/Platform/Win32_DeviceManager.cpp" "Source/Platform/Win32_LibraryLoader.cpp" "Source/Platform/Win32Window.cpp" )
 elseif (UNIX)
-	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/Linux/Linux_Application.cpp" "Source/Platform/Linux/Linux_DeviceManager.cpp" "Source/Platform/Linux/Linux_LibraryLoader.cpp" "Source/Platform/Linux/Linux_Window.cpp")
+	target_sources(${PROJECT_NAME} PRIVATE "Source/Platform/X11Application.cpp" "Source/Platform/Linux_DeviceManager.cpp" "Source/Platform/Linux_LibraryLoader.cpp" "Source/Platform/X11Window.cpp")
 
 	target_link_libraries(${PROJECT_NAME}
 		X11 Xrandr

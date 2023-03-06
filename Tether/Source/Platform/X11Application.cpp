@@ -1,8 +1,11 @@
 #include <Tether/Platform/X11Application.hpp>
 #include <Tether/Common/LibraryLoader.hpp>
 
+#include <X11/extensions/Xrandr.h>
+
 #include <stdexcept>
-#include <string.h>
+#include <cstring>
+#include <cmath>
 
 namespace Tether::Platform
 {
@@ -26,8 +29,6 @@ namespace Tether::Platform
 
         LoadLibraries();
         LoadFunctions();
-
-        CreateKeyLUTs();
     }
 
     X11Application::~X11Application()
@@ -38,6 +39,84 @@ namespace Tether::Platform
         XCloseDisplay(display);
 
         FreeLibraries();
+    }
+
+    size_t X11Application::GetMonitorCount()
+    {
+        int numMonitors;
+        XRRGetMonitors(display, root, false, 
+            &numMonitors);
+
+        return numMonitors;
+    }
+
+    Devices::Monitor X11Application::GetMonitor(size_t index)
+    {
+        using DisplayMode = Devices::Monitor::DisplayMode;
+
+        XRRScreenResources* resources = XRRGetScreenResources(display, 
+            root);
+
+        int numMonitors;
+        XRRMonitorInfo* monitorInfos = XRRGetMonitors(
+            display, root, false, 
+            &numMonitors
+        );
+
+        if (index >= numMonitors)
+            throw std::out_of_range("Index greater than monitor count");
+
+        DisplayMode currentMode;
+        std::vector<DisplayMode> displayModes;
+        
+        XRRMonitorInfo monitorInfo = monitorInfos[index];
+        for (uint64_t i = 0; i < monitorInfo.noutput; i++)
+        {
+            XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
+                resources,
+                monitorInfo.outputs[i]
+            );
+            XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
+                outputInfo->crtc);
+            
+            for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
+            {
+                XRRModeInfo mode;
+                for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
+                    if (resources->modes[i3].id == outputInfo->modes[i2])
+                        mode = resources->modes[i3];
+                
+                DisplayMode displayMode;
+                displayMode.name = mode.name;
+                displayMode.exactRefreshRate = mode.dotClock 
+                        / ((double)mode.hTotal * mode.vTotal);
+                displayMode.refreshRate = std::round(displayMode.exactRefreshRate);
+                displayMode.width = mode.width;
+                displayMode.height = mode.height;
+
+                if (info->mode == mode.id)
+                    currentMode = displayMode;
+                
+                displayModes.push_back(displayMode);
+            }
+
+            XRRFreeCrtcInfo(info);
+            XRRFreeOutputInfo(outputInfo);
+        }
+
+        char* name = XGetAtomName(display, monitorInfo.name);
+        
+        Devices::Monitor monitor(
+            index, monitorInfo.x, monitorInfo.y, monitorInfo.width,
+            monitorInfo.height, name, monitorInfo.primary, currentMode,
+            displayModes
+        );
+        
+        XFree(name);
+        XRRFreeMonitors(monitorInfos);
+        XRRFreeScreenResources(resources);
+        
+        return monitor;
     }
 
     const X11Application::XILibrary& X11Application::GetXI() const
@@ -260,10 +339,8 @@ namespace Tether::Platform
         return Keycodes::KEY_SPACE;
     }
 
-    void X11Application::CreateKeyLUTs()
+    void X11Application::CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes)
     {
-        memset(keycodes, -1, sizeof(keycodes));
-
         XkbDescPtr desc = XkbGetMap(display, 0, XkbUseCoreKbd);
         XkbGetNames(display, XkbKeyNamesMask | XkbKeyAliasesMask, desc);
 

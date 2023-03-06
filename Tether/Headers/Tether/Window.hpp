@@ -6,12 +6,12 @@
 #include <Tether/Events/EventHandler.hpp>
 #include <Tether/Events/EventType.hpp>
 #include <Tether/Input/InputListener.hpp>
-#include <Tether/Devices/DeviceManager.hpp>
 #include <Tether/Devices/Monitor.hpp>
 
 #include <string_view>
 #include <vector>
 #include <functional>
+#include <mutex>
 #include <shared_mutex>
 #include <atomic>
 

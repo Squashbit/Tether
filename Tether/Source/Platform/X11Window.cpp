@@ -355,7 +355,8 @@ namespace Tether::Platform
             eventMask.mask_len = sizeof(mask);
             eventMask.mask = mask;
 
-            XISelectEvents(m_App.GetDisplay(), m_App->storage->root, &eventMask, 1);
+            XISelectEvents(m_App.GetDisplay(), m_App.GetRoot(), 
+                &eventMask, 1);
         }
 
         m_RawInputEnabled = enabled;

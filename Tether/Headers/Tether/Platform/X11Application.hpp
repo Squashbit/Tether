@@ -39,6 +39,9 @@ namespace Tether::Platform
             PFN_XISelectEvents SelectEvents;
         };
 
+        size_t GetMonitorCount() override;
+        Devices::Monitor GetMonitor(size_t index) override;
+        
         const XILibrary& GetXI() const;
         const int GetScreen() const;
         Display* const GetDisplay() const;
@@ -48,7 +51,7 @@ namespace Tether::Platform
 		void LoadFunctions();
         void FreeLibraries();
 
-        void CreateKeyLUTs();
+        void CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes) override;
 
         Keycodes TranslateScancode(const KeySym* keysyms, int width);
 
