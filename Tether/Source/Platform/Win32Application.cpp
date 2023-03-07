@@ -1,8 +1,82 @@
 #include <Tether/Platform/Win32Application.hpp>
 #include <cstring>
 
+#define UNICODE
+#include <Windows.h>
+
 namespace Tether::Platform
 {
+	static BOOL CALLBACK EnumerateMonitors(
+		HMONITOR hMonitor,
+		HDC hdcMonitor,
+		LPRECT lprcMonitor,
+		LPARAM dwData
+	)
+	{
+		std::vector<HMONITOR>* pMonitors = (std::vector<HMONITOR>*)dwData;
+		pMonitors->push_back(hMonitor);
+
+		return TRUE;
+	}
+
+	size_t Win32Application::GetMonitorCount()
+	{
+		return GetSystemMetrics(SM_CMONITORS);
+	}
+
+	std::vector<Devices::Monitor> Win32Application::GetMonitors()
+	{
+		std::vector<HMONITOR> hmonitors;
+		EnumDisplayMonitors(NULL, NULL, EnumerateMonitors, (LPARAM)&hmonitors);
+
+		std::vector<Devices::Monitor> monitors;
+		monitors.reserve(hmonitors.size());
+
+		for (HMONITOR hmonitor : hmonitors)
+		{
+			MONITORINFOEX monitorInfo{};
+			GetMonitorInfo(hmonitor, &monitorInfo);
+
+			std::vector<Devices::Monitor::DisplayMode> modes;
+
+			DEVMODE devmode{};
+			for (size_t i = 0; EnumDisplaySettings(NULL, static_cast<DWORD>(i), &devmode); i++)
+			{
+				Devices::Monitor::DisplayMode mode;
+				mode.exactRefreshRate = devmode.dmDisplayFrequency;
+				mode.refreshRate = devmode.dmDisplayFrequency;
+				mode.name = devmode.dmDeviceName;
+				mode.width = devmode.dmPelsWidth;
+				mode.height = devmode.dmPelsHeight;
+
+				modes.push_back(mode);
+			}
+
+			DEVMODE currentDevmode{};
+			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode);
+
+			Devices::Monitor::DisplayMode currentMode;
+			currentMode.exactRefreshRate = currentDevmode.dmDisplayFrequency;
+			currentMode.refreshRate = currentDevmode.dmDisplayFrequency;
+			currentMode.name = currentDevmode.dmDeviceName;
+			currentMode.width = currentDevmode.dmPelsWidth;
+			currentMode.height = currentDevmode.dmPelsHeight;
+
+			monitors.emplace_back(
+				monitorInfo.rcMonitor.left,
+				monitorInfo.rcMonitor.top,
+				monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+				monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+				monitorInfo.szDevice,
+				monitorInfo.dwFlags & MONITORINFOF_PRIMARY,
+				currentMode,
+				modes
+			);
+		}
+
+		return monitors;
+	}
+
 	void Win32Application::CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes)
 	{
 		keycodes[0x00B] = Keycodes::KEY_0;

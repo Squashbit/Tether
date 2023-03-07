@@ -28,8 +28,8 @@ namespace Tether
 		const int16_t*const GetKeycodes() const;
 		const int16_t*const GetScancodes() const;
 
-        virtual size_t GetMonitorCount() = 0;
-        virtual Devices::Monitor GetMonitor(size_t index) = 0;
+		virtual size_t GetMonitorCount() = 0;
+        virtual std::vector<Devices::Monitor> GetMonitors() = 0;
 		
 		static Application& Get();
 	private:

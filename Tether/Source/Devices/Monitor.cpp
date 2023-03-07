@@ -3,12 +3,11 @@
 namespace Tether::Devices
 {
     Monitor::Monitor(
-        size_t index, int x, int y, int width, int height, 
-		std::string_view deviceName, bool primary, DisplayMode currentMode, 
+        int x, int y, int width, int height, 
+		std::wstring_view deviceName, bool primary, DisplayMode currentMode,
 		const std::vector<DisplayMode>& displayModes
     )
         :
-        index(index),
         x(x),
         y(y),
         width(width),
@@ -29,11 +28,6 @@ namespace Tether::Devices
         return y;
     }
 
-    const size_t Monitor::GetIndex() const
-    {
-        return index;
-    }
-
     const int Monitor::GetWidth() const
     {
         return width;
@@ -49,7 +43,7 @@ namespace Tether::Devices
         return primary;
     }
 
-    const std::string Monitor::GetDeviceName() const
+    const std::wstring_view Monitor::GetDeviceName() const
     {
         return name;
     }

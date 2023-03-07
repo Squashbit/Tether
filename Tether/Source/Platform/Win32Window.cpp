@@ -496,9 +496,9 @@ namespace Tether::Platform
 
 				SetCloseRequested(true);
 				SpawnEvent(Events::EventType::WINDOW_CLOSING,
-					[this](Events::EventHandler* pEventHandler)
+					[this](Events::EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
+					eventHandler.OnWindowClosing(Events::WindowClosingEvent());
 				});
 			}
 
@@ -512,9 +512,9 @@ namespace Tether::Platform
 		}
 
 		SpawnEvent(EventType::WINDOW_REPAINT,
-			[&](EventHandler* pEventHandler)
+			[&](EventHandler& eventHandler)
 		{
-			pEventHandler->OnWindowRepaint(WindowRepaintEvent());
+			eventHandler.OnWindowRepaint(WindowRepaintEvent());
 		});
 	}
 
@@ -604,9 +604,9 @@ namespace Tether::Platform
 
 				SetCloseRequested(true);
 				SpawnEvent(Events::EventType::WINDOW_CLOSING,
-					[this](Events::EventHandler* pEventHandler)
+					[this](Events::EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
+					eventHandler.OnWindowClosing(Events::WindowClosingEvent());
 				});
 			}
 			break;
@@ -660,9 +660,9 @@ namespace Tether::Platform
 			case WM_CHAR:
 			{
 				SpawnEvent(EventType::WINDOW_REPAINT,
-					[&](EventHandler* pEventHandler)
+					[&](EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowRepaint(WindowRepaintEvent());
+					eventHandler.OnWindowRepaint(WindowRepaintEvent());
 				});
 
 				Input::KeyCharInfo event(
@@ -733,9 +733,9 @@ namespace Tether::Platform
 
 				WindowMoveEvent event(m_X, m_Y);
 				SpawnEvent(Events::EventType::WINDOW_MOVE,
-					[&](Events::EventHandler* pEventHandler)
+					[&](Events::EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowMove(event);
+					eventHandler.OnWindowMove(event);
 				});
 			}
 			break;
@@ -785,9 +785,9 @@ namespace Tether::Platform
 
 				WindowResizeEvent event(m_Width, m_Height);
 				SpawnEvent(Events::EventType::WINDOW_RESIZE,
-					[&](Events::EventHandler* pEventHandler)
+					[&](Events::EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowResize(event);
+					eventHandler.OnWindowResize(event);
 				});
 			}
 			break;
@@ -808,9 +808,9 @@ namespace Tether::Platform
 			case WM_PAINT:
 			{
 				SpawnEvent(EventType::WINDOW_REPAINT,
-					[&](EventHandler* pEventHandler)
+				[&](EventHandler& eventHandler)
 				{
-					pEventHandler->OnWindowRepaint(WindowRepaintEvent());
+					eventHandler.OnWindowRepaint(WindowRepaintEvent());
 				});
 
 				return DefWindowProc(hWnd, msg, wParam, lParam);

@@ -14,30 +14,28 @@ namespace Tether::Devices
 	public:
 		struct DisplayMode
 		{
-			std::string name;
-			uint64_t refreshRate;
-			double exactRefreshRate;
-			uint64_t width;
-			uint64_t height;
+			std::wstring name;
+			uint64_t refreshRate = 0;
+			double exactRefreshRate = 0.0;
+			uint64_t width = 0;
+			uint64_t height = 0;
 		};
 
 		Monitor(
-			size_t index, int x, int y, int width, int height, 
-			std::string_view deviceName, bool primary, DisplayMode currentMode, 
+			int x, int y, int width, int height, 
+			std::wstring_view deviceName, bool primary, DisplayMode currentMode, 
 			const std::vector<DisplayMode>& displayModes
 		);
 
-		const size_t GetIndex() const;
 		const int GetX() const;
 		const int GetY() const;
 		const int GetWidth() const;
 		const int GetHeight() const;
-		const std::string GetDeviceName() const;
+		const std::wstring_view GetDeviceName() const;
 		const DisplayMode GetCurrentMode() const;
 		const std::vector<DisplayMode>& GetDisplayModes() const;
 		bool IsPrimary() const;
 	protected:
-		size_t index = 0;
 		int x = 0;
 		int y = 0;
 		int width = 0;
@@ -45,7 +43,7 @@ namespace Tether::Devices
 
 		bool primary = false;
 
-		std::string name = "";
+		std::wstring_view name;
 		
 		DisplayMode currentMode;
 		std::vector<DisplayMode> modes;
