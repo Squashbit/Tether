@@ -85,6 +85,16 @@ namespace Tether::Platform
         XUnlockDisplay(m_App.GetDisplay());
     }
 
+    void X11Window::Run()
+    {
+        XEvent event;
+        while (!IsCloseRequested())
+        {
+            XNextEvent(m_App.GetDisplay(), &event);
+            ProcessEvent(event);
+        }
+    }
+
     void X11Window::SetVisible(bool visibility)
     {
         if (visibility)
@@ -376,7 +386,7 @@ namespace Tether::Platform
             case Window::CursorMode::HIDDEN:
             {
                 XDefineCursor(m_App.GetDisplay(), m_Window, 
-                    m_App->storage->hiddenCursor);
+                    m_App.GetHiddenCursor());
             }
             break;
 
@@ -386,14 +396,12 @@ namespace Tether::Platform
                     m_App.GetDisplay(), m_App.GetRoot(), true,
                     PointerMotionMask | ButtonPressMask | ButtonReleaseMask,
                     GrabModeAsync, GrabModeAsync, 
-                    m_App.GetRoot(), m_App->storage->hiddenCursor, 
+                    m_App.GetRoot(), m_App.GetHiddenCursor(), 
                     CurrentTime
                 );
             }
             break;
         }
-
-        cursorMode = mode;
     }
 
     void X11Window::SetCursorPos(int x, int y)
@@ -446,241 +454,273 @@ namespace Tether::Platform
         return attribs.height;
     }
 
+    int X11Window::GetMouseX()
+    {
+        return m_MouseX;
+    }
+
+    int X11Window::GetMouseY()
+    {
+        return m_MouseY;
+    }
+
+    int X11Window::GetRelativeMouseX()
+    {
+        return m_RelMouseX;
+    }
+
+    int X11Window::GetRelativeMouseY()
+    {
+        return m_RelMouseY;
+    }
+
+    bool X11Window::IsFocused()
+    {
+        XID focusedWindow;
+        int revertTo;
+
+        XGetInputFocus(m_App.GetDisplay(), &focusedWindow, &revertTo);
+
+        return focusedWindow == m_Window;
+    }
+
     void X11Window::PollEvents()
     {
-        using namespace Events;
-        using namespace Input;
-
         if (!m_Visible)
             return;
 
-        bool eventReceived = false;
+        XEvent event;
         while (XPending(m_App.GetDisplay()))
         {
-            XNextEvent(m_App.GetDisplay(), &storage->event);
-            eventReceived = true;
-            
-            switch (storage->event.type)
+            XNextEvent(m_App.GetDisplay(), &event);
+            ProcessEvent(event);
+        }
+    }
+
+    void X11Window::ProcessEvent(XEvent& event)
+    {
+        using namespace Events;
+        using namespace Input;
+        
+        switch (event.type)
+        {
+            case GenericEvent:
             {
-                case GenericEvent:
-                {
-                    if (!rawInputEnabled)
-                        continue;
+                if (!m_RawInputEnabled)
+                    return;
 
-                    XGenericEventCookie* cookie = &storage->event.xcookie;
-                    if (XGetEventData(m_App.GetDisplay(), cookie))
-                    {
-                        if (cookie->extension != m_App->storage->xi.opcode
-                            || cookie->evtype != XI_RawMotion)
-                            continue;
-                        
-                        XIRawEvent* data = (XIRawEvent*)cookie->data;
-                        const double* values = data->raw_values;
+                XGenericEventCookie* cookie = &event.xcookie;
+                if (!XGetEventData(m_App.GetDisplay(), cookie))
+                    return;
 
-                        uint64_t x = 0;
-                        uint64_t y = 0;
-
-                        if (XIMaskIsSet(data->valuators.mask, 0))
-                        {
-                            x = *values;
-                            values++;
-                        }
-
-                        if (XIMaskIsSet(data->valuators.mask, 1))
-                            y = *values;
-                        
-                        if (x == 0 && y == 0)
-                            continue;
-
-                        Input::RawMouseMoveInfo moveInfo(
-                            x,
-                            y
-                        );
-
-                        SpawnInput(Input::InputType::RAW_MOUSE_MOVE, 
-                        [&](Input::InputListener* pInputListener)
-                        {
-                            pInputListener->OnRawMouseMove(moveInfo);
-                        });
-
-                        XFreeEventData(m_App.GetDisplay(), cookie);
-                        continue;
-                    }
-                }
-                break;
-
-                case KeyPress:
-                {
-                    Time eventTime = storage->event.xkey.time;
-                    const uint32_t scancode = storage->event.xkey.keycode;
-
-                    // Since Xlib doesn't have a built in way of telling if a 
-                    // KeyPress event was a repeat or not, 
-                    // this is the best I can manage.
-                    
-                    bool repeat = scancode == storage->lastPressed;
-                    if (!repeat)
-                    {
-                        Input::KeyInfo keyInfo(
-                            scancode,
-                            m_App->storage->keycodes[scancode],
-                            true
-                        );
-
-                        SpawnInput(Input::InputType::KEY, 
-                        [&](Input::InputListener* pInputListener)
-                        {
-                            pInputListener->OnKey(keyInfo);
-                        });
-
-                        storage->lastPressed = scancode;
-                    }
-                    storage->pressTimes[scancode] = eventTime;
-
-                    Input::KeyCharInfo keyCharInfo(
-                        m_App->storage->keycodes[scancode],
-                        repeat
-                    );
-
-                    SpawnInput(Input::InputType::KEY_CHAR, 
-                    [&](Input::InputListener* pInputListener)
-                    {
-                        pInputListener->OnKeyChar(keyCharInfo);
-                    });
-                }
-                break;
-
-                case KeyRelease:
-                {
-                    const uint32_t scancode = storage->event.xkey.keycode;
-
-                    if (XEventsQueued(m_App.GetDisplay(), QueuedAfterReading))
-                    {
-                        XEvent nextEvent;
-                        XPeekEvent(m_App.GetDisplay(), &nextEvent);
-
-                        // The last check is if the time of the key pressed is 
-                        // within 20 milliseconds of each other (the interval that
-                        // XIM sends out key press repeats)
-                        if (nextEvent.type == KeyPress &&
-                            nextEvent.xkey.window == storage->event.xkey.window &&
-                            nextEvent.xkey.keycode == scancode &&
-                            (nextEvent.xkey.time - storage->event.xkey.time) < 20)
-                            return;
-                    }
-
-                    Input::KeyInfo keyInfo(
-                        scancode,
-                        m_App->storage->keycodes[scancode],
-                        false
-                    );
-
-                    SpawnInput(Input::InputType::KEY, 
-                    [&](Input::InputListener* pInputListener)
-                    {
-                        pInputListener->OnKey(keyInfo);
-                    });
-
-                    storage->lastPressed = UINT32_MAX;
-                }
-                break;
+                if (cookie->extension != m_App.GetXI().opcode
+                    || cookie->evtype != XI_RawMotion)
+                    return;
                 
-                case MotionNotify:
+                XIRawEvent* data = (XIRawEvent*)cookie->data;
+                const double* values = data->raw_values;
+
+                uint64_t x = 0;
+                uint64_t y = 0;
+
+                if (XIMaskIsSet(data->valuators.mask, 0))
                 {
-                    if (!prevReceivedMouseMove)
-                    {
-                        mouseX = storage->event.xmotion.x_root;
-                        mouseY = storage->event.xmotion.y_root;
-                        relMouseX = storage->event.xmotion.x;
-                        relMouseY = storage->event.xmotion.y;
-                    }
-
-                    MouseMoveInfo mouseMove(
-                        storage->event.xmotion.x_root,
-                        storage->event.xmotion.y_root,
-                        storage->event.xmotion.x,
-                        storage->event.xmotion.y,
-                        relMouseX,
-                        relMouseY,
-                        mouseX,
-                        mouseY
-                    );
-                    
-                    SpawnInput(Input::InputType::MOUSE_MOVE, 
-                    [&](Input::InputListener* pInputListener)
-                    {
-                        pInputListener->OnMouseMove(mouseMove);
-                    });
-
-                    mouseX = storage->event.xmotion.x_root;
-                    mouseY = storage->event.xmotion.y_root;
-                    relMouseX = storage->event.xmotion.x;
-                    relMouseY = storage->event.xmotion.y;
-
-                    prevReceivedMouseMove = true;
+                    x = *values;
+                    values++;
                 }
-                break;
 
-                case ConfigureNotify:
+                if (XIMaskIsSet(data->valuators.mask, 1))
+                    y = *values;
+                
+                if (x == 0 && y == 0)
+                    return;
+
+                RawMouseMoveInfo moveInfo(
+                    x,
+                    y
+                );
+
+                SpawnInput(InputType::RAW_MOUSE_MOVE, 
+                [&](InputListener& inputListener)
                 {
-                    XConfigureEvent xce = storage->event.xconfigure;
+                    inputListener.OnRawMouseMove(moveInfo);
+                });
 
-                    // Verify that the event was a move event
-                    if (xce.width != prevWidth || xce.height != prevHeight)
-                    {
-                        WindowResizeEvent linkEvent(
-                            xce.width,
-                            xce.height
-                        );
-
-                        SpawnEvent(Events::EventType::WINDOW_RESIZE, 
-                        [&](Events::EventHandler* pEventHandler)
-                        {
-                            pEventHandler->OnWindowResize(linkEvent);
-                        });
-
-                        prevWidth = xce.width;
-                        prevHeight = xce.height;
-
-                        return;
-                    }
-
-                    if (xce.x != prevX || xce.y != prevY)
-                    {
-                        WindowMoveEvent event(
-                            xce.x,
-                            xce.y
-                        );
-
-                        SpawnEvent(Events::EventType::WINDOW_MOVE,
-                        [&](Events::EventHandler* pEventHandler)
-                        {
-                            pEventHandler->OnWindowMove(event);
-                        });
-
-                        prevX = xce.x;
-                        prevY = xce.y;
-                    }
-                }
-                break;
-
-                case ClientMessage:
-                {
-                    // Check for WM_PROTOCOLS
-                    if (storage->event.xclient.message_type != 
-                        XInternAtom(m_App.GetDisplay(), "WM_PROTOCOLS", false))
-                        break;
-                    
-                    SetCloseRequested(true);
-
-                    SpawnEvent(Events::EventType::WINDOW_CLOSING, 
-                    [this](Events::EventHandler* pEventHandler)
-                    {
-                        pEventHandler->OnWindowClosing(Events::WindowClosingEvent());
-                    });
-                }
-                break;
+                XFreeEventData(m_App.GetDisplay(), cookie);
             }
+            break;
+
+            case KeyPress:
+            {
+                Time eventTime = event.xkey.time;
+                const uint32_t scancode = event.xkey.keycode;
+
+                // Since Xlib doesn't have a built in way of telling if a 
+                // KeyPress event was a repeat or not, 
+                // this is the best I can manage.
+                
+                bool repeat = scancode == m_LastPressed;
+                if (!repeat)
+                {
+                    KeyInfo keyInfo(
+                        scancode,
+                        m_App.GetKeycodes()[scancode],
+                        true
+                    );
+
+                    SpawnInput(InputType::KEY, 
+                    [&](InputListener& inputListener)
+                    {
+                        inputListener.OnKey(keyInfo);
+                    });
+
+                    m_LastPressed = scancode;
+                }
+                
+                KeyCharInfo keyCharInfo(
+                    m_App.GetKeycodes()[scancode],
+                    repeat
+                );
+
+                SpawnInput(InputType::KEY_CHAR, 
+                [&](InputListener& inputListener)
+                {
+                    inputListener.OnKeyChar(keyCharInfo);
+                });
+            }
+            break;
+
+            case KeyRelease:
+            {
+                const uint32_t scancode = event.xkey.keycode;
+
+                if (XEventsQueued(m_App.GetDisplay(), QueuedAfterReading))
+                {
+                    XEvent nextEvent;
+                    XPeekEvent(m_App.GetDisplay(), &nextEvent);
+
+                    // The last check is if the time of the key pressed is 
+                    // within 20 milliseconds of each other (the interval that
+                    // XIM sends out key press repeats)
+                    if (nextEvent.type == KeyPress &&
+                        nextEvent.xkey.window == event.xkey.window &&
+                        nextEvent.xkey.keycode == scancode &&
+                        (nextEvent.xkey.time - event.xkey.time) < 20)
+                        return;
+                }
+
+                KeyInfo keyInfo(
+                    scancode,
+                    m_App.GetKeycodes()[scancode],
+                    false
+                );
+
+                SpawnInput(InputType::KEY, 
+                [&](InputListener& inputListener)
+                {
+                    inputListener.OnKey(keyInfo);
+                });
+
+                m_LastPressed = UINT32_MAX;
+            }
+            break;
+            
+            case MotionNotify:
+            {
+                if (!m_PrevReceivedMouseMove)
+                {
+                    m_MouseX = event.xmotion.x_root;
+                    m_MouseY = event.xmotion.y_root;
+                    m_RelMouseX = event.xmotion.x;
+                    m_RelMouseY = event.xmotion.y;
+                }
+
+                MouseMoveInfo mouseMove(
+                    event.xmotion.x_root,
+                    event.xmotion.y_root,
+                    event.xmotion.x,
+                    event.xmotion.y,
+                    m_RelMouseX,
+                    m_RelMouseY,
+                    m_MouseX,
+                    m_MouseY
+                );
+                
+                SpawnInput(InputType::MOUSE_MOVE, 
+                [&](InputListener& inputListener)
+                {
+                    inputListener.OnMouseMove(mouseMove);
+                });
+
+                m_MouseX = event.xmotion.x_root;
+                m_MouseY = event.xmotion.y_root;
+                m_RelMouseX = event.xmotion.x;
+                m_RelMouseY = event.xmotion.y;
+
+                m_PrevReceivedMouseMove = true;
+            }
+            break;
+
+            case ConfigureNotify:
+            {
+                XConfigureEvent xce = event.xconfigure;
+
+                // Verify that the event was a move event
+                if (xce.width != m_PrevWidth || xce.height != m_PrevHeight)
+                {
+                    WindowResizeEvent linkEvent(
+                        xce.width,
+                        xce.height
+                    );
+
+                    SpawnEvent(Events::EventType::WINDOW_RESIZE, 
+                    [&](Events::EventHandler& eventHandler)
+                    {
+                        eventHandler.OnWindowResize(linkEvent);
+                    });
+
+                    m_PrevWidth = xce.width;
+                    m_PrevHeight = xce.height;
+
+                    return;
+                }
+
+                if (xce.x != m_PrevX || xce.y != m_PrevY)
+                {
+                    WindowMoveEvent event(
+                        xce.x,
+                        xce.y
+                    );
+
+                    SpawnEvent(Events::EventType::WINDOW_MOVE,
+                    [&](Events::EventHandler& eventHandler)
+                    {
+                        eventHandler.OnWindowMove(event);
+                    });
+
+                    m_PrevX = xce.x;
+                    m_PrevY = xce.y;
+                }
+            }
+            break;
+
+            case ClientMessage:
+            {
+                // Check for WM_PROTOCOLS
+                if (event.xclient.message_type != 
+                    XInternAtom(m_App.GetDisplay(), "WM_PROTOCOLS", false))
+                    break;
+                
+                SetCloseRequested(true);
+
+                WindowClosingEvent event;
+                SpawnEvent(Events::EventType::WINDOW_CLOSING, 
+                [&](Events::EventHandler& eventHandler)
+                {
+                    eventHandler.OnWindowClosing(event);
+                });
+            }
+            break;
         }
     }
 

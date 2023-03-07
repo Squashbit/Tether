@@ -9,17 +9,12 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Window
+class TestWindow
 {
 public:
 	class EventHandler : public Events::EventHandler
 	{
 	public:
-		EventHandler(TestWindow* pWindow)
-			:
-			pWindow(pWindow)
-		{}
-
 		void OnWindowResize(Events::WindowResizeEvent event)
 		{
 			std::cout << "Resized window to W=" << event.GetNewWidth()
@@ -31,23 +26,6 @@ public:
 			std::cout << "Moved window to X=" << event.GetX()
 				<< ", Y=" << event.GetY() << std::endl;
 		}
-
-		void OnWindowClosing(Events::WindowClosingEvent event)
-		{
-			pWindow->SetVisible(false);
-		}
-
-		void OnWindowError(Events::WindowErrorEvent event)
-		{
-			std::cout << "window error: " << std::endl;
-			std::cout << "\tERROR    = " << (int)event.GetCode() << std::endl;
-			std::cout << "\tSEVERITY = " << (int)event.GetSeverity()
-				<< std::endl;
-			std::cout << "\tFUNC_NAME = " << event.GetFunctionName()
-				<< std::endl;
-		}
-	private:
-		TestWindow* pWindow = nullptr;
 	};
 
 	class TestListener : public Input::InputListener
@@ -99,8 +77,7 @@ public:
 
 	TestWindow()
 		:
-		Window(1280, 720, "sup"),
-		handler(this)
+		m_Window(Window::Create(1280, 720, L"TestWindow"))
 	{
 		/*AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
@@ -112,21 +89,23 @@ public:
 		AddInputListener(listener, Input::InputType::KEY);
 		AddInputListener(listener, Input::InputType::KEY_CHAR);*/
 
-		SetRawInputEnabled(true);
+		m_Window->SetRawInputEnabled(true);
 
-		SetX(120);
-		SetY(120);
+		m_Window->SetX(120);
+		m_Window->SetY(120);
 
-		SetVisible(true);
+		m_Window->SetVisible(true);
 
-		Run();
+		m_Window->Run();
 	}
 
 	~TestWindow()
 	{
-		RemoveEventHandler(handler);
+		m_Window->RemoveEventHandler(handler);
 	}
 private:
+	Scope<Window> m_Window;
+
 	EventHandler handler;
 	TestListener listener;
 };
@@ -135,6 +114,5 @@ int main()
 {
 	TestWindow window;
 
-	Application::DisposeApplication();
 	return 0;
 }

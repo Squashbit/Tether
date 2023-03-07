@@ -118,7 +118,7 @@ namespace Tether::Platform
 		UnregisterClass(m_ClassName.c_str(), m_Hinst);
 	}
 
-	bool Win32Window::Run()
+	void Win32Window::Run()
 	{
 		using namespace Events;
 
@@ -137,8 +137,6 @@ namespace Tether::Platform
 				);
 			}
 		}
-
-		return true;
 	}
 
 	void Win32Window::SetVisible(bool visibility)

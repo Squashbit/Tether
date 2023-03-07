@@ -62,11 +62,11 @@ namespace Tether
 		void RemoveInputListener(Input::InputListener& listener);
 
 		void SetCloseRequested(bool requested);
-		bool IsCloseRequested();
+		bool IsCloseRequested() const;
 
 		void SpawnEvent(
 			Events::EventType eventType,
-			std::function<void(Events::EventHandler*)> callEventFun
+			std::function<void(Events::EventHandler&)> callEventFun
 		);
 
 		void SpawnInput(
@@ -78,7 +78,7 @@ namespace Tether
 
 		virtual void OnPollEvent() {}
 
-		virtual bool Run() = 0;
+		virtual void Run() = 0;
 
 		virtual void SetVisible(bool visibility) = 0;
 		virtual bool IsVisible() = 0;

@@ -18,7 +18,7 @@ namespace Tether::Platform
 			bool visible = false);
 		~Win32Window();
 
-		bool Run() override;
+		void Run() override;
 
 		void SetVisible(bool visibility) override;
 		bool IsVisible() override;

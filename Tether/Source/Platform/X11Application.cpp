@@ -139,6 +139,11 @@ namespace Tether::Platform
         return root;
     }
 
+    const Cursor X11Application::GetHiddenCursor() const
+    {
+        return hiddenCursor;
+    }
+
     void X11Application::LoadLibraries()
     {
         using namespace Storage;

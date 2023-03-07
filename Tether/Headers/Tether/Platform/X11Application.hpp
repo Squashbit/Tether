@@ -21,7 +21,7 @@ namespace Tether::Platform
             void* handle;
         };
 
-        typedef int (*PFN_XISelectEvents)(Display*,Window,XIEventMask*,int);
+        typedef int (*PFN_XISelectEvents)(Display*,XID,XIEventMask*,int);
         
         struct XExtension
         {
@@ -46,6 +46,7 @@ namespace Tether::Platform
         const int GetScreen() const;
         Display* const GetDisplay() const;
         const unsigned int GetRoot() const;
+        const Cursor GetHiddenCursor() const;
     private:
         void LoadLibraries();
 		void LoadFunctions();

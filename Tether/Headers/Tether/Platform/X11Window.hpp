@@ -22,7 +22,7 @@ namespace Tether::Platform
 			bool visible);
 		~X11Window();
 
-		bool Run() override;
+		void Run() override;
 
 		void SetVisible(bool visibility) override;
 		bool IsVisible() override;
@@ -58,10 +58,11 @@ namespace Tether::Platform
 		int GetRelativeMouseY() override;
 		bool IsFocused() override;
 	private:
+		void ProcessEvent(XEvent& event);
 		void ProcessMwmFunctions();
-		
-		uint64_t prevX = 0, prevY = 0;
-		uint64_t prevWidth = 0, prevHeight = 0;
+
+		int m_PrevX = 0, m_PrevY = 0;
+		int m_PrevWidth = 0, m_PrevHeight = 0;
 
 		bool m_Visible = false;
 		bool m_Closable = true;
@@ -70,19 +71,22 @@ namespace Tether::Platform
 		bool m_Fullscreen = false;
 		uint8_t m_StyleMask = ButtonStyleMask::MAXIMIZE_BUTTON
 			                | ButtonStyleMask::MINIMIZE_BUTTON;
+
 		bool m_BoundsEnabled = false;
 		int m_MinWidth  = INT_MIN; 
 		int m_MinHeight = INT_MIN;
 		int m_MaxWidth  = INT_MAX;
 		int m_MaxHeight = INT_MAX;
 
+		bool m_PrevReceivedMouseMove = false;
+		int m_MouseX = INT_MIN;
+		int m_MouseY = INT_MIN;
+		int m_RelMouseX = INT_MIN;
+		int m_RelMouseY = INT_MIN;
+
 		unsigned long m_Window = 0;
-		int screen = 0;
 
-		XEvent event;
-
-		std::unordered_map<uint32_t, Time> pressTimes;
-		uint32_t lastPressed = UINT32_MAX;
+		uint32_t m_LastPressed = UINT32_MAX;
 
 		using ConvertType = std::codecvt_utf8<wchar_t>;
 		std::wstring_convert<ConvertType, wchar_t> m_WideConverter;
