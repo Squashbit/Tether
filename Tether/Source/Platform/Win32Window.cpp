@@ -526,12 +526,12 @@ namespace Tether::Platform
 			else
 				style &= ~WS_THICKFRAME;
 
-			if (m_StyleMask & ButtonStyleMask::MINIMIZE_BUTTON && m_Resizable)
+			if (m_StyleMask & ButtonStyleMask::MINIMIZE_BUTTON)
 				style |= WS_MINIMIZEBOX;
 			else
 				style &= ~WS_MINIMIZEBOX;
 
-			if (m_StyleMask & ButtonStyleMask::MAXIMIZE_BUTTON)
+			if (m_StyleMask & ButtonStyleMask::MAXIMIZE_BUTTON && m_Resizable)
 				style |= WS_MAXIMIZEBOX;
 			else
 				style &= ~WS_MAXIMIZEBOX;
