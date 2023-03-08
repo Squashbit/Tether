@@ -32,21 +32,6 @@ namespace Tether
 			DISABLED,
 		};
 
-		enum class FullscreenFields
-		{
-			WIDTH        = (uint64_t)1,
-			HEIGHT       = (uint64_t)1 << 1,
-			BITSPERPIXEL = (uint64_t)1 << 2
-		};
-
-		struct FullscreenSettings
-		{
-			uint64_t width = 0;
-			uint64_t height = 0;
-			uint64_t bitsPerPixel = 0;
-			uint64_t fields = 0;
-		};
-
 		static Scope<Window> Create(int width, int height, std::wstring_view title,
 			bool visible = false);
 
@@ -101,8 +86,7 @@ namespace Tether
 		virtual void SetButtonStyleBitmask(uint8_t mask) = 0;
 		virtual void SetMaximized(bool maximized) = 0;
 		virtual void SetPreferredResizeInc(int x, int y) = 0;
-		virtual void SetFullscreen(bool fullscreen, const FullscreenSettings& settings,
-			const Devices::Monitor& monitor) = 0;
+		virtual void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) = 0;
 		virtual void PollEvents() = 0;
 		virtual int GetX() = 0;
 		virtual int GetY() = 0;

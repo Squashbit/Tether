@@ -378,24 +378,16 @@ namespace Tether::Platform
 	void Win32Window::SetPreferredResizeInc(int x, int y)
 	{}
 
-	void Win32Window::SetFullscreen(bool fullscreen, 
-		const FullscreenSettings& settings, const Devices::Monitor& monitor)
+	void Win32Window::SetFullscreen(bool fullscreen, const Devices::Monitor& monitor)
 	{
-		if (fullscreen == fullscreen)
+		if (m_Fullscreen == fullscreen)
 			return;
 
 		if (fullscreen)
 		{
-			DEVMODEW dmScreenSettings{};
-			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-			dmScreenSettings.dmPelsWidth = 1920;
-			dmScreenSettings.dmPelsHeight = 1080;
-			dmScreenSettings.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-			ChangeDisplaySettings(&dmScreenSettings, CDS_FULLSCREEN);
-
 			SetWindowLong(m_Hwnd, GWL_STYLE, WS_POPUP);
-			SetWindowPos(m_Hwnd, HWND_TOP, 0, 0, dmScreenSettings.dmPelsWidth,
-				dmScreenSettings.dmPelsHeight, SWP_SHOWWINDOW);
+			SetWindowPos(m_Hwnd, HWND_TOP, monitor.GetX(), monitor.GetY(), 
+				monitor.GetWidth(), monitor.GetHeight(), SWP_SHOWWINDOW);
 			ShowWindow(m_Hwnd, SW_MAXIMIZE);
 		}
 		else
@@ -416,7 +408,7 @@ namespace Tether::Platform
 			ShowWindow(m_Hwnd, SW_SHOW);
 		}
 
-		fullscreen = fullscreen;
+		m_Fullscreen = fullscreen;
 	}
 
 	int Win32Window::GetX()

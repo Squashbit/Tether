@@ -2,8 +2,7 @@
 
 #include <Tether/Tether.hpp>
 
-#include <locale>
-#include <codecvt>
+#include <algorithm>
 
 using namespace Tether;
 
@@ -12,8 +11,6 @@ int main()
 	using DisplayMode = Devices::Monitor::DisplayMode;
 
 	Application& app = Application::Get();
-
-	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> wideConverter;
 
 	std::cout << "Monitor count: " << app.GetMonitorCount() << '\n';
 
@@ -29,12 +26,11 @@ int main()
 		std::cout << "\t\ty = " << monitor.GetY() << '\n';
 		std::cout << "\t\twidth = " << monitor.GetWidth() << '\n';
 		std::cout << "\t\theight = " << monitor.GetHeight() << '\n';
-		std::cout << "\t\tname = " << wideConverter.to_bytes(
-			monitor.GetDeviceName().data()) << '\n';
+		std::cout << "\t\tname = " << monitor.GetDeviceName() << '\n';
+		std::cout << "\t\tname = " << monitor.GetInternalDeviceName() << '\n';
 
 		DisplayMode currentMode = monitor.GetCurrentMode();
-		std::cout << "\t\tcurrentMode.name = " << wideConverter.to_bytes(
-			currentMode.name.data()) << '\n';
+		std::cout << "\t\tcurrentMode.name = " << currentMode.name << '\n';
 		std::cout << "\t\tcurrentMode.refreshRate = " << currentMode.refreshRate << '\n';
 		std::cout << "\t\tcurrentMode.exactRefreshRate = " << currentMode.exactRefreshRate << '\n';
 		std::cout << "\t\tcurrentMode.width = " << currentMode.width << '\n';
@@ -42,18 +38,21 @@ int main()
 
 		std::cout << "\t\tdisplayModes = \n";
 		const std::vector<DisplayMode>& displayModes = monitor.GetDisplayModes();
-		for (size_t j = 0; j < displayModes.size(); j++)
+		for (size_t j = 0; j < std::min(displayModes.size(), 
+			static_cast<size_t>(10)); j++)
 		{
 			const DisplayMode& mode = displayModes[j];
 
 			std::cout << "\t\t[" << j << "]\n";
-			std::cout << "\t\t\tname = " << wideConverter.to_bytes(
-				mode.name.data()) << '\n';
+			std::cout << "\t\t\tname = " << mode.name << '\n';
 			std::cout << "\t\t\trefreshRate = " << mode.refreshRate << '\n';
 			std::cout << "\t\t\texactRefreshRate = " << mode.exactRefreshRate << '\n';
 			std::cout << "\t\t\twidth = " << mode.width << '\n';
 			std::cout << "\t\t\theight = " << mode.height << '\n';
 		}
+
+		if (displayModes.size() > 10)
+			std::cout << "\t\t\t...\n";
 
 		std::cout << "\t\tisPrimary = " << monitor.IsPrimary() << '\n';
 	}

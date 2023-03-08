@@ -14,16 +14,33 @@ namespace Tether::Devices
 	public:
 		struct DisplayMode
 		{
-			std::wstring name;
-			uint64_t refreshRate = 0;
-			double exactRefreshRate = 0.0;
-			uint64_t width = 0;
-			uint64_t height = 0;
+			DisplayMode(
+				std::string name,
+				uint64_t refreshRate,
+				double exactRefreshRate,
+				uint64_t width,
+				uint64_t height
+			)
+				:
+				name(name),
+				refreshRate(refreshRate),
+				exactRefreshRate(exactRefreshRate),
+				width(width),
+				height(height)
+			{}
+
+			const std::string name;
+			const uint64_t refreshRate = 0;
+			const double exactRefreshRate = 0.0;
+			const uint64_t width = 0;
+			const uint64_t height = 0;
 		};
 
 		Monitor(
 			int x, int y, int width, int height, 
-			std::wstring_view deviceName, bool primary, DisplayMode currentMode, 
+			std::string_view deviceName, 
+			std::string_view internalDeviceName, 
+			bool primary, DisplayMode currentMode,
 			const std::vector<DisplayMode>& displayModes
 		);
 
@@ -31,7 +48,8 @@ namespace Tether::Devices
 		const int GetY() const;
 		const int GetWidth() const;
 		const int GetHeight() const;
-		const std::wstring_view GetDeviceName() const;
+		const std::string GetDeviceName() const;
+		const std::string GetInternalDeviceName() const;
 		const DisplayMode GetCurrentMode() const;
 		const std::vector<DisplayMode>& GetDisplayModes() const;
 		bool IsPrimary() const;
@@ -43,7 +61,8 @@ namespace Tether::Devices
 
 		bool primary = false;
 
-		std::wstring_view name;
+		std::string name;
+		std::string internalName;
 		
 		DisplayMode currentMode;
 		std::vector<DisplayMode> modes;

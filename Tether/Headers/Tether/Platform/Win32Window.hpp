@@ -41,8 +41,7 @@ namespace Tether::Platform
 		void SetButtonStyleBitmask(uint8_t mask) override;
 		void SetMaximized(bool maximized) override;
 		void SetPreferredResizeInc(int x, int y) override;
-		void SetFullscreen(bool fullscreen, const FullscreenSettings& settings,
-			const Devices::Monitor& monitor) override;
+		void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) override;
 		void PollEvents() override;
 		int GetX() override;
 		int GetY() override;

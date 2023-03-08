@@ -1,7 +1,9 @@
 #include <Tether/Platform/Win32Application.hpp>
 #include <cstring>
 
-#define UNICODE
+#ifdef UNICODE
+#undef UNICODE
+#endif
 #include <Windows.h>
 
 namespace Tether::Platform
@@ -13,8 +15,58 @@ namespace Tether::Platform
 		LPARAM dwData
 	)
 	{
-		std::vector<HMONITOR>* pMonitors = (std::vector<HMONITOR>*)dwData;
-		pMonitors->push_back(hMonitor);
+		MONITORINFOEX monitorInfo{};
+		monitorInfo.cbSize = sizeof(MONITORINFOEX);
+
+		if (!GetMonitorInfo(hMonitor, &monitorInfo))
+			return FALSE;
+
+		std::vector<Devices::Monitor::DisplayMode> modes;
+
+		DEVMODE devmode{};
+		for (size_t i = 0; EnumDisplaySettings(monitorInfo.szDevice, 
+			static_cast<DWORD>(i), &devmode); i++)
+		{
+			Devices::Monitor::DisplayMode mode(
+				(char*)devmode.dmDeviceName,
+				devmode.dmDisplayFrequency,
+				devmode.dmDisplayFrequency,
+				devmode.dmPelsWidth,
+				devmode.dmPelsHeight
+			);
+
+			modes.push_back(mode);
+		}
+
+		DEVMODE currentDevmode{};
+		if (!EnumDisplaySettings(monitorInfo.szDevice, ENUM_CURRENT_SETTINGS, &currentDevmode))
+			return false;
+
+		DISPLAY_DEVICE displayDevice{};
+		displayDevice.cb = sizeof(displayDevice);
+
+		if (!EnumDisplayDevices(monitorInfo.szDevice, 0, &displayDevice, 0))
+			return false;
+
+		Devices::Monitor::DisplayMode currentMode(
+			(char*)currentDevmode.dmDeviceName,
+			currentDevmode.dmDisplayFrequency,
+			currentDevmode.dmDisplayFrequency,
+			currentDevmode.dmPelsWidth,
+			currentDevmode.dmPelsHeight
+		);
+
+		((std::vector<Devices::Monitor>*)dwData)->emplace_back(
+			monitorInfo.rcMonitor.left,
+			monitorInfo.rcMonitor.top,
+			monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
+			monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
+			displayDevice.DeviceString,
+			monitorInfo.szDevice,
+			monitorInfo.dwFlags & MONITORINFOF_PRIMARY,
+			currentMode,
+			modes
+		);
 
 		return TRUE;
 	}
@@ -26,53 +78,8 @@ namespace Tether::Platform
 
 	std::vector<Devices::Monitor> Win32Application::GetMonitors()
 	{
-		std::vector<HMONITOR> hmonitors;
-		EnumDisplayMonitors(NULL, NULL, EnumerateMonitors, (LPARAM)&hmonitors);
-
 		std::vector<Devices::Monitor> monitors;
-		monitors.reserve(hmonitors.size());
-
-		for (HMONITOR hmonitor : hmonitors)
-		{
-			MONITORINFOEX monitorInfo{};
-			GetMonitorInfo(hmonitor, &monitorInfo);
-
-			std::vector<Devices::Monitor::DisplayMode> modes;
-
-			DEVMODE devmode{};
-			for (size_t i = 0; EnumDisplaySettings(NULL, static_cast<DWORD>(i), &devmode); i++)
-			{
-				Devices::Monitor::DisplayMode mode;
-				mode.exactRefreshRate = devmode.dmDisplayFrequency;
-				mode.refreshRate = devmode.dmDisplayFrequency;
-				mode.name = devmode.dmDeviceName;
-				mode.width = devmode.dmPelsWidth;
-				mode.height = devmode.dmPelsHeight;
-
-				modes.push_back(mode);
-			}
-
-			DEVMODE currentDevmode{};
-			EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &devmode);
-
-			Devices::Monitor::DisplayMode currentMode;
-			currentMode.exactRefreshRate = currentDevmode.dmDisplayFrequency;
-			currentMode.refreshRate = currentDevmode.dmDisplayFrequency;
-			currentMode.name = currentDevmode.dmDeviceName;
-			currentMode.width = currentDevmode.dmPelsWidth;
-			currentMode.height = currentDevmode.dmPelsHeight;
-
-			monitors.emplace_back(
-				monitorInfo.rcMonitor.left,
-				monitorInfo.rcMonitor.top,
-				monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left,
-				monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top,
-				monitorInfo.szDevice,
-				monitorInfo.dwFlags & MONITORINFOF_PRIMARY,
-				currentMode,
-				modes
-			);
-		}
+		EnumDisplayMonitors(NULL, NULL, EnumerateMonitors, (LPARAM)&monitors);
 
 		return monitors;
 	}
