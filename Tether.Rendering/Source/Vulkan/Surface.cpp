@@ -1,19 +1,23 @@
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 #include <Tether/Module/Rendering/Vulkan/Instance.hpp>
-#include <Tether/Native.hpp>
 
 #include <stdexcept>
 
 #ifdef __linux__
-#include <Tether/Platform/X11Window.hpp>
-
 #include <vulkan/vulkan_xlib.h>
+
+#include <Tether/Platform/X11Window.hpp>
 #elif _WIN32
-#include <Tether/Platform/Win32Window.hpp>
+
+#ifndef UNICODE
+#define UNICODE
+#endif
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
+
+#include <Tether/Platform/Win32Window.hpp>
 #endif
 
 using namespace Tether::Rendering::Vulkan;
@@ -26,11 +30,11 @@ Surface::Surface(VkInstance instance, InstanceLoader& loader, Window& window)
 {
 #ifdef __linux__
 	Native::X11Window& windowNative =
-		(Native::X11Window&)window.GetWindowNative();
+		(Native::X11Window&)window;
 
 	VkXlibSurfaceCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-	createInfo.dpy = Application::Get().GetStorage()->display;
+	createInfo.dpy = (X11Application&)Application::Get().GetDisplay();
 	createInfo.window = windowNative.window;
 	
 	PFN_vkCreateXlibSurfaceKHR func = (PFN_vkCreateXlibSurfaceKHR)

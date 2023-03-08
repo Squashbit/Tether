@@ -9,45 +9,23 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-class TestWindow : public Window
+class TestWindow
 {
 public:
 	class EventHandler : public Events::EventHandler
 	{
 	public:
-		EventHandler(TestWindow* pWindow)
-			:
-			pWindow(pWindow)
-		{}
-
-		void OnWindowResize(Events::WindowResizeEvent event)
+		void OnWindowResize(Events::WindowResizeEvent& event)
 		{
 			std::cout << "Resized window to W=" << event.GetNewWidth()
 				<< ", H=" << event.GetNewHeight() << std::endl;
 		}
 
-		void OnWindowMove(Events::WindowMoveEvent event)
+		void OnWindowMove(Events::WindowMoveEvent& event)
 		{
 			std::cout << "Moved window to X=" << event.GetX()
 				<< ", Y=" << event.GetY() << std::endl;
 		}
-
-		void OnWindowClosing(Events::WindowClosingEvent event)
-		{
-			pWindow->SetVisible(false);
-		}
-
-		void OnWindowError(Events::WindowErrorEvent event)
-		{
-			std::cout << "window error: " << std::endl;
-			std::cout << "\tERROR    = " << (int)event.GetCode() << std::endl;
-			std::cout << "\tSEVERITY = " << (int)event.GetSeverity()
-				<< std::endl;
-			std::cout << "\tFUNC_NAME = " << event.GetFunctionName()
-				<< std::endl;
-		}
-	private:
-		TestWindow* pWindow = nullptr;
 	};
 
 	class TestListener : public Input::InputListener
@@ -99,32 +77,42 @@ public:
 
 	TestWindow()
 		:
-		Window(1280, 720, "sup", false),
-		handler(this)
+		m_Window(Window::Create(1280, 720, L"sup"))
 	{
-		AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
-		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
-		AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
-		AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
 
-		AddInputListener(listener, Input::InputType::MOUSE_MOVE);
-		AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
-		AddInputListener(listener, Input::InputType::KEY);
-		AddInputListener(listener, Input::InputType::KEY_CHAR);
+		m_Window->AddInputListener(listener, Input::InputType::MOUSE_MOVE);
+		m_Window->AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
+		m_Window->AddInputListener(listener, Input::InputType::KEY);
+		m_Window->AddInputListener(listener, Input::InputType::KEY_CHAR);
 
-		SetRawInputEnabled(true);
+		m_Window->SetRawInputEnabled(true);
 
-		SetX(120);
-		SetY(120);
+		m_Window->SetX(120);
+		m_Window->SetY(120);
 
-		SetVisible(true);
+		m_Window->SetVisible(true);
 	}
 
 	~TestWindow()
 	{
-		RemoveEventHandler(handler);
+		m_Window->RemoveEventHandler(handler);
+	}
+
+	void PollEvents()
+	{
+		m_Window->PollEvents();
+	}
+
+	bool IsCloseRequested()
+	{
+		return m_Window->IsCloseRequested();
 	}
 private:
+	Scope<Window> m_Window;
+
 	EventHandler handler;
 	TestListener listener;
 };

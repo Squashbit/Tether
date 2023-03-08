@@ -14,9 +14,9 @@ namespace Tether::Events
 	class TETHER_EXPORT EventHandler
 	{
 	public:
-		virtual void OnWindowClosing(WindowClosingEvent event) {}
-		virtual void OnWindowRepaint(WindowRepaintEvent event) {}
-		virtual void OnWindowResize(WindowResizeEvent event) {}
-		virtual void OnWindowMove(WindowMoveEvent event) {}
+		virtual void OnWindowClosing(const WindowClosingEvent& event) {}
+		virtual void OnWindowRepaint(const WindowRepaintEvent& event) {}
+		virtual void OnWindowResize(const WindowResizeEvent& event) {}
+		virtual void OnWindowMove(const WindowMoveEvent& event) {}
 	};
 }

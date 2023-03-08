@@ -1,19 +1,18 @@
 #include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
-#include <Tether/Module/Rendering/Vulkan/Context.hpp>
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanWindow::VulkanWindow(Context& context, Window& window)
+	VulkanWindow::VulkanWindow(Window& window, VulkanContext& context)
 		:
+		m_Context(context),
 		window(window),
-		m_Surface(context.instance, context.instanceLoader, window),
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader)
+		m_Surface(m_Context, window)
 	{
-		indices = context.indices;
+		indices = GlobalVulkan::Get().GetQueueFamilyIndices();
 
-		ChooseSurfaceFormat(context.instanceLoader, context.physicalDevice);
+		ChooseSurfaceFormat();
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SurfaceFormat.format;
@@ -56,22 +55,30 @@ namespace Tether::Rendering::Vulkan
 		desc.dependencyCount = 1;
 		desc.pDependencies = &dependency;
 
-		if (m_Dloader.vkCreateRenderPass(m_Device, &desc, nullptr,
-			&renderPass) != VK_SUCCESS)
+		if (m_Context.deviceLoader.vkCreateRenderPass(m_Context.device, &desc, 
+			nullptr, &renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Render pass creation failed");
 	}
 
 	VulkanWindow::~VulkanWindow()
 	{
-		m_Dloader.vkDestroyRenderPass(m_Device, renderPass, nullptr);
+		m_Context.deviceLoader.vkDestroyRenderPass(m_Context.device, renderPass, 
+			nullptr);
 	}
 
-	void VulkanWindow::ChooseSurfaceFormat(InstanceLoader& iloader,
-		VkPhysicalDevice physicalDevice)
+	VulkanContext VulkanWindow::MakeVulkanContext()
+	{
+		VulkanContext context = m_Context;
+		context.renderPass = renderPass;
+
+		return context;
+	}
+
+	void VulkanWindow::ChooseSurfaceFormat()
 	{
 		uint32_t formatCount;
-		iloader.vkGetPhysicalDeviceSurfaceFormatsKHR(
-			physicalDevice, m_Surface.Get(),
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_Context.physicalDevice, m_Surface.Get(),
 			&formatCount, nullptr
 		);
 
@@ -81,8 +88,8 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkSurfaceFormatKHR> formats;
 		formats.resize(formatCount);
 
-		iloader.vkGetPhysicalDeviceSurfaceFormatsKHR(
-			physicalDevice,
+		m_Context.instanceLoader.vkGetPhysicalDeviceSurfaceFormatsKHR(
+			m_Context.physicalDevice,
 			m_Surface.Get(), &formatCount,
 			formats.data()
 		);

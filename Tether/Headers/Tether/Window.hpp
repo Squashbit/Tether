@@ -6,13 +6,14 @@
 #include <Tether/Events/EventHandler.hpp>
 #include <Tether/Events/EventType.hpp>
 #include <Tether/Input/InputListener.hpp>
-#include <Tether/Devices/DeviceManager.hpp>
 #include <Tether/Devices/Monitor.hpp>
 
 #include <string_view>
 #include <vector>
 #include <functional>
+#include <mutex>
 #include <shared_mutex>
+#include <atomic>
 
 namespace Tether
 {
@@ -31,21 +32,6 @@ namespace Tether
 			DISABLED,
 		};
 
-		enum class FullscreenFields
-		{
-			WIDTH        = (uint64_t)1,
-			HEIGHT       = (uint64_t)1 << 1,
-			BITSPERPIXEL = (uint64_t)1 << 2
-		};
-
-		struct FullscreenSettings
-		{
-			uint64_t width = 0;
-			uint64_t height = 0;
-			uint64_t bitsPerPixel = 0;
-			uint64_t fields = 0;
-		};
-
 		static Scope<Window> Create(int width, int height, std::wstring_view title,
 			bool visible = false);
 
@@ -61,23 +47,23 @@ namespace Tether
 		void RemoveInputListener(Input::InputListener& listener);
 
 		void SetCloseRequested(bool requested);
-		bool IsCloseRequested();
+		bool IsCloseRequested() const;
 
 		void SpawnEvent(
 			Events::EventType eventType,
-			std::function<void(Events::EventHandler*)> callEventFun
+			std::function<void(Events::EventHandler&)> callEventFun
 		);
 
 		void SpawnInput(
 			Input::InputType inputType,
-			std::function<void(Input::InputListener*)> callInputFun
+			std::function<void(Input::InputListener&)> callInputFun
 		);
 
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 
 		virtual void OnPollEvent() {}
 
-		virtual bool Run() = 0;
+		virtual void Run() = 0;
 
 		virtual void SetVisible(bool visibility) = 0;
 		virtual bool IsVisible() = 0;
@@ -99,8 +85,8 @@ namespace Tether
 		virtual void SetClosable(bool closable) = 0;
 		virtual void SetButtonStyleBitmask(uint8_t mask) = 0;
 		virtual void SetMaximized(bool maximized) = 0;
-		virtual void SetFullscreen(bool fullscreen, const FullscreenSettings& settings,
-			const Devices::Monitor& monitor) = 0;
+		virtual void SetPreferredResizeInc(int x, int y) = 0;
+		virtual void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) = 0;
 		virtual void PollEvents() = 0;
 		virtual int GetX() = 0;
 		virtual int GetY() = 0;

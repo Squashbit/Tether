@@ -8,22 +8,38 @@ namespace Tether::Input
     class TETHER_EXPORT MouseClickInfo
     {
     public:
-        MouseClickInfo() = default;
+        enum class ClickType
+        {
+            LEFT_BUTTON   = 0,
+            MIDDLE_BUTTON = 1,
+            RIGHT_BUTTON  = 2,
+            SIDE_BUTTON1  = 3,
+            SIDE_BUTTON2  = 4,
+        };
+
         MouseClickInfo(
-            uint64_t rootX,
-            uint64_t rootY,
-            uint64_t relativeX,
-            uint64_t relativeY
+            int rootX,
+            int rootY,
+            int relativeX,
+            int relativeY,
+            ClickType type,
+            bool pressed
         );
         
-        uint64_t GetRootX();
-        uint64_t GetRootY();
-        uint64_t GetRelativeX();
-        uint64_t GetRelativeY();
+        // Relative to the screen
+        int GetRootX();
+        int GetRootY();
+        // Relative to the Window
+        int GetRelativeX();
+        int GetRelativeY();
+        ClickType GetClickType();
+        bool IsPressed();
     private:
-        uint64_t rootX = 0;
-        uint64_t rootY = 0;
-        uint64_t relativeX = 0;
-        uint64_t relativeY = 0;
+        int rootX = 0;
+        int rootY = 0;
+        int relativeX = 0;
+        int relativeY = 0;
+        ClickType type = ClickType::LEFT_BUTTON;
+        bool pressed = false;
     };
 }

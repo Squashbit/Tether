@@ -99,17 +99,17 @@ namespace Tether
 
 	void Window::SetCloseRequested(bool requested)
 	{
-		this->m_CloseRequested = requested;
+		m_CloseRequested = requested;
 	}
 
-	bool Window::IsCloseRequested()
+	bool Window::IsCloseRequested() const
 	{
 		return m_CloseRequested;
 	}
 
 	void Window::SpawnEvent(
 		Events::EventType eventType,
-		std::function<void(Events::EventHandler*)> callEventFun
+		std::function<void(Events::EventHandler&)> callEventFun
 	)
 	{
 		std::shared_lock handlersLock(m_HandlersMutex);
@@ -119,12 +119,12 @@ namespace Tether
 
 		std::vector<Events::EventHandler*> eventList = m_Handlers[eventType];
 		for (uint64_t i = 0; i < eventList.size(); i++)
-			callEventFun(eventList[i]);
+			callEventFun(*eventList[i]);
 	}
 
 	void Window::SpawnInput(
 		Input::InputType inputType,
-		std::function<void(Input::InputListener*)> callInputFun
+		std::function<void(Input::InputListener&)> callInputFun
 	)
 	{
 		std::shared_lock listenersLock(m_InputListenersMutex);
@@ -134,7 +134,7 @@ namespace Tether
 
 		std::vector<Input::InputListener*> listenerList = m_InputListeners[inputType];
 		for (uint64_t i = 0; i < listenerList.size(); i++)
-			callInputFun(listenerList[i]);
+			callInputFun(*listenerList[i]);
 	}
 
 	void Window::SpawnKeyInput(uint32_t scancode, uint32_t keycode,
@@ -147,9 +147,9 @@ namespace Tether
 		);
 
 		SpawnInput(Input::InputType::KEY,
-			[&](Input::InputListener* pInputListener)
+			[&](Input::InputListener& inputListener)
 		{
-			pInputListener->OnKey(event);
+			inputListener.OnKey(event);
 		});
 	}
 }

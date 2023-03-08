@@ -2,7 +2,8 @@
 
 #include <Tether/Events/EventHandler.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Context.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Compositor.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
@@ -11,19 +12,21 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT Renderer
+	class TETHER_EXPORT VulkanCompositor : public Compositor
 	{
 	public:
-		Renderer(Context& context, VulkanWindow& window);
-		~Renderer();
-		TETHER_NO_COPY(Renderer);
+		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window,
+			bool autoRecreateSwapchain = true);
+		~VulkanCompositor();
+		TETHER_NO_COPY(VulkanCompositor);
 
-		bool RenderFrame();
+		bool RenderFrame() override;
 
-		uint32_t GetSwapchainImageCount();
+		bool RecreateSwapchain();
 	private:
-		void CheckPresentSupport();
+		void Init();
 
+		void CheckPresentSupport();
 		void CreateSwapchain();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
@@ -33,11 +36,13 @@ namespace Tether::Rendering::Vulkan
 		
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
-		bool RecreateSwapchain();
 		void DestroySwapchain();
 
-		Context& m_Context;
-		VulkanWindow& m_Window;
+		VulkanRenderer& m_Renderer;
+		VulkanWindow& m_VulkanWindow;
+		Window& m_Window;
+		VulkanContext& m_Context;
+
 		DeviceLoader& m_Dloader;
 
 		SwapchainDetails m_SwapchainDetails;
@@ -47,11 +52,11 @@ namespace Tether::Rendering::Vulkan
 		class ResizeHandler : public Events::EventHandler
 		{
 		public:
-			ResizeHandler(Renderer& renderer);
+			ResizeHandler(VulkanCompositor& renderer);
 
 			void OnWindowResize(Events::WindowResizeEvent event) override;
 		private:
-			Renderer& m_Renderer;
+			VulkanCompositor& m_Renderer;
 		};
 		ResizeHandler m_ResizeHandler;
 
@@ -66,9 +71,8 @@ namespace Tether::Rendering::Vulkan
 		std::vector<VkFence> m_InFlightFences;
 
 		bool m_ShouldRecreateSwapchain = false;
+		const bool m_AutoRecreateSwapchain = true;
 
 		uint32_t m_CurrentFrame = 0;
-
-		const uint32_t MAX_FRAMES_IN_FLIGHT = 2;
 	};
 }

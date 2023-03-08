@@ -18,7 +18,7 @@ namespace Tether::Platform
 			bool visible = false);
 		~Win32Window();
 
-		bool Run() override;
+		void Run() override;
 
 		void SetVisible(bool visibility) override;
 		bool IsVisible() override;
@@ -40,8 +40,8 @@ namespace Tether::Platform
 		void SetClosable(bool closable) override;
 		void SetButtonStyleBitmask(uint8_t mask) override;
 		void SetMaximized(bool maximized) override;
-		void SetFullscreen(bool fullscreen, const FullscreenSettings& settings,
-			const Devices::Monitor& monitor) override;
+		void SetPreferredResizeInc(int x, int y) override;
+		void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) override;
 		void PollEvents() override;
 		int GetX() override;
 		int GetY() override;
@@ -58,6 +58,18 @@ namespace Tether::Platform
 	protected:
 		LRESULT HandleMessage(HWND hwnd, DWORD msg, WPARAM wparam, LPARAM lparam);
 	private:
+		void SpawnMouseClick(
+			LPARAM lParam,
+			Input::MouseClickInfo::ClickType type,
+			bool pressed
+		);
+
+		bool SpawnXbuttonClick(
+			LPARAM lParam,
+			WPARAM wParam,
+			bool pressed
+		);
+
 		void GenerateClassName();
 
 		RECT GetAdjustedRect(int x, int y, int width, int height);

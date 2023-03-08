@@ -4,6 +4,8 @@
 #include <Tether/Common/Ref.hpp>
 #include <Tether/Common/Types.hpp>
 
+#include <Tether/Devices/Monitor.hpp>
+
 #include <vector>
 #include <optional>
 
@@ -15,33 +17,27 @@ namespace Tether
 	}
 
 	class TETHER_EXPORT Application
-    {
-    public:
-        ~Application();
-        TETHER_NO_COPY(Application);
-        
-        Storage::AppVarStorage* GetStorage() const;
-        const int16_t*const GetKeycodes() const;
-        const int16_t*const GetScancodes() const;
-        
-        static Application& Get();
-    private:
-        Application();
+	{
+	public:
+		static constexpr const size_t KEYCODES_LENGTH = 512;
+		static constexpr const size_t SCANCODES_LENGTH = Keycodes::KEY_LAST + 1;
 
-        bool OnInit();
-        void OnAppDispose();
+		Application();
+		virtual ~Application() = 0;
 
-		void LoadLibraries();
-		void LoadFunctions();
-        void FreeLibraries();
+		const int16_t*const GetKeycodes() const;
+		const int16_t*const GetScancodes() const;
 
-        void CreateKeyLUT();
+		virtual size_t GetMonitorCount() = 0;
+        virtual std::vector<Devices::Monitor> GetMonitors() = 0;
+		
+		static Application& Get();
+	private:
+		virtual void CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes) = 0;
 
-		int16_t keycodes[512];
-		int16_t scancodes[Keycodes::KEY_LAST + 1];
-
-        Scope<Storage::AppVarStorage> storage;
-
-        inline static std::unique_ptr<Application> internal = nullptr;
-    };
+		int16_t m_Keycodes[KEYCODES_LENGTH];
+		int16_t m_Scancodes[SCANCODES_LENGTH];
+		
+		inline static Scope<Application> internal = nullptr;
+	};
 }

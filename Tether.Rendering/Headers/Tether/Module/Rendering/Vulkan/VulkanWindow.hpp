@@ -5,26 +5,28 @@
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
+
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT VulkanWindow
 	{
-		friend class Renderer;
+		friend class VulkanCompositor;
 	public:
-		VulkanWindow(Context& context, Window& window);
+		VulkanWindow(Window& window, VulkanContext& context = GlobalVulkan::Get());
 		~VulkanWindow();
 		TETHER_NO_COPY(VulkanWindow);
-		
-		VkRenderPass renderPass = nullptr;
+
+		VulkanContext MakeVulkanContext();
+	protected:
+		VulkanContext& m_Context;
+
 		Window& window;
 		Surface m_Surface;
 		VkSurfaceFormatKHR m_SurfaceFormat;
 		QueueFamilyIndices indices;
+		VkRenderPass renderPass = nullptr;
 	private:
-		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
-
-		void ChooseSurfaceFormat(InstanceLoader& iloader,
-			VkPhysicalDevice physicalDevice);
+		void ChooseSurfaceFormat();
 	};
 }
