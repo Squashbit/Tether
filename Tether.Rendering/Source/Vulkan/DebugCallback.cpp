@@ -1,16 +1,11 @@
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
-#include <Tether/Module/Rendering/Vulkan/Context.hpp>
+#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
-	DebugCallback::DebugCallback(Context& context)
-		:
-		m_Context(context)
-	{}
-
 	DebugCallback::~DebugCallback()
 	{
-		if (m_IsInContext)
-			m_Context.RemoveDebugMessenger(*this);
+		if (m_IsInGlobalVulkan && GlobalVulkan::IsAlive())
+			GlobalVulkan::Get().RemoveDebugMessenger(*this);
 	}
 }

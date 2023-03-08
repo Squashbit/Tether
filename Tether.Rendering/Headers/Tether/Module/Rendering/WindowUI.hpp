@@ -49,8 +49,8 @@ namespace Tether::Rendering
 		public:
 			Repainter(WindowUI& windowUI);
 
-			void OnWindowRepaint(Events::WindowRepaintEvent event) override;
-			void OnWindowResize(Events::WindowResizeEvent event) override;
+			void OnWindowRepaint(const Events::WindowRepaintEvent& event) override;
+			void OnWindowResize(const Events::WindowResizeEvent& event) override;
 		private:
 			WindowUI& m_WindowUI;
 		};

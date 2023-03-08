@@ -6,7 +6,7 @@
 using namespace Tether::Rendering::Vulkan;
 
 Swapchain::Swapchain(
-	Context& context,
+	VulkanContext& context,
 	uint32_t graphicsFamilyIndex,
 	const SwapchainDetails& details,
 	VkSurfaceFormatKHR surfaceFormat,

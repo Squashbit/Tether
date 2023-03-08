@@ -1,6 +1,5 @@
 # Tether
-The purpose of Tether is to provide easy access to their computer's hardware.
-Eventually, Tether will have support for GUI rendering, Audio playback, A cross-platform Window.. thingy, and some other stuff.
+Tether is a app creation/GUI library created in C++. 
 
 # How to contribute
 Message SawtoothGabe#6139 on discord that you would like to work on Tether (and some prior experience in C++ would help too).

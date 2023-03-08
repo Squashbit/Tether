@@ -2,7 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 
@@ -34,7 +34,6 @@ namespace Tether::Rendering::Vulkan
 		void WaitIdle();
 
 		VkPhysicalDeviceProperties GetPhysicalDeviceProperties();
-		QueueFamilyIndices FindQueueFamilies();
 		
 		VkDevice Get();
 		VkPhysicalDevice GetPhysicalDevice();

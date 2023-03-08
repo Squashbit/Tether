@@ -1,8 +1,9 @@
 #pragma once
 
 #include <Tether/Window.hpp>
+#include <Tether/Module/Rendering/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Context.hpp>
+#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -13,7 +14,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT Surface
 	{
 	public:
-		Surface(VkInstance instance, InstanceLoader& loader, Window& window);
+		Surface(VulkanContext& context, Window& window);
 		~Surface();
 		TETHER_NO_COPY(Surface);
 

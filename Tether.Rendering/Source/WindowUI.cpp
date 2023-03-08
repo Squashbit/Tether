@@ -8,12 +8,12 @@ namespace Tether::Rendering
 		m_WindowUI(windowUI)
 	{}
 
-	void WindowUI::Repainter::OnWindowRepaint(Events::WindowRepaintEvent event)
+	void WindowUI::Repainter::OnWindowRepaint(const Events::WindowRepaintEvent& event)
 	{
 		m_WindowUI.Repaint(true);
 	}
 
-	void WindowUI::Repainter::OnWindowResize(Events::WindowResizeEvent event)
+	void WindowUI::Repainter::OnWindowResize(const Events::WindowResizeEvent& event)
 	{
 		if (m_WindowUI.m_RepaintOnResize)
 			m_WindowUI.Repaint();
