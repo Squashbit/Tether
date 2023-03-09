@@ -268,11 +268,8 @@ namespace Tether::Platform
             XA_WM_NORMAL_HINTS);
     }
 
-    void X11Window::SetFullscreen(
-        bool fullscreen, 
-        const FullscreenSettings& settings,
-		const Devices::Monitor& monitor
-    )
+    void X11Window::SetFullscreen(bool fullscreen, 
+        const Devices::Monitor& monitor)
     {
         if (m_Fullscreen == fullscreen)
             return;
@@ -712,7 +709,7 @@ namespace Tether::Platform
                     break;
                 
                 SetCloseRequested(true);
-
+                
                 WindowClosingEvent event;
                 SpawnEvent(Events::EventType::WINDOW_CLOSING, 
                 [&](Events::EventHandler& eventHandler)

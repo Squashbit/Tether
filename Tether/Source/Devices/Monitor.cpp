@@ -7,13 +7,15 @@ namespace Tether::Devices
 		std::string_view deviceName, 
         std::string_view internalDeviceName,
         bool primary, DisplayMode currentMode,
-		const std::vector<DisplayMode>& displayModes
+		const std::vector<DisplayMode>& displayModes,
+        int index
     )
         :
         x(x),
         y(y),
         width(width),
         height(height),
+        index(index),
         primary(primary),
         name(deviceName),
         internalName(internalDeviceName),
@@ -39,6 +41,11 @@ namespace Tether::Devices
     const int Monitor::GetHeight() const
     {
         return height;
+    }
+
+    const int Monitor::GetIndex() const
+    {
+        return index;
     }
 
     bool Monitor::IsPrimary() const

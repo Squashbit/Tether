@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cstring>
 #include <cmath>
+#include <optional>
 
 namespace Tether::Platform
 {
@@ -50,7 +51,7 @@ namespace Tether::Platform
         return numMonitors;
     }
 
-    Devices::Monitor X11Application::GetMonitor(size_t index)
+    std::vector<Devices::Monitor> X11Application::GetMonitors()
     {
         using DisplayMode = Devices::Monitor::DisplayMode;
 
@@ -63,60 +64,69 @@ namespace Tether::Platform
             &numMonitors
         );
 
-        if (index >= numMonitors)
-            throw std::out_of_range("Index greater than monitor count");
-
-        DisplayMode currentMode;
-        std::vector<DisplayMode> displayModes;
+        std::vector<Devices::Monitor> monitors;
+        monitors.reserve(numMonitors);
         
-        XRRMonitorInfo monitorInfo = monitorInfos[index];
-        for (uint64_t i = 0; i < monitorInfo.noutput; i++)
+        for (size_t monitorIndex = 0; monitorIndex < numMonitors; 
+            monitorIndex++)
         {
-            XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
-                resources,
-                monitorInfo.outputs[i]
-            );
-            XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
-                outputInfo->crtc);
-            
-            for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
-            {
-                XRRModeInfo mode;
-                for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
-                    if (resources->modes[i3].id == outputInfo->modes[i2])
-                        mode = resources->modes[i3];
-                
-                DisplayMode displayMode;
-                displayMode.name = mode.name;
-                displayMode.exactRefreshRate = mode.dotClock 
-                        / ((double)mode.hTotal * mode.vTotal);
-                displayMode.refreshRate = std::round(displayMode.exactRefreshRate);
-                displayMode.width = mode.width;
-                displayMode.height = mode.height;
+            std::optional<DisplayMode> currentMode;
+            std::vector<DisplayMode> displayModes;
 
-                if (info->mode == mode.id)
-                    currentMode = displayMode;
+            XRRMonitorInfo monitorInfo = monitorInfos[monitorIndex];
+            for (uint64_t i = 0; i < monitorInfo.noutput; i++)
+            {
+                XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
+                    resources,
+                    monitorInfo.outputs[i]
+                );
+                XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
+                    outputInfo->crtc);
                 
-                displayModes.push_back(displayMode);
+                for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
+                {
+                    XRRModeInfo mode;
+                    for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
+                        if (resources->modes[i3].id == outputInfo->modes[i2])
+                            mode = resources->modes[i3];
+
+                    float exactRefreshRate = mode.dotClock 
+                            / ((double)mode.hTotal * mode.vTotal);
+                    
+                    DisplayMode displayMode(
+                        mode.name,
+                        (uint64_t)std::round(exactRefreshRate),
+                        exactRefreshRate,
+                        mode.width,
+                        mode.height
+                    );
+                    
+                    if (info->mode == mode.id)
+                        currentMode.emplace(displayMode);
+                    
+                    displayModes.push_back(displayMode);
+                }
+
+                XRRFreeCrtcInfo(info);
+                XRRFreeOutputInfo(outputInfo);
             }
 
-            XRRFreeCrtcInfo(info);
-            XRRFreeOutputInfo(outputInfo);
+            char* name = XGetAtomName(display, monitorInfo.name);
+        
+            Devices::Monitor monitor(
+                monitorInfo.x, monitorInfo.y, monitorInfo.width,
+                monitorInfo.height, name, name, 
+                monitorInfo.primary, currentMode.value(),
+                displayModes, monitorIndex
+            );
+            
+            XFree(name);
         }
 
-        char* name = XGetAtomName(display, monitorInfo.name);
-        
-        Devices::Monitor monitor(
-            index, monitorInfo.x, monitorInfo.y, monitorInfo.width,
-            monitorInfo.height, name, monitorInfo.primary, currentMode,
-            displayModes
-        );
-        
-        XFree(name);
         XRRFreeMonitors(monitorInfos);
         XRRFreeScreenResources(resources);
         
-        return monitor;
+        return monitors;
     }
 
     const X11Application::XILibrary& X11Application::GetXI() const

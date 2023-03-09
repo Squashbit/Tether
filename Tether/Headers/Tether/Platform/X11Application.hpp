@@ -40,7 +40,7 @@ namespace Tether::Platform
         };
 
         size_t GetMonitorCount() override;
-        Devices::Monitor GetMonitor(size_t index) override;
+        std::vector<Devices::Monitor> GetMonitors() override;
         
         const XILibrary& GetXI() const;
         const int GetScreen() const;

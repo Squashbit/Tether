@@ -41,13 +41,15 @@ namespace Tether::Devices
 			std::string_view deviceName, 
 			std::string_view internalDeviceName, 
 			bool primary, DisplayMode currentMode,
-			const std::vector<DisplayMode>& displayModes
+			const std::vector<DisplayMode>& displayModes,
+			int index = -1
 		);
 
 		const int GetX() const;
 		const int GetY() const;
 		const int GetWidth() const;
 		const int GetHeight() const;
+		const int GetIndex() const; // Unused on Windows
 		const std::string GetDeviceName() const;
 		const std::string GetInternalDeviceName() const;
 		const DisplayMode GetCurrentMode() const;
@@ -58,6 +60,7 @@ namespace Tether::Devices
 		int y = 0;
 		int width = 0;
 		int height = 0;
+		int index = 0;
 
 		bool primary = false;
 
