@@ -62,7 +62,6 @@ namespace Tether
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 
 		virtual void SetVisible(bool visibility) = 0;
-		virtual bool IsVisible() = 0;
 		virtual void SetRawInputEnabled(bool enabled) = 0;
 		virtual void SetCursorMode(Window::CursorMode mode) = 0;
 		virtual void SetCursorPos(int x, int y) = 0;
@@ -82,18 +81,31 @@ namespace Tether
 		virtual void SetButtonStyleBitmask(uint8_t mask) = 0;
 		virtual void SetMaximized(bool maximized) = 0;
 		virtual void SetPreferredResizeInc(int x, int y) = 0;
-		virtual void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) = 0;
-		virtual int GetX() = 0;
-		virtual int GetY() = 0;
-		virtual int GetWidth() = 0;
-		virtual int GetHeight() = 0;
-		virtual int GetMouseX() = 0;
-		virtual int GetMouseY() = 0;
-		virtual int GetRelativeMouseX() = 0;
-		virtual int GetRelativeMouseY() = 0;
+		virtual void EnableFullscreen(const Devices::Monitor& monitor) = 0;
+		virtual void DisableFullscreen() = 0;
 		virtual bool IsFocused() = 0;
+		virtual bool IsVisible() = 0;
+
+		int GetY() const;
+		int GetX() const;
+		int GetWidth() const;
+		int GetHeight() const;
+		int GetMouseX() const;
+		int GetMouseY() const;
+		int GetRelativeMouseX() const;
+		int GetRelativeMouseY() const;
 	protected:
 		Application& m_App;
+
+		int m_X = 0;
+		int m_Y = 0;
+		int m_Width = 0;
+		int m_Height = 0;
+
+		int m_MouseX = -1;
+		int m_MouseY = -1;
+		int m_RelMouseX = -1;
+		int m_RelMouseY = -1;
 	private:
 		std::atomic_bool m_CloseRequested = false;
 

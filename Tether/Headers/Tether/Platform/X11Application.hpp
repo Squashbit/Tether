@@ -8,21 +8,26 @@
 #include <X11/Xatom.h>
 #include <X11/XKBlib.h>
 
-#include <X11/extensions/XInput2.h>
-#include <X11/extensions/Xrandr.h>
-
 namespace Tether::Platform
 {
     class X11Application : public Application
     {
     public:
-        typedef int (*PFN_XISelectEvents)(Display*,XID,XIEventMask*,int);
-        
         struct XRRLibrary : public Library
         {
-            XRRLibrary();
+            XRRLibrary(Display* display);
 
             bool available = true;
+            int opcode = 0;
+
+            void* GetCrtcInfo = nullptr;
+            void* GetMonitors = nullptr;
+            void* GetOutputInfo = nullptr;
+            void* GetScreenResources = nullptr;
+            void* FreeCrtcInfo = nullptr;
+            void* FreeMonitors = nullptr;
+            void* FreeOutputInfo = nullptr;
+            void* FreeScreenResources = nullptr;
         };
 
         struct XILibrary : public Library
@@ -30,9 +35,9 @@ namespace Tether::Platform
             XILibrary(Display* display);
             
             bool available = true;
-            int opcode;
+            int opcode = 0;
 
-            PFN_XISelectEvents SelectEvents;
+            void* SelectEvents = nullptr;
         };
 
         X11Application();
@@ -44,6 +49,7 @@ namespace Tether::Platform
         size_t GetMonitorCount() override;
         std::vector<Devices::Monitor> GetMonitors() override;
         
+        const XRRLibrary& GetXRR() const;
         const XILibrary& GetXI() const;
         const int GetScreen() const;
         Display* const GetDisplay() const;
@@ -51,16 +57,8 @@ namespace Tether::Platform
         const Cursor GetHiddenCursor() const;
         const XContext GetUserDataContext() const;
     private:
-        struct MonitorDisplayModes
-        {
-            std::optional<Devices::Monitor::DisplayMode> currentMode;
-            std::vector<Devices::Monitor::DisplayMode> displayModes;
-        };
 
         void RedirectEventToWindow(XEvent& event);
-
-        void QueryDisplayModes(XRRScreenResources* resources,
-            const XRRMonitorInfo& monitorInfo, MonitorDisplayModes& modes);
 
         void CreateKeyLUTs(int16_t* keycodes, int16_t* scancodes) override;
 
@@ -79,7 +77,3 @@ namespace Tether::Platform
         Cursor hiddenCursor;
     };
 }
-
-#define XISelectEvents(display, window, masks, numMasks) \
-    ((X11Application&)Application::Get()).GetXI().SelectEvents(display, \
-        window, masks, numMasks)

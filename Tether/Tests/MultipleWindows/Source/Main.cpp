@@ -9,7 +9,7 @@
 using namespace std::literals::chrono_literals;
 using namespace Tether;
 
-static constexpr const size_t WINDOW_COUNT = 3;
+static constexpr const size_t WINDOW_COUNT = 30;
 static bool s_WindowsClosed[WINDOW_COUNT]{};
 
 class TestWindow
@@ -64,11 +64,6 @@ public:
 		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
 	}
 
-	void PollEvents()
-	{
-		m_Window->PollEvents();
-	}
-
 	bool IsCloseRequested()
 	{
 		return m_Window->IsCloseRequested();
@@ -95,7 +90,7 @@ void TestWindow::EventHandler::OnWindowClosing()
 		windows[i].m_Window->SetVisible(true);
 		s_WindowsClosed[i] = false;
 
-		std::this_thread::sleep_for(25ms);
+		std::this_thread::sleep_for(15ms);
 	}
 }
 
@@ -114,7 +109,7 @@ int main()
 	for (size_t i = 0; i < WINDOW_COUNT; i++)
 	{
 		windows.push_back(TestWindow(monitor, i));
-		std::this_thread::sleep_for(15ms);
+		std::this_thread::sleep_for(100ms);
 	}
 
 	Application::Get().Run();

@@ -9,9 +9,27 @@
 #include <cmath>
 #include <optional>
 
+#include <X11/extensions/XInput2.h>
+#include <X11/extensions/Xrandr.h>
+
 namespace Tether::Platform
 {
-    X11Application::XRRLibrary::XRRLibrary()
+    typedef XRRCrtcInfo* (*PFN_XRRGetCrtcInfo)(Display*,XRRScreenResources*,RRCrtc);
+    typedef XRRMonitorInfo* (*PFN_XRRGetMonitors)(Display*,XID,Bool,int*);
+    typedef XRROutputInfo* (*PFN_XRRGetOutputInfo)(Display*,XRRScreenResources*,RROutput);
+    typedef XRRScreenResources* (*PFN_XRRGetScreenResources)(Display*,XID);
+    typedef void (*PFN_XRRFreeCrtcInfo)(XRRCrtcInfo*);
+    typedef void (*PFN_XRRFreeMonitors)(XRRMonitorInfo*);
+    typedef void (*PFN_XRRFreeOutputInfo)(XRROutputInfo*);
+    typedef void (*PFN_XRRFreeScreenResources)(XRRScreenResources*);
+
+    struct MonitorDisplayModes
+    {
+        std::optional<Devices::Monitor::DisplayMode> currentMode;
+        std::vector<Devices::Monitor::DisplayMode> displayModes;
+    };
+
+    X11Application::XRRLibrary::XRRLibrary(Display* display)
         :
     #if defined(__CYGWIN__)
         Library("libXrandr-2.so")
@@ -20,7 +38,27 @@ namespace Tether::Platform
     #else
         Library("libXrandr.so.2")
     #endif
-    {}
+    {
+        if (!display)
+            throw std::runtime_error("Invalid X11 display");
+        
+        int garbage;
+        if (!XQueryExtension(display, "RANDR",
+            &opcode, &garbage, &garbage))
+            available = false;
+        
+        if (!GetHandle() || !available)
+            return;
+
+        GetCrtcInfo = LoadFunction("XRRGetCrtcInfo");
+        GetMonitors = LoadFunction("XRRGetMonitors");
+        GetOutputInfo = LoadFunction("XRRGetOutputInfo");
+        GetScreenResources = LoadFunction("XRRGetScreenResources");
+        FreeCrtcInfo = LoadFunction("XRRFreeCrtcInfo");
+        FreeMonitors = LoadFunction("XRRFreeMonitors");
+        FreeOutputInfo = LoadFunction("XRRFreeOutputInfo");
+        FreeScreenResources = LoadFunction("XRRFreeScreenResources");
+    }
 
     X11Application::XILibrary::XILibrary(Display* display)
         :
@@ -43,12 +81,13 @@ namespace Tether::Platform
         if (!GetHandle() || !available)
             return;
         
-        SelectEvents = (PFN_XISelectEvents)LoadFunction("XISelectEvents");
+        SelectEvents = LoadFunction("XISelectEvents");
     }
 
     X11Application::X11Application()
         :
         display(XOpenDisplay(NULL)),
+        xrr(display),
         xi(display)
     {
         screen = DefaultScreen(display);
@@ -94,70 +133,36 @@ namespace Tether::Platform
         }
     }
 
+    #define XRR(funcName) ((PFN_XRR##funcName)xrr.funcName)
+
     size_t X11Application::GetMonitorCount()
     {
+        if (!xrr.GetHandle() || !xrr.available)
+            throw std::runtime_error("Xrandr not loaded!");
+
         int numMonitors;
-        XRRGetMonitors(display, root, false, 
-            &numMonitors);
+        XRRMonitorInfo* monitorInfos = XRR(GetMonitors)(
+            display, root, false, &numMonitors);
+        
+        XRR(FreeMonitors)(monitorInfos);
 
         return numMonitors;
     }
 
-    std::vector<Devices::Monitor> X11Application::GetMonitors()
-    {
-        using DisplayMode = Devices::Monitor::DisplayMode;
-
-        XRRScreenResources* resources = XRRGetScreenResources(display, 
-            root);
-
-        int numMonitors;
-        XRRMonitorInfo* monitorInfos = XRRGetMonitors(
-            display, root, false, 
-            &numMonitors
-        );
-
-        std::vector<Devices::Monitor> monitors;
-        monitors.reserve(numMonitors);
-        
-        for (size_t monitorIndex = 0; monitorIndex < numMonitors; 
-            monitorIndex++)
-        {
-            XRRMonitorInfo info = monitorInfos[monitorIndex];
-
-            MonitorDisplayModes modes;
-            QueryDisplayModes(resources, info, modes);
-
-            char* name = XGetAtomName(display, info.name);
-        
-            monitors.emplace_back(
-                info.x, info.y, info.width,
-                info.height, name, name, 
-                info.primary, modes.currentMode.value(),
-                modes.displayModes, monitorIndex
-            );
-            
-            
-            XFree(name);
-        }
-
-        XRRFreeMonitors(monitorInfos);
-        XRRFreeScreenResources(resources);
-        
-        return monitors;
-    }
-
-    void X11Application::QueryDisplayModes(XRRScreenResources* resources, 
-        const XRRMonitorInfo& monitorInfo, MonitorDisplayModes& modes)
+    static void QueryDisplayModes(Display* display, 
+        const X11Application::XRRLibrary& xrr,
+        XRRScreenResources* resources, const XRRMonitorInfo& monitorInfo, 
+        MonitorDisplayModes& modes)
     {
         using DisplayMode = Devices::Monitor::DisplayMode;
 
         for (uint64_t i = 0; i < monitorInfo.noutput; i++)
         {
-            XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
+            XRROutputInfo* outputInfo = XRR(GetOutputInfo)(display, 
                 resources,
                 monitorInfo.outputs[i]
             );
-            XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
+            XRRCrtcInfo* info = XRR(GetCrtcInfo)(display, resources, 
                 outputInfo->crtc);
             
             for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
@@ -184,9 +189,54 @@ namespace Tether::Platform
                 modes.displayModes.push_back(displayMode);
             }
 
-            XRRFreeCrtcInfo(info);
-            XRRFreeOutputInfo(outputInfo);
+            XRR(FreeCrtcInfo)(info);
+            XRR(FreeOutputInfo)(outputInfo);
         }
+    }
+
+    std::vector<Devices::Monitor> X11Application::GetMonitors()
+    {
+        if (!xrr.GetHandle() || !xrr.available)
+            throw std::runtime_error("Xrandr not loaded!");
+        
+        using DisplayMode = Devices::Monitor::DisplayMode;
+
+        XRRScreenResources* resources = XRR(GetScreenResources)(display, 
+            root);
+
+        int numMonitors;
+        XRRMonitorInfo* monitorInfos = XRR(GetMonitors)(
+            display, root, false, 
+            &numMonitors
+        );
+
+        std::vector<Devices::Monitor> monitors;
+        monitors.reserve(numMonitors);
+        
+        for (size_t monitorIndex = 0; monitorIndex < numMonitors; 
+            monitorIndex++)
+        {
+            XRRMonitorInfo info = monitorInfos[monitorIndex];
+
+            MonitorDisplayModes modes;
+            QueryDisplayModes(display, xrr, resources, info, modes);
+
+            char* name = XGetAtomName(display, info.name);
+        
+            monitors.emplace_back(
+                info.x, info.y, info.width,
+                info.height, name, name, 
+                info.primary, modes.currentMode.value(),
+                modes.displayModes, monitorIndex
+            );
+            
+            XFree(name);
+        }
+
+        XRR(FreeMonitors)(monitorInfos);
+        XRR(FreeScreenResources)(resources);
+        
+        return monitors;
     }
 
     const X11Application::XILibrary& X11Application::GetXI() const

@@ -152,4 +152,44 @@ namespace Tether
 			inputListener.OnKey(event);
 		});
 	}
+
+	int Window::GetX() const
+	{
+		return m_X;
+	}
+
+	int Window::GetY() const
+	{
+		return m_Y;
+	}
+
+	int Window::GetWidth() const
+	{
+		return m_Width;
+	}
+
+	int Window::GetHeight() const
+	{
+		return m_Height;
+	}
+
+	int Window::GetMouseX() const
+	{
+		return m_MouseX;
+	}
+
+	int Window::GetMouseY() const
+	{
+		return m_MouseY;
+	}
+
+	int Window::GetRelativeMouseX() const
+	{
+		return m_RelMouseX;
+	}
+
+	int Window::GetRelativeMouseY() const
+	{
+		return m_RelMouseY;
+	}
 }
