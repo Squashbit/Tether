@@ -30,11 +30,11 @@ namespace Tether
 		const int16_t*const GetScancodes() const;
 
 		virtual void Run() = 0;
-		bool IsRunning();
-		void Stop();
-
 		virtual void PollEvents() = 0;
 
+		bool IsRunning();
+		void Stop();
+		
 		virtual size_t GetMonitorCount() = 0;
         virtual std::vector<Devices::Monitor> GetMonitors() = 0;
 		

@@ -17,12 +17,11 @@ namespace Tether::Platform
 {
 	class TETHER_EXPORT X11Window : public Window
 	{
+		friend X11Application;
 	public:
 		X11Window(int width, int height, std::wstring_view title, 
 			bool visible);
 		~X11Window();
-
-		void Run() override;
 
 		void SetVisible(bool visibility) override;
 		bool IsVisible() override;

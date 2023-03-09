@@ -10,3 +10,6 @@
 [submodule "Tether.Rendering/Vendor/freetype"]
 	path = Tether.Rendering/Vendor/freetype
 	url = https://github.com/freetype/freetype
+[submodule "Tether.Rendering/Vendor/shaderc"]
+	path = Tether.Rendering/Vendor/shaderc
+	url = https://github.com/google/shaderc/

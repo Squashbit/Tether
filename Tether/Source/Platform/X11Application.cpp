@@ -1,7 +1,8 @@
-#include <Tether/Platform/X11Application.hpp>
-#include <Tether/Common/LibraryLoader.hpp>
+#include <X11/Xresource.h>
 
-#include <X11/extensions/Xrandr.h>
+#include <Tether/Platform/X11Application.hpp>
+#include <Tether/Platform/X11Window.hpp>
+#include <Tether/Common/Library.hpp>
 
 #include <stdexcept>
 #include <cstring>
@@ -10,12 +11,46 @@
 
 namespace Tether::Platform
 {
-    X11Application::X11Application()
+    X11Application::XRRLibrary::XRRLibrary()
+        :
+    #if defined(__CYGWIN__)
+        Library("libXrandr-2.so")
+    #elif defined(__OpenBSD__) || defined(__NetBSD__)
+        Library("libXrandr.so")
+    #else
+        Library("libXrandr.so.2")
+    #endif
+    {}
+
+    X11Application::XILibrary::XILibrary(Display* display)
+        :
+    #if defined(__CYGWIN__)
+        Library("libXi-6.so")
+    #elif defined(__OpenBSD__) || defined(__NetBSD__)
+        Library("libXi.so")
+    #else
+        Library("libXi.so.6")
+    #endif
     {
-        display = XOpenDisplay(NULL);
         if (!display)
-            throw std::runtime_error("Failed to open X11 display");
+            throw std::runtime_error("Invalid X11 display");
         
+        int garbage;
+        if (!XQueryExtension(display, "XInputExtension",
+            &opcode, &garbage, &garbage))
+            available = false;
+
+        if (!GetHandle() || !available)
+            return;
+        
+        SelectEvents = (PFN_XISelectEvents)LoadFunction("XISelectEvents");
+    }
+
+    X11Application::X11Application()
+        :
+        display(XOpenDisplay(NULL)),
+        xi(display)
+    {
         screen = DefaultScreen(display);
         root = DefaultRootWindow(display);
 
@@ -28,8 +63,7 @@ namespace Tether::Platform
             &color, &color, 0, 0
         );
 
-        LoadLibraries();
-        LoadFunctions();
+        m_UserDataContext = XUniqueContext();
     }
 
     X11Application::~X11Application()
@@ -38,8 +72,22 @@ namespace Tether::Platform
         XFreePixmap(display, hiddenCursorPixmap);
 
         XCloseDisplay(display);
+    }
 
-        FreeLibraries();
+    void X11Application::Run()
+    {
+        XEvent event;
+        while (IsRunning())
+        {
+            XNextEvent(display, &event);
+            
+            RedirectEventToWindow(event);
+        }
+    }
+
+	void X11Application::PollEvents()
+    {
+        
     }
 
     size_t X11Application::GetMonitorCount()
@@ -70,55 +118,20 @@ namespace Tether::Platform
         for (size_t monitorIndex = 0; monitorIndex < numMonitors; 
             monitorIndex++)
         {
-            std::optional<DisplayMode> currentMode;
-            std::vector<DisplayMode> displayModes;
+            XRRMonitorInfo info = monitorInfos[monitorIndex];
 
-            XRRMonitorInfo monitorInfo = monitorInfos[monitorIndex];
-            for (uint64_t i = 0; i < monitorInfo.noutput; i++)
-            {
-                XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
-                    resources,
-                    monitorInfo.outputs[i]
-                );
-                XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
-                    outputInfo->crtc);
-                
-                for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
-                {
-                    XRRModeInfo mode;
-                    for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
-                        if (resources->modes[i3].id == outputInfo->modes[i2])
-                            mode = resources->modes[i3];
+            MonitorDisplayModes modes;
+            QueryDisplayModes(resources, info, modes);
 
-                    float exactRefreshRate = mode.dotClock 
-                            / ((double)mode.hTotal * mode.vTotal);
-                    
-                    DisplayMode displayMode(
-                        mode.name,
-                        (uint64_t)std::round(exactRefreshRate),
-                        exactRefreshRate,
-                        mode.width,
-                        mode.height
-                    );
-                    
-                    if (info->mode == mode.id)
-                        currentMode.emplace(displayMode);
-                    
-                    displayModes.push_back(displayMode);
-                }
-
-                XRRFreeCrtcInfo(info);
-                XRRFreeOutputInfo(outputInfo);
-            }
-
-            char* name = XGetAtomName(display, monitorInfo.name);
+            char* name = XGetAtomName(display, info.name);
         
-            Devices::Monitor monitor(
-                monitorInfo.x, monitorInfo.y, monitorInfo.width,
-                monitorInfo.height, name, name, 
-                monitorInfo.primary, currentMode.value(),
-                displayModes, monitorIndex
+            monitors.emplace_back(
+                info.x, info.y, info.width,
+                info.height, name, name, 
+                info.primary, modes.currentMode.value(),
+                modes.displayModes, monitorIndex
             );
+            
             
             XFree(name);
         }
@@ -127,6 +140,49 @@ namespace Tether::Platform
         XRRFreeScreenResources(resources);
         
         return monitors;
+    }
+
+    void X11Application::QueryDisplayModes(XRRScreenResources* resources, 
+        const XRRMonitorInfo& monitorInfo, MonitorDisplayModes& modes)
+    {
+        using DisplayMode = Devices::Monitor::DisplayMode;
+
+        for (uint64_t i = 0; i < monitorInfo.noutput; i++)
+        {
+            XRROutputInfo* outputInfo = XRRGetOutputInfo(display, 
+                resources,
+                monitorInfo.outputs[i]
+            );
+            XRRCrtcInfo* info = XRRGetCrtcInfo(display, resources, 
+                outputInfo->crtc);
+            
+            for (uint64_t i2 = 0; i2 < outputInfo->nmode; i2++)
+            {
+                XRRModeInfo mode;
+                for (uint64_t i3 = 0; i3 < resources->nmode; i3++)
+                    if (resources->modes[i3].id == outputInfo->modes[i2])
+                        mode = resources->modes[i3];
+
+                float exactRefreshRate = mode.dotClock 
+                        / ((double)mode.hTotal * mode.vTotal);
+                
+                DisplayMode displayMode(
+                    mode.name,
+                    (uint64_t)std::round(exactRefreshRate),
+                    exactRefreshRate,
+                    mode.width,
+                    mode.height
+                );
+                
+                if (info->mode == mode.id)
+                    modes.currentMode.emplace(displayMode);
+                
+                modes.displayModes.push_back(displayMode);
+            }
+
+            XRRFreeCrtcInfo(info);
+            XRRFreeOutputInfo(outputInfo);
+        }
     }
 
     const X11Application::XILibrary& X11Application::GetXI() const
@@ -154,48 +210,22 @@ namespace Tether::Platform
         return hiddenCursor;
     }
 
-    void X11Application::LoadLibraries()
+    const XContext X11Application::GetUserDataContext() const
     {
-        using namespace Storage;
-
-        int garbage;
-
-    #if defined(__CYGWIN__)
-        xrr.handle = LibraryLoader::LoadLibrary("libXrandr-2.so");
-    #elif defined(__OpenBSD__) || defined(__NetBSD__)
-        xrr.handle = LibraryLoader::LoadLibrary("libXrandr.so");
-    #else
-        xrr.handle = LibraryLoader::LoadLibrary("libXrandr.so.2");
-    #endif
-
-    #if defined(__CYGWIN__)
-        xi.handle = LibraryLoader::LoadLibrary("libXi-6.so");
-    #elif defined(__OpenBSD__) || defined(__NetBSD__)
-        xi.handle = LibraryLoader::LoadLibrary("libXi.so");
-    #else
-        xi.handle = LibraryLoader::LoadLibrary("libXi.so.6");
-    #endif
-
-        if (!XQueryExtension(display, "XInputExtension",
-            &xi.opcode, &garbage, &garbage))
-            xi.available = false;
+        return m_UserDataContext;
     }
 
-    void X11Application::LoadFunctions()
+    void X11Application::RedirectEventToWindow(XEvent& event)
     {
-        using namespace Storage;
-
-        if (xi.handle && xi.available)
-        {
-            xi.SelectEvents = (PFN_XISelectEvents)
-                LibraryLoader::LoadFunction(xi.handle, "XISelectEvents");
-        }
-    }
-
-    void X11Application::FreeLibraries()
-    {
-        LibraryLoader::FreeLibrary(xrr.handle);
-        LibraryLoader::FreeLibrary(xi.handle);
+        X11Window* pWindow = nullptr;
+        if (XFindContext(display, event.xany.window, m_UserDataContext,
+            (XPointer*)&pWindow))
+            return;
+        
+        if (!pWindow)
+            return;
+        
+        pWindow->ProcessEvent(event);
     }
 
     Keycodes X11Application::TranslateScancode(const KeySym* keysyms, 

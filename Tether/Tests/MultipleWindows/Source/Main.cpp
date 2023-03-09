@@ -51,8 +51,8 @@ public:
 
 		m_Window->SetVisible(true);
 
-		m_Window->SetX(std::max(0, rand() % usableWidth));
-		m_Window->SetY(std::max(0, rand() % usableHeight));
+		m_Window->SetX(rand() % std::max(0, usableWidth));
+		m_Window->SetY(rand() % std::max(0, usableHeight));
 	}
 
 	TestWindow(TestWindow&& other) noexcept

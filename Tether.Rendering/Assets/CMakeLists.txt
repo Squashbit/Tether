@@ -29,9 +29,9 @@ if (TETHER_RENDERING_VULKAN_API)
 	# Firstly, compile Vulkan shaders into .spv.
 
 	add_custom_target(compileTetherVKSpv)
+	add_dependencies(compileTetherVKSpv glslc)
 
 	# GLSLC is required for Vulkan shader compilation
-	find_program(glslc_executable NAMES glslc)
 	find_package(Vulkan REQUIRED)
 
 	# Find all shader files

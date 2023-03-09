@@ -67,7 +67,10 @@ namespace Tether::Platform
         
         Atom wmDelete = XInternAtom(m_App.GetDisplay(), "WM_DELETE_WINDOW", true);
         XSetWMProtocols(m_App.GetDisplay(), m_Window, &wmDelete, 1);
-
+        
+        XSaveContext(m_App.GetDisplay(), m_Window, 
+            m_App.GetUserDataContext(), (XPointer)this);
+        
         SetVisible(visible);
         
         XStoreName(m_App.GetDisplay(), m_Window, 
@@ -79,20 +82,12 @@ namespace Tether::Platform
     X11Window::~X11Window()
     {
         XLockDisplay(m_App.GetDisplay());
+            XDeleteContext(m_App.GetDisplay(), m_Window, 
+                m_App.GetUserDataContext());
             XUnmapWindow(m_App.GetDisplay(), m_Window);
             XDestroyWindow(m_App.GetDisplay(), m_Window);
             XFlush(m_App.GetDisplay());
         XUnlockDisplay(m_App.GetDisplay());
-    }
-
-    void X11Window::Run()
-    {
-        XEvent event;
-        while (!IsCloseRequested())
-        {
-            XNextEvent(m_App.GetDisplay(), &event);
-            ProcessEvent(event);
-        }
     }
 
     void X11Window::SetVisible(bool visibility)
@@ -334,7 +329,7 @@ namespace Tether::Platform
 
     void X11Window::SetRawInputEnabled(bool enabled)
     {
-        if (!m_App.GetXI().handle || !m_App.GetXI().available)
+        if (!m_App.GetXI().GetHandle() || !m_App.GetXI().available)
             throw std::runtime_error("XI library not loaded");
 
         if (m_RawInputEnabled == enabled)
@@ -710,11 +705,10 @@ namespace Tether::Platform
                 
                 SetCloseRequested(true);
                 
-                WindowClosingEvent event;
                 SpawnEvent(Events::EventType::WINDOW_CLOSING, 
                 [&](Events::EventHandler& eventHandler)
                 {
-                    eventHandler.OnWindowClosing(event);
+                    eventHandler.OnWindowClosing();
                 });
             }
             break;
