@@ -3,6 +3,7 @@ project ("TetherProject")
 
 # All subdirectories will be compiled with this C++ version
 set(CMAKE_CXX_STANDARD 20)
+
 # The relative path to tether from each module directory
 # Tether and Tether Modules are both children of the root repo directory,
 # so this value shouldn't change.

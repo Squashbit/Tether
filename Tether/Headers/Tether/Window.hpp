@@ -83,7 +83,6 @@ namespace Tether
 		virtual void SetMaximized(bool maximized) = 0;
 		virtual void SetPreferredResizeInc(int x, int y) = 0;
 		virtual void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) = 0;
-		virtual void PollEvents() = 0;
 		virtual int GetX() = 0;
 		virtual int GetY() = 0;
 		virtual int GetWidth() = 0;

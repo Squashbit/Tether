@@ -1,5 +1,6 @@
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 #include <stdexcept>
+#include <cstring>
 
 namespace Tether::Rendering::Vulkan
 {

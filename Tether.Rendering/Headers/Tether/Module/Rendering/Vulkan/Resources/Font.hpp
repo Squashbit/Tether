@@ -7,6 +7,7 @@
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 
 #include <unordered_map>
+#include <vector>
 
 namespace Tether::Rendering::Vulkan
 {

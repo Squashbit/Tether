@@ -14,6 +14,7 @@
 #include <vector>
 #include <stdexcept>
 #include <cmath>
+#include <algorithm>
 
 using namespace Tether;
 using namespace Rendering;
@@ -123,7 +124,7 @@ public:
 
 			Application::Get().PollEvents();
 
-			m_Progress = std::fmodf((m_Progress + 100.0f * delta), 100.0f);
+			m_Progress = fmodf((m_Progress + 100.0f * delta), 100.0f);
 			m_ProgressBar.SetProgress(m_Progress);
 			
 			for (uint8_t channelIndex = 0; channelIndex < 3; channelIndex++)

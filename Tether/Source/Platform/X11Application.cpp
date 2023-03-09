@@ -80,14 +80,18 @@ namespace Tether::Platform
         while (IsRunning())
         {
             XNextEvent(display, &event);
-            
             RedirectEventToWindow(event);
         }
     }
 
 	void X11Application::PollEvents()
     {
-        
+        XEvent event;
+        while (XPending(display))
+        {
+            XNextEvent(display, &event);
+            RedirectEventToWindow(event);
+        }
     }
 
     size_t X11Application::GetMonitorCount()
@@ -221,7 +225,7 @@ namespace Tether::Platform
         if (XFindContext(display, event.xany.window, m_UserDataContext,
             (XPointer*)&pWindow))
             return;
-        
+
         if (!pWindow)
             return;
         

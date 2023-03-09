@@ -10,7 +10,7 @@
 #include <Tether/Module/Rendering/Resources/Font.hpp>
 
 #include <Tether/Common/TypeTools.hpp>
-#include <Tether/Common/HashedString.hpp>
+#include <Tether/Common/HashedType.hpp>
 #include <Tether/Common/Types.hpp>
 
 #include <Tether/Math/Types.hpp>

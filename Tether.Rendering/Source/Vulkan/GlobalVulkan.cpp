@@ -1,5 +1,4 @@
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Common/LibraryLoader.hpp>
 
 #include <stdexcept>
 
@@ -10,14 +9,37 @@ namespace Tether::Rendering::Vulkan
 {
 	GlobalVulkan* GlobalVulkan::internal = nullptr;
 
+	GlobalVulkan::VulkanLibrary::VulkanLibrary()
+		:
+#if defined(_WIN32)
+		Library("vulkan-1.dll")
+#elif defined(__OpenBSD__) || defined(__NetBSD__)
+		Library("libvulkan.so")
+#else
+		Library("libvulkan.so.1")
+#endif
+	{
+		if (!GetHandle())
+			throw std::runtime_error("Failed to load Vulkan library");
+		
+		GetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)
+			LoadFunction("vkGetInstanceProcAddr");
+
+		TETHER_INSTANCE_FUNC_NULL(CreateInstance);
+		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceExtensionProperties);
+		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceLayerProperties);
+	}
+
 	GlobalVulkan::GlobalVulkan(bool debugMode)
 	{
-		LoadVulkan();
+		GetInstanceProcAddr = m_VulkanLibrary.GetInstanceProcAddr;
 
 		InstanceInfo info;
-		info.CreateInstance = CreateInstance;
-		info.EnumerateInstanceExtensionProperties = EnumerateInstanceExtensionProperties;
-		info.EnumerateInstanceLayerProperties = EnumerateInstanceLayerProperties;
+		info.CreateInstance = m_VulkanLibrary.CreateInstance;
+		info.EnumerateInstanceExtensionProperties = 
+			m_VulkanLibrary.EnumerateInstanceExtensionProperties;
+		info.EnumerateInstanceLayerProperties = 
+			m_VulkanLibrary.EnumerateInstanceLayerProperties;
 		info.GetInstanceProcAddr = GetInstanceProcAddr;
 
 		m_Instance.emplace(info, debugMode);
@@ -40,8 +62,6 @@ namespace Tether::Rendering::Vulkan
 		
 		m_Device.reset();
 		m_Instance.reset();
-
-		LibraryLoader::FreeLibrary(handle);
 	}
 
 	void GlobalVulkan::AddDebugMessenger(DebugCallback& debugCallback)
@@ -64,28 +84,6 @@ namespace Tether::Rendering::Vulkan
 	const QueueFamilyIndices& GlobalVulkan::GetQueueFamilyIndices() const
 	{
 		return queueIndices;
-	}
-
-	void GlobalVulkan::LoadVulkan()
-	{
-#if defined(_WIN32)
-		handle = LibraryLoader::LoadLibrary("vulkan-1.dll");
-#elif defined(__OpenBSD__) || defined(__NetBSD__)
-		handle = LibraryLoader::LoadLibrary("libvulkan.so");
-#else
-		handle = LibraryLoader::LoadLibrary("libvulkan.so.1");
-#endif
-
-		if (!handle)
-			throw std::runtime_error("Failed to load Vulkan library");
-		
-		GetInstanceProcAddr = (PFN_vkGetInstanceProcAddr)
-			LibraryLoader::LoadFunction(
-				handle, "vkGetInstanceProcAddr");
-
-		TETHER_INSTANCE_FUNC_NULL(CreateInstance);
-		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceExtensionProperties);
-		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceLayerProperties);
 	}
 
 	void GlobalVulkan::Create(bool debugMode)

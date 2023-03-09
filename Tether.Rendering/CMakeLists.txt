@@ -8,9 +8,7 @@ message(STATUS "TETHER_RENDERING_OPENGL_API = ${TETHER_RENDERING_OPENGL_API}")
 
 add_subdirectory(Assets)
 add_subdirectory(Vendor/freetype)
-set(SHADERC_SKIP_TESTS ON)
-add_subdirectory(Vendor/shaderc)
-
+set_property(TARGET freetype PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Resources/BufferedImage.cpp" "Source/Objects/Object.cpp" "Source/Objects/Rectangle.cpp" "Source/WindowUI.cpp" "Source/Renderer.cpp" "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Objects/Text.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp" "Source/Compositor.cpp" "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp" "Source/Elements/Common/BorderedElement.cpp" "Source/Elements/Text.cpp")
 
@@ -23,6 +21,14 @@ if (TETHER_RENDERING_VULKAN_API)
     endif()
 
     add_dependencies(${PROJECT_NAME} VulkanMemoryAllocator)
+
+    execute_process(
+		COMMAND
+			python3 ${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/shaderc/utils/git-sync-deps
+	)
+
+    set(SHADERC_SKIP_TESTS ON)
+    add_subdirectory(Vendor/shaderc)
 endif()
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets freetype)

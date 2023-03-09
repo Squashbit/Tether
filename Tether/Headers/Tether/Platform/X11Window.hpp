@@ -45,7 +45,6 @@ namespace Tether::Platform
 		void SetMaximized(bool maximized) override;
 		void SetPreferredResizeInc(int x, int y) override;
 		void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) override;
-		void PollEvents() override;
 		int GetX() override;
 		int GetY() override;
 		int GetWidth() override;
@@ -55,8 +54,12 @@ namespace Tether::Platform
 		int GetRelativeMouseX() override;
 		int GetRelativeMouseY() override;
 		bool IsFocused() override;
+
+		unsigned long GetWindowHandle() const;
 	private:
 		void ProcessEvent(XEvent& event);
+		void DispatchMouseButton(XEvent& event, bool pressed);
+		
 		void ProcessMwmFunctions();
 
 		int m_PrevX = 0, m_PrevY = 0;

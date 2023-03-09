@@ -2,6 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Common/Ref.hpp>
+#include <Tether/Common/Library.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
@@ -33,18 +34,23 @@ namespace Tether::Rendering::Vulkan
 		static void Destroy();
 		static GlobalVulkan& Get();
 	private:
+		class VulkanLibrary : public Library
+		{
+		public:
+			VulkanLibrary();
+
+			TETHER_VULKAN_FUNC_VAR(GetInstanceProcAddr);
+			TETHER_VULKAN_FUNC_VAR(CreateInstance);
+			TETHER_VULKAN_FUNC_VAR(EnumerateInstanceExtensionProperties);
+			TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
+		};
+
 		GlobalVulkan(bool debugMode);
 
 		void CreateCommandPool();
 
-		void LoadVulkan();
+		VulkanLibrary m_VulkanLibrary;
 
-		void* handle = nullptr;
-
-		TETHER_VULKAN_FUNC_VAR(CreateInstance);
-		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceExtensionProperties);
-		TETHER_VULKAN_FUNC_VAR(EnumerateInstanceLayerProperties);
-		
 		std::optional<Instance> m_Instance;
 		std::optional<Device> m_Device;
 

@@ -70,7 +70,7 @@ namespace Tether::Platform
         
         XSaveContext(m_App.GetDisplay(), m_Window, 
             m_App.GetUserDataContext(), (XPointer)this);
-        
+
         SetVisible(visible);
         
         XStoreName(m_App.GetDisplay(), m_Window, 
@@ -476,17 +476,9 @@ namespace Tether::Platform
         return focusedWindow == m_Window;
     }
 
-    void X11Window::PollEvents()
+    unsigned long X11Window::GetWindowHandle() const
     {
-        if (!m_Visible)
-            return;
-
-        XEvent event;
-        while (XPending(m_App.GetDisplay()))
-        {
-            XNextEvent(m_App.GetDisplay(), &event);
-            ProcessEvent(event);
-        }
+        return m_Window;
     }
 
     void X11Window::ProcessEvent(XEvent& event)
@@ -712,7 +704,49 @@ namespace Tether::Platform
                 });
             }
             break;
+
+            case ButtonPress:
+            {
+                DispatchMouseButton(event, true);
+            }
+            break;
+
+            case ButtonRelease:
+            {
+                DispatchMouseButton(event, false);
+            }
+            break;
         }
+    }
+
+    void X11Window::DispatchMouseButton(XEvent& event, bool pressed)
+    {
+        using namespace Input;
+        using ClickType = MouseClickInfo::ClickType;
+
+        ClickType type = ClickType::LEFT_BUTTON;
+        switch (event.xbutton.button)
+        {
+            case Button2: type = ClickType::MIDDLE_BUTTON; break;
+            case Button3: type = ClickType::RIGHT_BUTTON; break;
+            case Button4: type = ClickType::SIDE_BUTTON1; break;
+            case Button5: type = ClickType::SIDE_BUTTON2; break;
+        }
+
+        Input::MouseClickInfo input(
+            event.xbutton.x_root,
+            event.xbutton.y_root,
+            event.xbutton.x,
+            event.xbutton.y,
+            type,
+            pressed
+        );
+
+        SpawnInput(InputType::MOUSE_CLICK,
+        [&](InputListener& inputListener)
+        {
+            inputListener.OnMouseClick(input);
+        });
     }
 
     void X11Window::ProcessMwmFunctions()

@@ -29,10 +29,7 @@ if (TETHER_RENDERING_VULKAN_API)
 	# Firstly, compile Vulkan shaders into .spv.
 
 	add_custom_target(compileTetherVKSpv)
-	add_dependencies(compileTetherVKSpv glslc)
-
-	# GLSLC is required for Vulkan shader compilation
-	find_package(Vulkan REQUIRED)
+	add_dependencies(compileTetherVKSpv glslc_exe)
 
 	# Find all shader files
 	file(GLOB_RECURSE SHADERS
@@ -52,7 +49,7 @@ if (TETHER_RENDERING_VULKAN_API)
 		add_custom_command(
 			TARGET compileTetherVKSpv
 			COMMAND
-				${glslc_executable}
+				glslc_exe
 				# Output file
 				-o \"${BUILD_SHADER_DIR}/${FILENAME}.spv\"
 				# Source file

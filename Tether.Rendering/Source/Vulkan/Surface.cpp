@@ -4,6 +4,11 @@
 #include <stdexcept>
 
 #ifdef __linux__
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/Xatom.h>
+#include <X11/XKBlib.h>
+
 #include <vulkan/vulkan_xlib.h>
 
 #include <Tether/Platform/X11Window.hpp>
@@ -29,13 +34,15 @@ Surface::Surface(VulkanContext& context, Window& window)
 	m_Loader(context.instanceLoader)
 {
 #ifdef __linux__
-	Native::X11Window& windowNative =
-		(Native::X11Window&)window;
+	Platform::X11Application& app = (Platform::X11Application&)
+		Application::Get();
+	Platform::X11Window& windowNative =
+		(Platform::X11Window&)window;
 
 	VkXlibSurfaceCreateInfoKHR createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-	createInfo.dpy = (X11Application&)Application::Get().GetDisplay();
-	createInfo.window = windowNative.window;
+	createInfo.dpy = app.GetDisplay();
+	createInfo.window = windowNative.GetWindowHandle();
 	
 	PFN_vkCreateXlibSurfaceKHR func = (PFN_vkCreateXlibSurfaceKHR)
 		m_Loader.vkCreateXlibSurfaceKHR;
