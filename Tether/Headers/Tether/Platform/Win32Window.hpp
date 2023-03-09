@@ -18,8 +18,6 @@ namespace Tether::Platform
 			bool visible = false);
 		~Win32Window();
 
-		void Run() override;
-
 		void SetVisible(bool visibility) override;
 		bool IsVisible() override;
 		void SetRawInputEnabled(bool enabled) override;

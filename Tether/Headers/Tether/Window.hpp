@@ -61,10 +61,6 @@ namespace Tether
 
 		void SpawnKeyInput(uint32_t scancode, uint32_t keycode, bool pressed);
 
-		virtual void OnPollEvent() {}
-
-		virtual void Run() = 0;
-
 		virtual void SetVisible(bool visibility) = 0;
 		virtual bool IsVisible() = 0;
 		virtual void SetRawInputEnabled(bool enabled) = 0;

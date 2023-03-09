@@ -118,27 +118,6 @@ namespace Tether::Platform
 		UnregisterClass(m_ClassName.c_str(), m_Hinst);
 	}
 
-	void Win32Window::Run()
-	{
-		using namespace Events;
-
-		MSG msg;
-		while (GetMessage(&msg, m_Hwnd, 0, 0) > 0 && !IsCloseRequested())
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-
-			if (m_CursorMode == CursorMode::DISABLED
-				&& GetForegroundWindow() == m_Hwnd)
-			{
-				SetCursorPos(
-					static_cast<int>(GetWidth() / 2),
-					static_cast<int>(GetHeight() / 2)
-				);
-			}
-		}
-	}
-
 	void Win32Window::SetVisible(bool visibility)
 	{
 		if (visibility)
@@ -490,7 +469,7 @@ namespace Tether::Platform
 				SpawnEvent(Events::EventType::WINDOW_CLOSING,
 					[this](Events::EventHandler& eventHandler)
 				{
-					eventHandler.OnWindowClosing(Events::WindowClosingEvent());
+					eventHandler.OnWindowClosing();
 				});
 			}
 
@@ -506,7 +485,7 @@ namespace Tether::Platform
 		SpawnEvent(EventType::WINDOW_REPAINT,
 			[&](EventHandler& eventHandler)
 		{
-			eventHandler.OnWindowRepaint(WindowRepaintEvent());
+			eventHandler.OnWindowRepaint();
 		});
 	}
 
@@ -598,7 +577,7 @@ namespace Tether::Platform
 				SpawnEvent(Events::EventType::WINDOW_CLOSING,
 					[this](Events::EventHandler& eventHandler)
 				{
-					eventHandler.OnWindowClosing(Events::WindowClosingEvent());
+					eventHandler.OnWindowClosing();
 				});
 			}
 			break;
@@ -654,7 +633,7 @@ namespace Tether::Platform
 				SpawnEvent(EventType::WINDOW_REPAINT,
 					[&](EventHandler& eventHandler)
 				{
-					eventHandler.OnWindowRepaint(WindowRepaintEvent());
+					eventHandler.OnWindowRepaint();
 				});
 
 				Input::KeyCharInfo event(
@@ -708,6 +687,15 @@ namespace Tether::Platform
 				{
 					inputListener.OnMouseMove(event);
 				});
+
+				if (m_CursorMode == CursorMode::DISABLED
+					&& GetForegroundWindow() == m_Hwnd)
+				{
+					SetCursorPos(
+						static_cast<int>(GetWidth() / 2),
+						static_cast<int>(GetHeight() / 2)
+					);
+				}
 
 				m_MouseX = mouse.x;
 				m_MouseY = mouse.y;
@@ -802,7 +790,7 @@ namespace Tether::Platform
 				SpawnEvent(EventType::WINDOW_REPAINT,
 				[&](EventHandler& eventHandler)
 				{
-					eventHandler.OnWindowRepaint(WindowRepaintEvent());
+					eventHandler.OnWindowRepaint();
 				});
 
 				return DefWindowProc(hWnd, msg, wParam, lParam);

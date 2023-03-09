@@ -15,8 +15,8 @@ namespace Tether::Events
             int64_t y
         );
         
-        int64_t GetX();
-        int64_t GetY();
+        const int64_t GetX() const;
+        const int64_t GetY() const;
     private:
         int64_t x = 0;
         int64_t y = 0;

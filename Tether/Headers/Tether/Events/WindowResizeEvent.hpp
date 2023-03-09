@@ -15,8 +15,8 @@ namespace Tether::Events
             uint64_t newHeight
         );
         
-        uint64_t GetNewWidth();
-        uint64_t GetNewHeight();
+        const uint64_t GetNewWidth() const;
+        const uint64_t GetNewHeight() const;
     private:
         uint64_t newWidth = 0;
         uint64_t newHeight = 0;

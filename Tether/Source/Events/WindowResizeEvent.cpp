@@ -1,22 +1,23 @@
 #include <Tether/Events/WindowResizeEvent.hpp>
 
-using namespace Tether::Events;
-
-WindowResizeEvent::WindowResizeEvent(
-    uint64_t newWidth,
-    uint64_t newHeight
-)
-    :
-    newWidth(newWidth),
-    newHeight(newHeight)
-{}
-
-uint64_t WindowResizeEvent::GetNewWidth()
+namespace Tether::Events
 {
-    return newWidth;
-}
+	WindowResizeEvent::WindowResizeEvent(
+		uint64_t newWidth,
+		uint64_t newHeight
+	)
+		:
+		newWidth(newWidth),
+		newHeight(newHeight)
+	{}
 
-uint64_t WindowResizeEvent::GetNewHeight()
-{
-    return newHeight;
+	const uint64_t WindowResizeEvent::GetNewWidth() const
+	{
+		return newWidth;
+	}
+
+	const uint64_t WindowResizeEvent::GetNewHeight() const
+	{
+		return newHeight;
+	}
 }

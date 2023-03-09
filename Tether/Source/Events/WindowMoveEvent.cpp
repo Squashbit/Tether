@@ -1,22 +1,23 @@
 #include <Tether/Events/WindowMoveEvent.hpp>
 
-using namespace Tether::Events;
-
-WindowMoveEvent::WindowMoveEvent(
-    int64_t x,
-    int64_t y
-)
-    :
-    x(x),
-    y(y)
-{}
-
-int64_t WindowMoveEvent::GetX()
+namespace Tether::Events
 {
-    return x;
-}
+	WindowMoveEvent::WindowMoveEvent(
+		int64_t x,
+		int64_t y
+	)
+		:
+		x(x),
+		y(y)
+	{}
 
-int64_t WindowMoveEvent::GetY()
+	const int64_t WindowMoveEvent::GetX() const
 {
-    return y;
+		return x;
+	}
+
+	const int64_t WindowMoveEvent::GetY() const
+{
+		return y;
+	}
 }

@@ -71,6 +71,26 @@ namespace Tether::Platform
 		return TRUE;
 	}
 
+	void Win32Application::Run() 
+	{
+		MSG msg;
+		while (GetMessage(&msg, NULL, 0, 0) > 0 && IsRunning())
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+	void Win32Application::PollEvents()
+	{
+		MSG msg{};
+		while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
 	size_t Win32Application::GetMonitorCount()
 	{
 		return GetSystemMetrics(SM_CMONITORS);

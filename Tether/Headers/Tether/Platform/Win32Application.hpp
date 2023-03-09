@@ -7,6 +7,9 @@ namespace Tether::Platform
 	class TETHER_EXPORT Win32Application : public Application
 	{
 	private:
+		void Run() override;
+		void PollEvents() override;
+
 		size_t GetMonitorCount() override;
 		std::vector<Devices::Monitor> GetMonitors() override;
 

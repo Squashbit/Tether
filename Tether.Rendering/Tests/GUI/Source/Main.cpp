@@ -121,7 +121,7 @@ public:
 			float delta = deltaTimer.GetElapsedSeconds();
 			deltaTimer.Set();
 
-			m_Window->PollEvents();
+			Application::Get().PollEvents();
 
 			m_Progress = std::fmodf((m_Progress + 100.0f * delta), 100.0f);
 			m_ProgressBar.SetProgress(m_Progress);

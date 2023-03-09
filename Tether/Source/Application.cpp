@@ -31,6 +31,16 @@ namespace Tether
 		return m_Scancodes;
 	}
 
+	bool Application::IsRunning()
+	{
+		return m_IsRunning;
+	}
+
+	void Application::Stop()
+	{
+		m_IsRunning = false;
+	}
+
 	Application& Application::Get()
 	{
 		if (!internal.get())

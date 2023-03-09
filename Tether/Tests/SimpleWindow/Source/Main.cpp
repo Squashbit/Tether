@@ -15,16 +15,21 @@ public:
 	class EventHandler : public Events::EventHandler
 	{
 	public:
-		void OnWindowResize(Events::WindowResizeEvent event)
+		void OnWindowResize(const Events::WindowResizeEvent& event)
 		{
 			std::cout << "Resized window to W=" << event.GetNewWidth()
 				<< ", H=" << event.GetNewHeight() << std::endl;
 		}
 
-		void OnWindowMove(Events::WindowMoveEvent event)
+		void OnWindowMove(const Events::WindowMoveEvent& event)
 		{
 			std::cout << "Moved window to X=" << event.GetX()
 				<< ", Y=" << event.GetY() << std::endl;
+		}
+
+		void OnWindowClosing()
+		{
+			Application::Get().Stop();
 		}
 	};
 
@@ -79,15 +84,14 @@ public:
 		:
 		m_Window(Window::Create(1280, 720, L"TestWindow"))
 	{
-		/*AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
-		AddEventHandler(handler, Events::EventType::WINDOW_ERROR);
-		AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
-		AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_CLOSING);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_RESIZE);
+		m_Window->AddEventHandler(handler, Events::EventType::WINDOW_MOVE);
 
-		AddInputListener(listener, Input::InputType::MOUSE_MOVE);
-		AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
-		AddInputListener(listener, Input::InputType::KEY);
-		AddInputListener(listener, Input::InputType::KEY_CHAR);*/
+		m_Window->AddInputListener(listener, Input::InputType::MOUSE_MOVE);
+		m_Window->AddInputListener(listener, Input::InputType::RAW_MOUSE_MOVE);
+		m_Window->AddInputListener(listener, Input::InputType::KEY);
+		m_Window->AddInputListener(listener, Input::InputType::KEY_CHAR);
 
 		m_Window->SetRawInputEnabled(true);
 
@@ -95,8 +99,6 @@ public:
 		m_Window->SetY(120);
 
 		m_Window->SetVisible(true);
-
-		m_Window->Run();
 	}
 
 	~TestWindow()
@@ -113,6 +115,7 @@ private:
 int main()
 {
 	TestWindow window;
+	Application::Get().Run();
 
 	return 0;
 }
