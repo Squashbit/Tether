@@ -19,7 +19,6 @@ namespace Tether::Platform
 		~Win32Window();
 
 		void SetVisible(bool visibility) override;
-		bool IsVisible() override;
 		void SetRawInputEnabled(bool enabled) override;
 		void SetCursorMode(CursorMode mode) override;
 		void SetCursorPos(int x, int y) override;
@@ -39,17 +38,10 @@ namespace Tether::Platform
 		void SetButtonStyleBitmask(uint8_t mask) override;
 		void SetMaximized(bool maximized) override;
 		void SetPreferredResizeInc(int x, int y) override;
-		void SetFullscreen(bool fullscreen, const Devices::Monitor& monitor) override;
-		void PollEvents() override;
-		int GetX() override;
-		int GetY() override;
-		int GetWidth() override;
-		int GetHeight() override;
-		int GetMouseX() override;
-		int GetMouseY() override;
-		int GetRelativeMouseX() override;
-		int GetRelativeMouseY() override;
+		void EnableFullscreen(const Devices::Monitor& monitor) override;
+		void DisableFullscreen() override;
 		bool IsFocused() override;
+		bool IsVisible() override;
 
 		HWND GetHWND();
 		HINSTANCE GetHINSTANCE();
@@ -96,17 +88,8 @@ namespace Tether::Platform
 		int m_MaxWidth = INT_MAX;
 		int m_MaxHeight = INT_MAX;
 
-		int m_X = 0;
-		int m_Y = 0;
-		int m_Width = 0;
-		int m_Height = 0;
-
 		bool m_PrevReceivedMouseMove = false;
-		int m_MouseX = -1;
-		int m_MouseY = -1;
-		int m_RelMouseX = -1;
-		int m_RelMouseY = -1;
-
+		
 		uint8_t m_StyleMask = ButtonStyleMask::MAXIMIZE_BUTTON
 			              | ButtonStyleMask::MINIMIZE_BUTTON;
 

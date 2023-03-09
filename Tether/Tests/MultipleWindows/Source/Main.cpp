@@ -94,6 +94,9 @@ void TestWindow::EventHandler::OnWindowClosing()
 	}
 }
 
+#include <iostream>
+#include <vector>
+
 #if defined(_WIN32) && !defined(_DEBUG)
 #include <Windows.h>
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -104,7 +107,8 @@ int main()
 {
 	windows.reserve(WINDOW_COUNT);
 
-	Devices::Monitor monitor = Application::Get().GetMonitors()[0];
+	std::vector<Devices::Monitor> monitors = Application::Get().GetMonitors();
+	Devices::Monitor monitor = monitors[0];
 
 	for (size_t i = 0; i < WINDOW_COUNT; i++)
 	{

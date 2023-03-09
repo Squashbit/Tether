@@ -70,11 +70,9 @@ public:
 
 		m_Window->SetResizable(false);
 		m_Window->SetRawInputEnabled(true);
-		m_Window->SetX(120);
-		m_Window->SetY(120);
 		m_Window->SetVisible(true);
-		m_Window->SetX(std::max(0, rand() % usableWidth));
-		m_Window->SetY(std::max(0, rand() % usableHeight));
+		m_Window->SetPosition(std::max(0, rand() % usableWidth), 
+			std::max(0, rand() % usableHeight));
 
 		Render();
 	}

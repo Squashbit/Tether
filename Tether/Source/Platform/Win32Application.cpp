@@ -6,6 +6,8 @@
 #endif
 #include <Windows.h>
 
+#include <Tether/Platform/Win32Window.hpp>
+
 namespace Tether::Platform
 {
 	static BOOL CALLBACK EnumerateMonitors(
@@ -78,6 +80,12 @@ namespace Tether::Platform
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+
+			if (m_HiddenCursorWindow && m_HiddenCursorWindow->IsFocused())
+				m_HiddenCursorWindow->SetCursorPos(
+					static_cast<int>(m_HiddenCursorWindow->GetWidth() / 2),
+					static_cast<int>(m_HiddenCursorWindow->GetHeight() / 2)
+				);
 		}
 	}
 
@@ -89,6 +97,12 @@ namespace Tether::Platform
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+
+		if (m_HiddenCursorWindow && m_HiddenCursorWindow->IsFocused())
+			m_HiddenCursorWindow->SetCursorPos(
+				static_cast<int>(m_HiddenCursorWindow->GetWidth() / 2),
+				static_cast<int>(m_HiddenCursorWindow->GetHeight() / 2)
+			);
 	}
 
 	size_t Win32Application::GetMonitorCount()

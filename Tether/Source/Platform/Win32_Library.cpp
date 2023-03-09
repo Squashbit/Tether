@@ -11,10 +11,10 @@ namespace Tether
 
 	Library::~Library()
 	{
-		if (!library)
+		if (!m_LibraryHandle)
 			return;
 
-		FreeLibrary(library);
+		FreeLibrary((HMODULE)m_LibraryHandle);
 	}
 
 	Library::Library(Library&& other)
@@ -25,7 +25,7 @@ namespace Tether
 
 	void* Library::LoadFunction(std::string_view functionName)
 	{
-		return GetProcAddress((HMODULE)handle, functionName.data());
+		return GetProcAddress((HMODULE)m_LibraryHandle, functionName.data());
 	}
 
 	void* Library::GetHandle() const

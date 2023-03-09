@@ -1,4 +1,5 @@
 #include <Tether/Platform/Win32Window.hpp>
+#include <Tether/Platform/Win32Application.hpp>
 
 #include <Tether/Common/StringTools.hpp>
 
@@ -110,6 +111,14 @@ namespace Tether::Platform
 
 		if (visible)
 			SetVisible(true);
+
+		RECT clientRect{};
+		GetClientRect(m_Hwnd, &clientRect);
+
+		m_X = clientRect.left;
+		m_Y = clientRect.top;
+		m_Width = width;
+		m_Height = height;
 	}
 
 	Win32Window::~Win32Window()
@@ -157,6 +166,11 @@ namespace Tether::Platform
 
 	void Win32Window::SetCursorMode(CursorMode mode)
 	{
+		Win32Application& app = (Win32Application&)m_App;
+
+		if (m_CursorMode == CursorMode::DISABLED && mode != CursorMode::DISABLED)
+			app.m_HiddenCursorWindow = nullptr;
+
 		switch (mode)
 		{
 			case CursorMode::NORMAL:
@@ -166,8 +180,17 @@ namespace Tether::Platform
 			break;
 
 			case CursorMode::HIDDEN:
+			{
+				ShowCursor(false);
+			}
+			break;
+
 			case CursorMode::DISABLED:
 			{
+				if (app.m_HiddenCursorWindow)
+					app.m_HiddenCursorWindow->SetCursorMode(Window::CursorMode::NORMAL);
+				app.m_HiddenCursorWindow = this;
+
 				ShowCursor(false);
 			}
 			break;
@@ -357,77 +380,30 @@ namespace Tether::Platform
 	void Win32Window::SetPreferredResizeInc(int x, int y)
 	{}
 
-	void Win32Window::SetFullscreen(bool fullscreen, const Devices::Monitor& monitor)
+	void Win32Window::EnableFullscreen(const Devices::Monitor& monitor)
 	{
-		if (m_Fullscreen == fullscreen)
-			return;
-
-		if (fullscreen)
-		{
-			SetWindowLong(m_Hwnd, GWL_STYLE, WS_POPUP);
-			SetWindowPos(m_Hwnd, HWND_TOP, monitor.GetX(), monitor.GetY(), 
-				monitor.GetWidth(), monitor.GetHeight(), SWP_SHOWWINDOW);
-			ShowWindow(m_Hwnd, SW_MAXIMIZE);
-		}
-		else
-		{
-			DEVMODEW dmScreenSettings{};
-			dmScreenSettings.dmSize = sizeof(dmScreenSettings);
-
-			ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
-
-			ReconstructStyle();
-			SetWindowPos(m_Hwnd, HWND_TOP,
-				static_cast<int>(m_X),
-				static_cast<int>(m_Y),
-				static_cast<int>(m_Width),
-				static_cast<int>(m_Height),
-				SWP_SHOWWINDOW
-			);
-			ShowWindow(m_Hwnd, SW_SHOW);
-		}
-
-		m_Fullscreen = fullscreen;
+		SetWindowLong(m_Hwnd, GWL_STYLE, WS_POPUP);
+		SetWindowPos(m_Hwnd, HWND_TOP, monitor.GetX(), monitor.GetY(),
+			monitor.GetWidth(), monitor.GetHeight(), SWP_SHOWWINDOW);
+		ShowWindow(m_Hwnd, SW_MAXIMIZE);
 	}
 
-	int Win32Window::GetX()
+	void Win32Window::DisableFullscreen()
 	{
-		return m_X;
-	}
+		DEVMODEW dmScreenSettings{};
+		dmScreenSettings.dmSize = sizeof(dmScreenSettings);
 
-	int Win32Window::GetY()
-	{
-		return m_Y;
-	}
+		ChangeDisplaySettings(&dmScreenSettings, CDS_RESET);
 
-	int Win32Window::GetWidth()
-	{
-		return m_Width;
-	}
-
-	int Win32Window::GetHeight()
-	{
-		return m_Height;
-	}
-
-	int Win32Window::GetMouseX()
-	{
-		return m_MouseX;
-	}
-
-	int Win32Window::GetMouseY()
-	{
-		return m_MouseY;
-	}
-
-	int Win32Window::GetRelativeMouseX()
-	{
-		return m_RelMouseX;
-	}
-
-	int Win32Window::GetRelativeMouseY()
-	{
-		return m_RelMouseY;
+		ReconstructStyle();
+		SetWindowPos(m_Hwnd, HWND_TOP,
+			static_cast<int>(m_X),
+			static_cast<int>(m_Y),
+			static_cast<int>(m_Width),
+			static_cast<int>(m_Height),
+			SWP_SHOWWINDOW
+		);
+		ShowWindow(m_Hwnd, SW_SHOW);
 	}
 
 	bool Win32Window::IsFocused()
@@ -443,50 +419,6 @@ namespace Tether::Platform
 	HINSTANCE Win32Window::GetHINSTANCE()
 	{
 		return m_Hinst;
-	}
-
-	void Win32Window::PollEvents()
-	{
-		if (!m_Visible)
-			return;
-
-		using namespace Events;
-
-		MSG msg{};
-		while (PeekMessage(&msg, m_Hwnd, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-		}
-
-		if (msg.message == WM_NULL)
-			if (!IsWindow(m_Hwnd))
-			{
-				if (!m_Closable)
-					return;
-
-				SetCloseRequested(true);
-				SpawnEvent(Events::EventType::WINDOW_CLOSING,
-					[this](Events::EventHandler& eventHandler)
-				{
-					eventHandler.OnWindowClosing();
-				});
-			}
-
-		if (m_CursorMode == CursorMode::DISABLED 
-			&& GetForegroundWindow() == m_Hwnd)
-		{
-			SetCursorPos(
-				static_cast<int>(GetWidth() / 2),
-				static_cast<int>(GetHeight() / 2)
-			);
-		}
-
-		SpawnEvent(EventType::WINDOW_REPAINT,
-			[&](EventHandler& eventHandler)
-		{
-			eventHandler.OnWindowRepaint();
-		});
 	}
 
 	LONG Win32Window::CalculateStyle()
