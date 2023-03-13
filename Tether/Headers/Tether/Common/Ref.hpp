@@ -9,22 +9,4 @@ namespace Tether
 
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
-
-	namespace RefTools
-	{
-		template<class T, class... Args>
-		Ref<T> Create(Args&&... args)
-		{
-			return std::make_shared<T>(args...);
-		}
-	}
-
-	namespace ScopeTools
-	{
-		template<class T, class... Args>
-		Scope<T> Create(Args&&... args)
-		{
-			return std::make_unique<T>(args...);
-		}
-	}
 }

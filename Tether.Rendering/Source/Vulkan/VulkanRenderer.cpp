@@ -38,15 +38,11 @@ namespace Tether::Rendering::Vulkan
 		CreateSolidPipeline();
 		CreateTexturedPipeline();
 		CreateTextPipeline();
-		CreateVertexBuffers();
-		CreateSampler();
 	}
 
 	VulkanRenderer::~VulkanRenderer()
 	{
 		m_Dloader.vkDeviceWaitIdle(m_Context.device);
-
-		m_Dloader.vkDestroySampler(m_Context.device, sampler, nullptr);
 
 		m_Dloader.vkDestroyDescriptorSetLayout(m_Context.device, texturedPipelineSetLayout,
 			nullptr);
@@ -87,47 +83,6 @@ namespace Tether::Rendering::Vulkan
 			ObjectRenderer& renderer = (ObjectRenderer&)object.GetObjectRenderer();
 			renderer.AddToCommandBuffer(commandBufferDesc, currentFrame);
 		}
-	}
-
-	void VulkanRenderer::OnCreateObject(Scope<Objects::Rectangle>& object)
-	{
-		object = std::make_unique<Rectangle>(
-			m_Context, solidPipeline.value(), square.value(), m_SwapchainExtent
-		);
-	}
-
-	void VulkanRenderer::OnCreateObject(Scope<Objects::Image>& object)
-	{
-		object = std::make_unique<Image>(
-			m_Context, texturedPipeline.value(), square.value(), m_SwapchainExtent
-		);
-	}
-
-	void VulkanRenderer::OnCreateObject(Scope<Objects::Text>& object)
-	{
-		object = std::make_unique<Text>(
-			m_Context, m_SwapchainExtent, textPipeline.value(), square.value()
-		);
-	}
-
-	void VulkanRenderer::OnCreateResource(Scope<Resources::BufferedImage>& image,
-		const Resources::BufferedImageInfo& info)
-	{
-		image = std::make_unique<BufferedImage>(
-			m_Context, sampler,
-			texturedPipelineSetLayout,
-			info
-		);
-	}
-
-	void VulkanRenderer::OnCreateResource(Scope<Resources::Font>& font,
-		const std::string& fontPath)
-	{
-		font = std::make_unique<Font>(
-			m_Context, 
-			textPipelineLayout, sampler,
-			fontPath
-		);
 	}
 
 	void VulkanRenderer::CreateAllocator()
@@ -307,51 +262,5 @@ namespace Tether::Rendering::Vulkan
 			attribDescs,
 			&pipelineLayoutInfo
 		);
-	}
-
-	void VulkanRenderer::CreateVertexBuffers()
-	{
-		Math::Vector2f vertices[] =
-		{
-			{  0.0f,  0.0f},
-			{  1.0f,  0.0f},
-			{  1.0f,  1.0f},
-			{  0.0f,  1.0f},
-		};
-
-		uint32_t indices[] =
-		{
-			0, 1, 2, 2, 3, 0
-		};
-
-		square.emplace(m_Context, sizeof(vertices), 
-			sizeof(indices) / sizeof(uint32_t));
-		square->UploadData(vertices, indices);
-		square->FinishDataUpload();
-	}
-
-	void VulkanRenderer::CreateSampler()
-	{
-		VkSamplerCreateInfo samplerInfo{};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
-		samplerInfo.anisotropyEnable = VK_FALSE;
-		samplerInfo.maxAnisotropy = 0.0f;
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-		samplerInfo.unnormalizedCoordinates = VK_FALSE;
-		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-		samplerInfo.mipLodBias = 0.0f;
-		samplerInfo.minLod = 0.0f;
-		samplerInfo.maxLod = 0.0f;
-
-		if (m_Dloader.vkCreateSampler(m_Context.device, &samplerInfo, nullptr, 
-			&sampler) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create sampler");
 	}
 }

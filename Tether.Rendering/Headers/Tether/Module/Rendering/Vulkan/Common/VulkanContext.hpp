@@ -20,9 +20,9 @@ namespace Tether::Rendering::Vulkan
 		DeviceLoader deviceLoader; // Must have had Load called
 		VkPhysicalDevice physicalDevice = nullptr;
 		VkRenderPass renderPass = nullptr;
+		uint32_t framesInFlight = 2;
 		// If this is still nullptr, one will be created automatically.
 		VmaAllocator allocator = nullptr;
 		VkCommandPool commandPool = nullptr;
-		uint32_t framesInFlight = 2;
 	};
 }

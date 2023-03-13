@@ -77,6 +77,8 @@ public:
 			float delta = deltaTimer.GetElapsedSeconds();
 			deltaTimer.Set();
 
+			Application::Get().PollEvents();
+
 			time += delta;
 			frames++;
 
@@ -111,7 +113,6 @@ public:
 				image->SetHeight(imageHeight);
 			}
 
-			m_Window->PollEvents();
 			m_Compositor.RenderFrame();
 		}
 	}

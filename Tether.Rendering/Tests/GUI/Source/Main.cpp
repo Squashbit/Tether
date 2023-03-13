@@ -3,6 +3,7 @@
 
 #include <Tether/Module/Rendering/WindowUI.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
+#include <Tether/Module/Rendering/Vulkan/VulkanGraphicsContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
 
 #include <Tether/Module/Rendering/Elements/Button.hpp>
@@ -47,6 +48,7 @@ public:
 	RendererTestApp()
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
+		m_Context(Vulkan::GlobalVulkan::Get()),
 		m_VulkanWindow(*m_Window),
 		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
 		m_Compositor(m_Renderer, m_VulkanWindow),
@@ -58,7 +60,7 @@ public:
 		m_TheVoidText(m_WindowUI),
 		m_TextColor(0.0f, 0.0f, 0.0f, 1.0f)
 	{
-		m_Font = m_Renderer.CreateResource<Resources::Font>("Assets/font.ttf");
+		m_Font = m_Context.CreateFont("Assets/font.ttf");
 		m_Font->SetSize(24);
 
 		m_WindowUI.SetAutoRepaint(false);
@@ -163,6 +165,7 @@ public:
 private:
 	Scope<Window> m_Window;
 
+	Vulkan::VulkanGraphicsContext m_Context;
 	Vulkan::VulkanWindow m_VulkanWindow;
 	Vulkan::VulkanRenderer m_Renderer;
 	Vulkan::VulkanCompositor m_Compositor;

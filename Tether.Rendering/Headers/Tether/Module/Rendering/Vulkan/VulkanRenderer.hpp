@@ -25,28 +25,15 @@ namespace Tether::Rendering::Vulkan
 		void SetSwapchainExtent(VkExtent2D swapchainExtent);
 		void PopulateCommandBuffer(VkCommandBuffer commandBuffer);
 	private:
-		void OnCreateObject(Scope<Objects::Rectangle>& object) override;
-		void OnCreateObject(Scope<Objects::Image>& object) override;
-		void OnCreateObject(Scope<Objects::Text>& object) override;
-
-		void OnCreateResource(Scope<Resources::BufferedImage>& image,
-			const Resources::BufferedImageInfo& info) override;
-		void OnCreateResource(Scope<Resources::Font>& font,
-			const std::string& fontPath) override;
-		
 		void CreateAllocator();
 		void CreateSolidPipeline();
 		void CreateTexturedPipeline();
 		void CreateTextPipeline();
-		void CreateVertexBuffers();
-		void CreateSampler();
 
 		VulkanContext m_Context;
 		DeviceLoader& m_Dloader;
 
 		std::optional<AllocatorManager> m_Allocator;
-
-		VkSampler sampler;
 
 		std::optional<Pipeline> solidPipeline;
 		
@@ -55,8 +42,6 @@ namespace Tether::Rendering::Vulkan
 
 		std::optional<Pipeline> textPipeline;
 		VkDescriptorSetLayout textPipelineLayout;
-
-		std::optional<VertexBuffer> square;
 
 		Vulkan::QueueFamilyIndices queueIndices;
 		VkQueue graphicsQueue;
