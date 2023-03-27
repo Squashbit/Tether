@@ -11,13 +11,11 @@ namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT VulkanWindow
 	{
-		friend class VulkanCompositor;
+		friend class Compositor;
 	public:
 		VulkanWindow(Window& window, VulkanContext& context = GlobalVulkan::Get());
 		~VulkanWindow();
 		TETHER_NO_COPY(VulkanWindow);
-
-		VulkanContext MakeVulkanContext();
 	protected:
 		VulkanContext& m_Context;
 

@@ -3,7 +3,7 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 
 #include <vulkan/vulkan.hpp>
 

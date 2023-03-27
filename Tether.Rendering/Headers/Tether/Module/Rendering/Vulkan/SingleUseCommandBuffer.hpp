@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT SingleUseCommandBuffer
 	{
 	public:
-		SingleUseCommandBuffer(VulkanContext& context);
+		SingleUseCommandBuffer(GraphicsContext& context);
 		SingleUseCommandBuffer(SingleUseCommandBuffer&& other) noexcept;
 		~SingleUseCommandBuffer();
 		

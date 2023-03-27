@@ -1,8 +1,8 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
+#include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <Tether/Module/Rendering/Objects/Rectangle.hpp>
 

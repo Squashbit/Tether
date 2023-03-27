@@ -2,9 +2,8 @@
 #include <Tether/Common/Stopwatch.hpp>
 
 #include <Tether/Module/Rendering/WindowUI.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanGraphicsContext.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
 
 #include <Tether/Module/Rendering/Elements/Button.hpp>
 #include <Tether/Module/Rendering/Elements/Division.hpp>
@@ -48,11 +47,8 @@ public:
 	RendererTestApp()
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
-		m_Context(Vulkan::GlobalVulkan::Get()),
-		m_VulkanWindow(*m_Window),
-		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
-		m_Compositor(m_Renderer, m_VulkanWindow),
-		m_WindowUI(*m_Window, m_Renderer, m_Compositor),
+		m_Context(m_VkContext),
+		m_WindowUI(*m_Window, m_Context),
 		m_Button(m_WindowUI),
 		m_Division(m_WindowUI),
 		m_ProgressBar(m_WindowUI),
@@ -149,8 +145,6 @@ public:
 			}
 			
 			m_Text.SetColor(m_TextColor);
-
-			m_Compositor.RenderFrame();
 		}
 	}
 
@@ -165,11 +159,13 @@ public:
 private:
 	Scope<Window> m_Window;
 
-	Vulkan::VulkanGraphicsContext m_Context;
-	Vulkan::VulkanWindow m_VulkanWindow;
-	Vulkan::VulkanRenderer m_Renderer;
-	Vulkan::VulkanCompositor m_Compositor;
+	DebugLogger vulkanLogger;
 
+	Vulkan::VulkanContext m_VkContext;
+	Vulkan::GraphicsContext m_Context;
+	Vulkan::Compositor m_Compositor;
+	Vulkan::Renderer m_Renderer;
+	
 	WindowUI m_WindowUI;
 
 	Scope<Resources::Font> m_Font;
@@ -193,9 +189,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main()
 #endif
 {
-	DebugLogger vulkanLogger;
-	Vulkan::GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
-
 	RendererTestApp testApp;
 	testApp.Run();
 

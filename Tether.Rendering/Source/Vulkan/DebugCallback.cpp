@@ -1,6 +1,4 @@
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-
 namespace Tether::Rendering::Vulkan
 {
 	DebugCallback::~DebugCallback()

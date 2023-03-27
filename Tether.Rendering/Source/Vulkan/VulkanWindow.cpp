@@ -66,14 +66,6 @@ namespace Tether::Rendering::Vulkan
 			nullptr);
 	}
 
-	VulkanContext VulkanWindow::MakeVulkanContext()
-	{
-		VulkanContext context = m_Context;
-		context.renderPass = renderPass;
-
-		return context;
-	}
-
 	void VulkanWindow::ChooseSurfaceFormat()
 	{
 		uint32_t formatCount;

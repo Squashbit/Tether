@@ -1,5 +1,4 @@
 #include <Tether/Module/Rendering/Objects/Image.hpp>
-#include <Tether/Module/Rendering/Renderer.hpp>
 
 namespace Tether::Rendering::Objects
 {

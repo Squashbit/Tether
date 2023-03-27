@@ -3,13 +3,13 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	UniformBuffer::UniformBuffer(VulkanContext& context,
+	UniformBuffer::UniformBuffer(GraphicsContext& context,
 		size_t bufferSize, DescriptorSet& set, uint32_t binding)
 		:
 		m_BufferSize(bufferSize),
-		m_Allocator(context.allocator),
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader)
+		m_Allocator(context.GetAllocator()),
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader())
 	{
 		uint32_t setCount = set.GetSetCount();
 

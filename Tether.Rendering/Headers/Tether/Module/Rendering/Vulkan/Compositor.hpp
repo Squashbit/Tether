@@ -2,27 +2,32 @@
 
 #include <Tether/Events/EventHandler.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
 #include <Tether/Module/Rendering/Compositor.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanWindow.hpp>
 
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
-
 #include <Tether/Module/Rendering/Vulkan/Common/SwapchainDetails.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
-	class TETHER_EXPORT VulkanCompositor : public Compositor
+	class Renderer;
+	class TETHER_EXPORT Compositor : public Rendering::Compositor
 	{
+		friend Renderer;
 	public:
-		VulkanCompositor(VulkanRenderer& renderer, VulkanWindow& window,
+		Compositor(GraphicsContext& context, Window& window, 
 			bool autoRecreateSwapchain = true);
-		~VulkanCompositor();
-		TETHER_NO_COPY(VulkanCompositor);
+		~Compositor();
+		TETHER_NO_COPY(Compositor);
+
+		void SetRenderer(Renderer& renderer);
 
 		bool RenderFrame() override;
 
 		bool RecreateSwapchain();
+	protected:
+		GraphicsContext& m_Context;
+		VkRenderPass m_RenderPass = nullptr;
 	private:
 		void Init();
 
@@ -31,19 +36,26 @@ namespace Tether::Rendering::Vulkan
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandBuffers();
+		void CreateRenderPass();
 
+		void ChooseSurfaceFormat();
 		void QuerySwapchainSupport();
 		
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		void DestroySwapchain();
 
-		VulkanRenderer& m_Renderer;
-		VulkanWindow& m_VulkanWindow;
+		Renderer* m_pRenderer = nullptr;
+		
 		Window& m_Window;
-		VulkanContext& m_Context;
+		Surface m_Surface;
 
-		DeviceLoader& m_Dloader;
+		uint32_t m_FramesInFlight = 2;
+		VkDevice m_Device = nullptr;
+		const DeviceLoader& m_Dloader;
+
+		QueueFamilyIndices indices;
+		VkSurfaceFormatKHR m_SurfaceFormat;
 
 		SwapchainDetails m_SwapchainDetails;
 
@@ -52,11 +64,11 @@ namespace Tether::Rendering::Vulkan
 		class ResizeHandler : public Events::EventHandler
 		{
 		public:
-			ResizeHandler(VulkanCompositor& renderer);
+			ResizeHandler(Compositor& renderer);
 
 			void OnWindowResize(const Events::WindowResizeEvent& event) override;
 		private:
-			VulkanCompositor& m_Renderer;
+			Compositor& m_Renderer;
 		};
 		ResizeHandler m_ResizeHandler;
 

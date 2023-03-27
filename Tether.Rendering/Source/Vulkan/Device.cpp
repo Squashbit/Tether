@@ -81,17 +81,17 @@ namespace Tether::Rendering::Vulkan
 		return properties;
 	}
 
-	VkDevice Device::Get()
+	VkDevice Device::Get() const
 	{
 		return m_Device;
 	}
 
-	VkPhysicalDevice Device::GetPhysicalDevice()
-	{
+	VkPhysicalDevice Device::GetPhysicalDevice() const
+{
 		return m_PhysicalDevice;
 	}
 
-	DeviceLoader& Device::GetLoader()
+	const DeviceLoader& Device::GetLoader() const
 	{
 		return m_Loader;
 	}

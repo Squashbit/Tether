@@ -13,22 +13,26 @@ set(TETHER_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 option(TETHER_BUILD_TESTS "Build tether with tests" OFF)
 option(TETHER_BUILD_AS_SHARED "Build tether as a shared library" ON)
-option(
-	TETHER_BIN2CPP_EXTERNAL 
-	"Should be ON if Bin2cpp is supplied somewhere other than Vendor/Bin2cpp."
-	OFF
-)
-option(
-	TETHER_VMA_EXTERNAL 
-	"Should be ON if VMA is supplied somewhere other than Vendor/VMA."
-	OFF
-)
+option(TETHER_BUILD_RENDERING "Build Tether.Rendering" OFF)
+
 message(STATUS "TETHER_BUILD_TESTS      = ${TETHER_BUILD_TESTS}")
 message(STATUS "TETHER_BUILD_AS_SHARED  = ${TETHER_BUILD_AS_SHARED}")
 message(STATUS "TETHER_BIN2CPP_EXTERNAL = ${TETHER_BIN2CPP_EXTERNAL}")
+message(STATUS "TETHER_BIN2CPP_EXTERNAL = ${TETHER_BIN2CPP_EXTERNAL}")
 
-if (NOT TETHER_BIN2CPP_EXTERNAL)
-	add_subdirectory("Vendor/Bin2cpp")
+set (TETHER_BIN2CPP_DIR "${TETHER_PROJECT_DIR}/Vendor/Bin2cpp" CACHE STRING
+	"bin2cpp directory")
+set (TETHER_VMA_DIR "${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/VMA" CACHE STRING
+	"VMA directory")
+set (TETHER_FREETYPE_DIR "${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/freetype" CACHE STRING
+	"freetype directory")
+set (TETHER_STB_DIR "${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/stb_image" CACHE STRING
+	"stb directory")
+set (TETHER_SHADERC_DIR "${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/shaderc" CACHE STRING
+	"shaderc directory")
+
+if (IS_DIRECTORY ${TETHER_BIN2CPP_DIR})
+	add_subdirectory(${TETHER_BIN2CPP_DIR} bin2cpp)
 endif()
 
 if (TETHER_BUILD_AS_SHARED)
@@ -40,10 +44,8 @@ else()
 	add_definitions(-D_TETHER_BUILD_STATIC)
 endif()
 
-if (TETHER_BUILD_TESTS)
-	add_subdirectory("Tether/Tests")
-	add_subdirectory("Tether.Rendering/Tests")
-endif()
-
 add_subdirectory("Tether")
-add_subdirectory("Tether.Rendering")
+
+if (TETHER_BUILD_RENDERING)
+	add_subdirectory("Tether.Rendering")
+endif()

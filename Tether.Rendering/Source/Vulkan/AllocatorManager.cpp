@@ -3,27 +3,36 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	AllocatorManager::AllocatorManager(VulkanContext& context)
-		:
-		m_Context(context)
+	AllocatorManager::AllocatorManager(
+		PFN_vkGetInstanceProcAddr GetInstanceProcAddr,
+		VkInstance instance,
+		InstanceLoader instanceLoader,
+		VkDevice device,
+		VkPhysicalDevice physicalDevice
+	)
 	{
 		VmaVulkanFunctions funcs{};
-		funcs.vkGetInstanceProcAddr = m_Context.GetInstanceProcAddr;
-		funcs.vkGetDeviceProcAddr = m_Context.instanceLoader.vkGetDeviceProcAddr;
+		funcs.vkGetInstanceProcAddr = GetInstanceProcAddr;
+		funcs.vkGetDeviceProcAddr = instanceLoader.vkGetDeviceProcAddr;
 
 		VmaAllocatorCreateInfo createInfo{};
-		createInfo.physicalDevice = m_Context.physicalDevice;
-		createInfo.device = m_Context.device;
+		createInfo.physicalDevice = physicalDevice;
+		createInfo.device = device;
 		createInfo.vulkanApiVersion = VK_API_VERSION_1_3;
-		createInfo.instance = m_Context.instance;
+		createInfo.instance = instance;
 		createInfo.pVulkanFunctions = &funcs;
 
-		if (vmaCreateAllocator(&createInfo, &m_Context.allocator) != VK_SUCCESS)
+		if (vmaCreateAllocator(&createInfo, &m_Allocator) != VK_SUCCESS)
 			throw std::runtime_error("VMA allocator creation failed");
 	}
 
 	AllocatorManager::~AllocatorManager()
 	{
-		vmaDestroyAllocator(m_Context.allocator);
+		vmaDestroyAllocator(m_Allocator);
+	}
+
+	VmaAllocator AllocatorManager::Get()
+	{
+		return m_Allocator;
 	}
 }

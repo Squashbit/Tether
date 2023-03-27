@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT UniformBuffer : public DescriptorSetWritable
 	{
 	public:
-		UniformBuffer(VulkanContext& context, size_t bufferSize,
+		UniformBuffer(GraphicsContext& context, size_t bufferSize,
 			DescriptorSet& set, uint32_t binding);
 		~UniformBuffer();
 		TETHER_NO_COPY(UniformBuffer);
@@ -34,6 +34,6 @@ namespace Tether::Rendering::Vulkan
 
 		VmaAllocator m_Allocator = nullptr;
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 	};
 }

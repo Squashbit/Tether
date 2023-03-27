@@ -2,7 +2,6 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
 
@@ -35,9 +34,9 @@ namespace Tether::Rendering::Vulkan
 
 		VkPhysicalDeviceProperties GetPhysicalDeviceProperties();
 		
-		VkDevice Get();
-		VkPhysicalDevice GetPhysicalDevice();
-		DeviceLoader& GetLoader();
+		VkDevice Get() const;
+		VkPhysicalDevice GetPhysicalDevice() const;
+		const DeviceLoader& GetLoader() const;
 	protected:
 		void OnDispose();
 	private:

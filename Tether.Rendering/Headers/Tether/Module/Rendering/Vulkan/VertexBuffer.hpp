@@ -3,7 +3,6 @@
 #include <Tether/Common/Defs.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
 
 #include <optional>
 
@@ -11,10 +10,11 @@
 
 namespace Tether::Rendering::Vulkan
 {
+	class GraphicsContext;
 	class TETHER_EXPORT VertexBuffer
 	{
 	public:
-		VertexBuffer(VulkanContext& context, size_t vertexBufferSize, 
+		VertexBuffer(GraphicsContext& context, size_t vertexBufferSize,
 			size_t indexCount);
 		~VertexBuffer();
 		TETHER_NO_COPY(VertexBuffer);
@@ -49,6 +49,6 @@ namespace Tether::Rendering::Vulkan
 		std::optional<BufferStager> m_VertexStager;
 		std::optional<BufferStager> m_IndexStager;
 		
-		VulkanContext& m_Context;
+		GraphicsContext& m_Context;
 	};
 }

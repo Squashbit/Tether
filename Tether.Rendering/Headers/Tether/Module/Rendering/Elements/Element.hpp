@@ -5,8 +5,6 @@
 
 #include <Tether/Window.hpp>
 
-#include <Tether/Module/Rendering/Renderer.hpp>
-
 namespace Tether::Rendering
 {
 	class WindowUI;

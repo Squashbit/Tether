@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
 #include <Tether/Module/Rendering/Vulkan/CommandBufferDescriptor.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Objects/Image.hpp>
@@ -19,49 +19,47 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	VulkanRenderer::VulkanRenderer(const VulkanContext& context)
+	Renderer::Renderer(GraphicsContext& context, VkRenderPass renderPass)
 		:
 		m_Context(context),
-		m_Dloader(m_Context.deviceLoader)
+		m_Device(m_Context.GetDevice()),
+		m_Dloader(m_Context.GetDeviceLoader())
 	{
-		TETHER_ASSERT(
-			m_Context.instance != nullptr &&
-			m_Context.device != nullptr &&
-			m_Context.queue != nullptr &&
-			m_Context.physicalDevice != nullptr &&
-			m_Context.renderPass != nullptr &&
-			m_Context.commandPool != nullptr &&
-			m_Context.framesInFlight != 0
-		);
-
-		CreateAllocator();
-		CreateSolidPipeline();
-		CreateTexturedPipeline();
-		CreateTextPipeline();
+		CreatePipelines(renderPass);
 	}
 
-	VulkanRenderer::~VulkanRenderer()
+	Renderer::Renderer(Compositor& compositor)
+		:
+		m_Context(compositor.m_Context),
+		m_Device(m_Context.GetDevice()),
+		m_Dloader(m_Context.GetDeviceLoader())
 	{
-		m_Dloader.vkDeviceWaitIdle(m_Context.device);
-
-		m_Dloader.vkDestroyDescriptorSetLayout(m_Context.device, texturedPipelineSetLayout,
-			nullptr);
-		m_Dloader.vkDestroyDescriptorSetLayout(m_Context.device, textPipelineLayout,
-			nullptr);
+		CreatePipelines(compositor.m_RenderPass);
 	}
 
-	void VulkanRenderer::SetSwapchainExtent(VkExtent2D swapchainExtent)
+	Renderer::~Renderer()
 	{
-		m_SwapchainExtent = swapchainExtent;
+		m_Dloader.vkDeviceWaitIdle(m_Device);
+
+		m_Dloader.vkDestroyDescriptorSetLayout(m_Device, 
+			texturedPipelineSetLayout, nullptr);
+		m_Dloader.vkDestroyDescriptorSetLayout(m_Device, 
+			textPipelineLayout, nullptr);
 	}
 
-	void VulkanRenderer::PopulateCommandBuffer(VkCommandBuffer commandBuffer)
+	void Renderer::SetViewportExtent(VkExtent2D swapchainExtent)
+	{
+		m_ViewportExtent = swapchainExtent;
+	}
+
+	void Renderer::PopulateCommandBuffer(VkCommandBuffer commandBuffer,
+		ObjectsIter startIter, ObjectsIter endIter)
 	{
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = (float)m_SwapchainExtent.width;
-		viewport.height = (float)m_SwapchainExtent.height;
+		viewport.width = (float)m_ViewportExtent.width;
+		viewport.height = (float)m_ViewportExtent.height;
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		m_Dloader.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
@@ -69,31 +67,30 @@ namespace Tether::Rendering::Vulkan
 		VkRect2D scissor{};
 		scissor.offset.x = 0;
 		scissor.offset.y = 0;
-		scissor.extent.width = m_SwapchainExtent.width;
-		scissor.extent.height = m_SwapchainExtent.height;
+		scissor.extent.width = m_ViewportExtent.width;
+		scissor.extent.height = m_ViewportExtent.height;
 		m_Dloader.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		CommandBufferDescriptor commandBufferDesc(commandBuffer, m_Dloader);
-		for (size_t i = 0; i < objects.size(); i++)
+		for (ObjectsIter iter = startIter; iter != endIter; iter++)
 		{
-			Objects::Object& object = *objects[i];
-			if (!object.IsEnabled())
+			Objects::Object* pObject = *iter;
+			if (!pObject->IsEnabled())
 				continue;
 
-			ObjectRenderer& renderer = (ObjectRenderer&)object.GetObjectRenderer();
+			ObjectRenderer& renderer = (ObjectRenderer&)pObject->GetObjectRenderer();
 			renderer.AddToCommandBuffer(commandBufferDesc, currentFrame);
 		}
 	}
 
-	void VulkanRenderer::CreateAllocator()
+	void Renderer::CreatePipelines(VkRenderPass renderPass)
 	{
-		if (m_Context.allocator)
-			return;
-
-		m_Allocator.emplace(m_Context);
+		CreateSolidPipeline(renderPass);
+		CreateTexturedPipeline(renderPass);
+		CreateTextPipeline(renderPass);
 	}
 
-	void VulkanRenderer::CreateSolidPipeline()
+	void Renderer::CreateSolidPipeline(VkRenderPass renderPass)
 	{
 		using namespace Assets;
 
@@ -128,7 +125,7 @@ namespace Tether::Rendering::Vulkan
 		}
 
 		solidPipeline.emplace(
-			m_Context, m_SwapchainExtent, 0,
+			m_Context, m_ViewportExtent, 0,
 			(uint32_t*)VulkanShaders::_binary_solid_vert_spv,
 			sizeof(VulkanShaders::_binary_solid_vert_spv),
 			(uint32_t*)VulkanShaders::_binary_solid_frag_spv,
@@ -139,7 +136,7 @@ namespace Tether::Rendering::Vulkan
 		);
 	}
 
-	void VulkanRenderer::CreateTexturedPipeline()
+	void Renderer::CreateTexturedPipeline(VkRenderPass renderPass)
 	{
 		using namespace Assets;
 
@@ -154,8 +151,8 @@ namespace Tether::Rendering::Vulkan
 		layoutInfo.bindingCount = 1;
 		layoutInfo.pBindings = &layoutBinding;
 
-		if (m_Dloader.vkCreateDescriptorSetLayout(m_Context.device, &layoutInfo, nullptr,
-			&texturedPipelineSetLayout) != VK_SUCCESS)
+		if (m_Dloader.vkCreateDescriptorSetLayout(m_Device, 
+			&layoutInfo, nullptr, &texturedPipelineSetLayout) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create descriptor set layout");
 
 		VkPushConstantRange pushConstantRange{};
@@ -190,7 +187,7 @@ namespace Tether::Rendering::Vulkan
 		}
 
 		texturedPipeline.emplace(
-			m_Context, m_SwapchainExtent, 0,
+			m_Context, m_ViewportExtent, 0,
 			(uint32_t*)VulkanShaders::_binary_textured_vert_spv,
 			sizeof(VulkanShaders::_binary_textured_vert_spv),
 			(uint32_t*)VulkanShaders::_binary_textured_frag_spv,
@@ -201,7 +198,7 @@ namespace Tether::Rendering::Vulkan
 		);
 	}
 
-	void VulkanRenderer::CreateTextPipeline()
+	void Renderer::CreateTextPipeline(VkRenderPass renderPass)
 	{
 		using namespace Assets;
 
@@ -216,7 +213,7 @@ namespace Tether::Rendering::Vulkan
 		layoutInfo.bindingCount = 1;
 		layoutInfo.pBindings = &layoutBinding;
 
-		if (m_Dloader.vkCreateDescriptorSetLayout(m_Context.device, &layoutInfo, nullptr,
+		if (m_Dloader.vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr,
 			&textPipelineLayout) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create descriptor set layout");
 
@@ -253,7 +250,7 @@ namespace Tether::Rendering::Vulkan
 		}
 
 		textPipeline.emplace(
-			m_Context, m_SwapchainExtent, 0,
+			m_Context, m_ViewportExtent, 0,
 			(uint32_t*)VulkanShaders::_binary_text_vert_spv,
 			sizeof(VulkanShaders::_binary_text_vert_spv),
 			(uint32_t*)VulkanShaders::_binary_text_frag_spv,

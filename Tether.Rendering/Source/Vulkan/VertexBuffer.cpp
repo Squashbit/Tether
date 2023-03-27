@@ -1,9 +1,11 @@
 #include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
+
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
 {
-	VertexBuffer::VertexBuffer(VulkanContext& context,
+	VertexBuffer::VertexBuffer(GraphicsContext& context,
 		size_t vertexBufferSize, size_t indexCount)
 		:
 		m_Context(context)
@@ -103,7 +105,7 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
 
-		if (vmaCreateBuffer(m_Context.allocator, &bufferInfo,
+		if (vmaCreateBuffer(m_Context.GetAllocator(), &bufferInfo,
 			&allocInfo, &m_VertexBuffer, &m_VertexAllocation, nullptr) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create vertex buffer");
 	}
@@ -123,22 +125,22 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
 			VMA_ALLOCATION_CREATE_HOST_ACCESS_ALLOW_TRANSFER_INSTEAD_BIT;
 
-		if (vmaCreateBuffer(m_Context.allocator, &bufferInfo,
+		if (vmaCreateBuffer(m_Context.GetAllocator(), &bufferInfo,
 			&allocInfo, &m_IndexBuffer, &m_IndexAllocation, nullptr) != VK_SUCCESS)
 		{
-			vmaDestroyBuffer(m_Context.allocator, m_VertexBuffer, m_VertexAllocation);
+			vmaDestroyBuffer(m_Context.GetAllocator(), m_VertexBuffer, m_VertexAllocation);
 			throw std::runtime_error("Failed to create index buffer");
 		}
 	}
 
 	void VertexBuffer::DestroyBuffers()
 	{
-		m_Context.deviceLoader.vkDeviceWaitIdle(m_Context.device);
+		m_Context.GetDeviceLoader().vkDeviceWaitIdle(m_Context.GetDevice());
 
 		m_VertexStager.reset();
 		m_IndexStager.reset();
 
-		vmaDestroyBuffer(m_Context.allocator, m_VertexBuffer, m_VertexAllocation);
-		vmaDestroyBuffer(m_Context.allocator, m_IndexBuffer, m_IndexAllocation);
+		vmaDestroyBuffer(m_Context.GetAllocator(), m_VertexBuffer, m_VertexAllocation);
+		vmaDestroyBuffer(m_Context.GetAllocator(), m_IndexBuffer, m_IndexAllocation);
 	}
 }

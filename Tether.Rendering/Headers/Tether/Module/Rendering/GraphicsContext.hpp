@@ -1,20 +1,15 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Common/Defs.hpp>
+#include <Tether/Common/Ref.hpp>
 
-#include <Tether/Module/Rendering/Objects/Object.hpp>
-#include <Tether/Module/Rendering/Resources/Resource.hpp>
+#include <Tether/Module/Rendering/Objects/Image.hpp>
+#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Module/Rendering/Objects/Text.hpp>
 
-#include <Tether/Common/TypeTools.hpp>
-#include <Tether/Common/HashedType.hpp>
-#include <Tether/Common/Types.hpp>
+#include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
+#include <Tether/Module/Rendering/Resources/Font.hpp>
 
-#include <Tether/Math/Types.hpp>
-
-#include <type_traits>
-#include <typeinfo>
 #include <vector>
-#include <unordered_map>
 
 namespace Tether::Rendering
 {

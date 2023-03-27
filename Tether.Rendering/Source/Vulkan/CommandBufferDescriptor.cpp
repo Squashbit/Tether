@@ -3,7 +3,7 @@
 namespace Tether::Rendering::Vulkan
 {
 	CommandBufferDescriptor::CommandBufferDescriptor(VkCommandBuffer commandBuffer,
-		DeviceLoader& dloader)
+		const DeviceLoader& dloader)
 		:
 		commandBuffer(commandBuffer),
 		m_Dloader(dloader)
@@ -36,7 +36,7 @@ namespace Tether::Rendering::Vulkan
 		pBoundVertexBuffer = pVertexBuffer;
 	}
 
-	VkCommandBuffer CommandBufferDescriptor::Get()
+	VkCommandBuffer CommandBufferDescriptor::Get() const
 	{
 		return commandBuffer;
 	}

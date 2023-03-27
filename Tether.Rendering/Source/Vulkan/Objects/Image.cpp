@@ -4,16 +4,16 @@
 namespace Tether::Rendering::Vulkan
 {
 	Image::Image(
-		VulkanContext& context,
+		GraphicsContext& context,
 		Pipeline& pipeline,
 		VertexBuffer& rectBuffer,
 		VkExtent2D& swapchainExtent
 	)
 		:
 		Objects::Image((ObjectRenderer&)*this),
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader),
-		m_Allocator(context.allocator),
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader()),
+		m_Allocator(context.GetAllocator()),
 		m_Pipeline(pipeline),
 		m_RectBuffer(rectBuffer),
 		m_SwapchainExtent(swapchainExtent)

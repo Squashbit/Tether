@@ -28,10 +28,10 @@
 using namespace Tether::Rendering::Vulkan;
 using namespace Tether;
 
-Surface::Surface(VulkanContext& context, Window& window)
+Surface::Surface(GraphicsContext& context, Window& window)
 	:
-	m_Instance(context.instance),
-	m_Loader(context.instanceLoader)
+	m_Instance(context.GetInstance()),
+	m_Loader(context.GetInstanceLoader())
 {
 #ifdef __linux__
 	Platform::X11Application& app = (Platform::X11Application&)

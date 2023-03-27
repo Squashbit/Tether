@@ -3,7 +3,7 @@
 #include <Tether/Common/Defs.hpp>
 
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 
 #include <optional>
 #include <vector>
@@ -15,7 +15,7 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT PipelineLayout
 	{
 	public:
-		PipelineLayout(VulkanContext& context, 
+		PipelineLayout(GraphicsContext& context,
 			VkPipelineLayoutCreateInfo* createInfo);
 		~PipelineLayout();
 		TETHER_NO_COPY(PipelineLayout);

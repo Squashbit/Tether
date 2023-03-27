@@ -4,7 +4,7 @@
 
 #include <Tether/Module/Rendering/ImageLoader.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
+#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
 
 #include <thread>
 #include <chrono>

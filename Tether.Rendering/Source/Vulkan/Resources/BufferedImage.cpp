@@ -7,17 +7,17 @@
 namespace Tether::Rendering::Vulkan
 {
 	BufferedImage::BufferedImage(
-		VulkanContext& context,
+		GraphicsContext& context,
 		VkSampler sampler,
 		VkDescriptorSetLayout pipelineSetLayout,
 		const Resources::BufferedImageInfo& info
 	)
 		:
 		Resources::BufferedImage(info),
-		m_Context(context),
-		m_Device(m_Context.device),
-		m_Dloader(m_Context.deviceLoader),
-		m_Sampler(sampler)
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader()),
+		m_Sampler(sampler),
+		m_Allocator(context.GetAllocator())
 	{
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -38,19 +38,21 @@ namespace Tether::Rendering::Vulkan
 		VmaAllocationCreateInfo allocInfo{};
 		allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-		if (vmaCreateImage(m_Context.allocator, &imageInfo, &allocInfo,
+		if (vmaCreateImage(m_Allocator, &imageInfo, &allocInfo,
 			&m_Image, &m_ImageAllocation, nullptr) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create image");
 
-		UploadImageData(info);
+		UploadImageData(context, info);
 		CreateImageView();
 
+		uint32_t framesInFlight = context.GetFramesInFlight();
+
 		VkDescriptorPoolSize samplerSize{};
-		samplerSize.descriptorCount = m_Context.framesInFlight;
+		samplerSize.descriptorCount = framesInFlight;
 		samplerSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
-		m_Pool.emplace(context, m_Context.framesInFlight, 1, &samplerSize);
-		m_Set.emplace(*m_Pool, pipelineSetLayout, m_Context.framesInFlight);
+		m_Pool.emplace(context, framesInFlight, 1, &samplerSize);
+		m_Set.emplace(*m_Pool, pipelineSetLayout, framesInFlight);
 		m_Set->UpdateSets(this, 0);
 	}
 
@@ -59,13 +61,14 @@ namespace Tether::Rendering::Vulkan
 		m_Dloader.vkDeviceWaitIdle(m_Device);
 
 		m_Dloader.vkDestroyImageView(m_Device, m_ImageView, nullptr);
-		vmaDestroyImage(m_Context.allocator, m_Image, m_ImageAllocation);
+		vmaDestroyImage(m_Allocator, m_Image, m_ImageAllocation);
 	}
 
-	void BufferedImage::UploadImageData(const Resources::BufferedImageInfo& info)
+	void BufferedImage::UploadImageData(GraphicsContext& context, 
+		const Resources::BufferedImageInfo& info)
 	{
 		ImageStager stager(
-			m_Context, m_Image,
+			context, m_Image,
 			info.width, info.height, 4, info.pixelData, m_ImageFormat
 		);
 

@@ -21,7 +21,7 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Image(
-			VulkanContext& context,
+			GraphicsContext& context,
 			Pipeline& pPipeline,
 			VertexBuffer& pRectBuffer,
 			VkExtent2D& swapchainExtent
@@ -34,7 +34,7 @@ namespace Tether::Rendering::Vulkan
 			uint32_t index) override;
 	private:
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 		VmaAllocator m_Allocator = nullptr;
 		
 		Pipeline& m_Pipeline;

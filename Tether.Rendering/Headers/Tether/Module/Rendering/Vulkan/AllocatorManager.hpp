@@ -2,7 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
 
 #include <vk_mem_alloc.h>
 
@@ -11,10 +11,19 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT AllocatorManager
 	{
 	public:
-		AllocatorManager(VulkanContext& context);
+		AllocatorManager(
+			PFN_vkGetInstanceProcAddr GetInstanceProcAddr,
+			VkInstance instance,
+			InstanceLoader instanceLoader,
+			VkDevice device,
+			VkPhysicalDevice physicalDevice
+		);
+
 		~AllocatorManager();
 		TETHER_NO_COPY(AllocatorManager);
+
+		VmaAllocator Get();
 	private:
-		VulkanContext& m_Context;
+		VmaAllocator m_Allocator = nullptr;
 	};
 }

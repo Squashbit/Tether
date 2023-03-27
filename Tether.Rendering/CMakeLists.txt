@@ -7,44 +7,49 @@ message(STATUS "TETHER_RENDERING_VULKAN_API = ${TETHER_RENDERING_VULKAN_API}")
 message(STATUS "TETHER_RENDERING_OPENGL_API = ${TETHER_RENDERING_OPENGL_API}")
 
 add_subdirectory(Assets)
-add_subdirectory(Vendor/freetype)
-set_property(TARGET freetype PROPERTY POSITION_INDEPENDENT_CODE ON)
 
-add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Resources/BufferedImage.cpp" "Source/Objects/Object.cpp" "Source/Objects/Rectangle.cpp" "Source/WindowUI.cpp" "Source/Renderer.cpp" "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Objects/Text.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp" "Source/Compositor.cpp" "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp" "Source/Elements/Common/BorderedElement.cpp" "Source/Elements/Text.cpp")
+if (TETHER_BUILD_TESTS)
+	add_subdirectory("Tests")
+endif()
+
+if (IS_DIRECTORY ${TETHER_FREETYPE_DIR})
+	add_subdirectory(${TETHER_FREETYPE_DIR} freetype)
+	set_property(TARGET freetype PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
+
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Resources/BufferedImage.cpp" "Source/Objects/Object.cpp" "Source/Objects/Rectangle.cpp" "Source/WindowUI.cpp"  "Source/Objects/Image.cpp" "Source/Vulkan/Objects/Image.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Objects/Text.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp" "Source/Compositor.cpp" "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp" "Source/Elements/Common/BorderedElement.cpp" "Source/Elements/Text.cpp")
 
 if (TETHER_RENDERING_VULKAN_API)
-    find_package(Vulkan REQUIRED)
-    target_sources(${PROJECT_NAME} PRIVATE "Source/Vulkan/Common/TypeNames.cpp" "Source/Vulkan/Objects/Rectangle.cpp" "Source/Vulkan/Device.cpp" "Source/Vulkan/DeviceLoader.cpp" "Source/Vulkan/Instance.cpp" "Source/Vulkan/InstanceLoader.cpp" "Source/Vulkan/VulkanRenderer.cpp" "Source/Vulkan/Surface.cpp" "Source/Vulkan/Pipeline.cpp" "Source/Vulkan/Swapchain.cpp" "Source/Vulkan/VertexBuffer.cpp" "Source/Vulkan/BufferStager.cpp" "Source/Vulkan/VmaImplementation.cpp"    "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp" "Source/Vulkan/Resources/BufferedImage.cpp"  "Source/Vulkan/SingleUseCommandBuffer.cpp"  "Source/Vulkan/CommandBufferDescriptor.cpp" "Source/Vulkan/DescriptorSet.cpp" "Source/Vulkan/DescriptorSetWritable.cpp" "Source/Vulkan/Objects/Text.cpp" "Source/Vulkan/Resources/Font.cpp" "Source/Vulkan/DebugCallback.cpp" "Source/Vulkan/GlobalVulkan.cpp" "Source/Vulkan/ImageStager.cpp" "Source/Vulkan/VulkanCompositor.cpp"  "Source/Vulkan/AllocatorManager.cpp" "Source/Vulkan/VulkanWindow.cpp")
+	find_package(Vulkan REQUIRED)
+	target_sources(${PROJECT_NAME} PRIVATE "Source/Vulkan/Objects/Rectangle.cpp" "Source/Vulkan/Device.cpp" "Source/Vulkan/DeviceLoader.cpp" "Source/Vulkan/Instance.cpp" "Source/Vulkan/InstanceLoader.cpp" "Source/Vulkan/Renderer.cpp" "Source/Vulkan/Surface.cpp" "Source/Vulkan/Pipeline.cpp" "Source/Vulkan/Swapchain.cpp" "Source/Vulkan/VertexBuffer.cpp" "Source/Vulkan/BufferStager.cpp" "Source/Vulkan/VmaImplementation.cpp"    "Source/Vulkan/ShaderModule.cpp"  "Source/Vulkan/DescriptorPool.cpp" "Source/Vulkan/UniformBuffer.cpp" "Source/Vulkan/Resources/BufferedImage.cpp"  "Source/Vulkan/SingleUseCommandBuffer.cpp"  "Source/Vulkan/CommandBufferDescriptor.cpp" "Source/Vulkan/DescriptorSet.cpp" "Source/Vulkan/DescriptorSetWritable.cpp" "Source/Vulkan/Objects/Text.cpp" "Source/Vulkan/Resources/Font.cpp" "Source/Vulkan/DebugCallback.cpp"  "Source/Vulkan/ImageStager.cpp" "Source/Vulkan/Compositor.cpp"  "Source/Vulkan/AllocatorManager.cpp" "Source/Vulkan/VulkanWindow.cpp" "Source/Vulkan/VulkanContext.cpp")
 
-    if (NOT TETHER_VMA_EXTERNAL)
-	    add_subdirectory("Vendor/VMA")
-    endif()
+	if (IS_DIRECTORY ${TETHER_VMA_DIR})
+		add_subdirectory(${TETHER_VMA_DIR} vma)
+	endif()
 
-    add_dependencies(${PROJECT_NAME} VulkanMemoryAllocator)
+	add_dependencies(${PROJECT_NAME} VulkanMemoryAllocator)
+	execute_process(COMMAND python3 ${TETHER_SHADERC_DIR}/utils/git-sync-deps)
+	set(SHADERC_SKIP_TESTS ON)
 
-    execute_process(
-		COMMAND
-			python3 ${TETHER_PROJECT_DIR}/Tether.Rendering/Vendor/shaderc/utils/git-sync-deps
-	)
-
-    set(SHADERC_SKIP_TESTS ON)
-    add_subdirectory(Vendor/shaderc)
+	if (IS_DIRECTORY ${TETHER_SHADERC_DIR})
+		add_subdirectory(Vendor/shaderc)
+	endif()
 endif()
 
 add_dependencies(${PROJECT_NAME} tether compileTetherRenderingAssets freetype)
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
-    "Headers"
-    "Vendor/VMA/include"
-    "Vendor/freetype/include"
-    "Vendor/stb_image"
+	"Headers"
+	"Vendor/VMA/include"
+	"Vendor/freetype/include"
+	"Vendor/stb_image"
 PRIVATE
-    ${TETHER_BINARY_DIR}
-    ${TETHER_DIR}/Headers
-    ${Vulkan_INCLUDE_DIR}
+	${TETHER_BINARY_DIR}
+	${TETHER_DIR}/Headers
+	${Vulkan_INCLUDE_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}
-    tether freetype
+	tether freetype
 )

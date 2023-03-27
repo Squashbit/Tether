@@ -3,8 +3,6 @@
 #include <vector>
 #include <unordered_map>
 
-#include <Tether/Common/Defs.hpp>
-#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Vulkan/DebugCallback.hpp>
 #include <Tether/Module/Rendering/Vulkan/Device.hpp>
 #include <Tether/Module/Rendering/Vulkan/Surface.hpp>
@@ -53,8 +51,8 @@ namespace Tether::Rendering::Vulkan
 		 */
 		void RemoveDebugMessenger(DebugCallback& messenger);
 
-		VkInstance Get();
-		InstanceLoader& GetLoader();
+		VkInstance Get() const;
+		const InstanceLoader& GetLoader() const;
 
 		std::vector<VkExtensionProperties> GetAvailableExtentions();
 

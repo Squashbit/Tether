@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Common/Defs.hpp>
 #include <Tether/Module/Rendering/Objects/Object.hpp>
 
 #include <Tether/Module/Rendering/Resources/BufferedImage.hpp>

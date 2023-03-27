@@ -3,7 +3,7 @@
 #include <Tether/Math/Vector2.hpp>
 
 #include <Tether/Module/Rendering/Resources/Font.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 #include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
 
 #include <unordered_map>
@@ -27,7 +27,7 @@ namespace Tether::Rendering::Vulkan
 		};
 
 		Font(
-			VulkanContext& context,
+			GraphicsContext& context,
 			VkDescriptorSetLayout setLayout, 
 			VkSampler sampler,
 			const std::string& fontPath

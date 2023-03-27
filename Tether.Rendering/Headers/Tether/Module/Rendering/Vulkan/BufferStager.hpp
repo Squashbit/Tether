@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -8,7 +8,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		BufferStager(
-			VulkanContext& context,
+			GraphicsContext& context,
 			VkBuffer buffer,
 			size_t bufferSize
 		);

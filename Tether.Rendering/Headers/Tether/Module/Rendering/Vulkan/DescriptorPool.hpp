@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -8,7 +8,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		friend class DescriptorSet;
 	public:
-		DescriptorPool(VulkanContext& context, uint32_t maxSets, uint32_t sizeCount,
+		DescriptorPool(GraphicsContext& context, uint32_t maxSets, uint32_t sizeCount,
 			VkDescriptorPoolSize* sizes);
 		~DescriptorPool();
 		TETHER_NO_COPY(DescriptorPool);

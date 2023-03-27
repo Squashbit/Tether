@@ -4,8 +4,8 @@
 
 #include <Tether/Module/Rendering/ImageLoader.hpp>
 #include <Tether/Module/Rendering/Objects/Image.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanRenderer.hpp>
-#include <Tether/Module/Rendering/Vulkan/VulkanCompositor.hpp>
+#include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
+#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
 #include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
 #include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
 
