@@ -6,14 +6,14 @@
 namespace Tether::Rendering::Vulkan
 {
 	BufferStager::BufferStager(
-		VulkanContext& context,
+		VulkanInfo& context,
 		VkBuffer buffer,
 		size_t bufferSize
 	)
 		:
 		m_Context(context),
 		m_Device(context.device),
-		m_Dloader(context.deviceLoader),
+		m_Dloader(*context.deviceLoader),
 		m_Buffer(buffer),
 		m_BufferSize(bufferSize)
 	{

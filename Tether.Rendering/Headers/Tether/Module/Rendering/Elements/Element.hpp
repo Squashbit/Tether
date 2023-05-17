@@ -3,6 +3,8 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Math/Types.hpp>
 
+#include <Tether/Module/Rendering/Objects/Object.hpp>
+
 #include <Tether/Window.hpp>
 
 namespace Tether::Rendering
@@ -38,9 +40,6 @@ namespace Tether::Rendering::Elements
 	protected:
 		bool m_IsInWindowUI = false;
 
-		void OnAdd();
-		void OnRemove();
-
 		virtual void UpdateTransform() {}
 		virtual void UpdateStyle() {}
 
@@ -53,8 +52,7 @@ namespace Tether::Rendering::Elements
 
 		WindowUI& m_WindowUI;
 		Window& m_Window;
-		Renderer& m_Renderer;
 		
-		std::vector<std::reference_wrapper<Objects::Object>> m_Objects;
+		std::vector<Objects::Object*>& m_Objects;
 	};
 }

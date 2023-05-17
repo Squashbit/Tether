@@ -29,7 +29,6 @@ namespace Tether::Rendering::Vulkan
 			VkDevice device,
 			VkQueue queue,
 			VkPhysicalDevice physicalDevice,
-			VkRenderPass renderPass,
 			VkCommandPool commandPool,
 			VmaAllocator allocator // One will be created automatically if it is nullptr
 		);

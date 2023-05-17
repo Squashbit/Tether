@@ -1,17 +1,16 @@
 #include <Tether/Module/Rendering/Objects/Object.hpp>
-#include <Tether/Module/Rendering/Renderer.hpp>
+#include <Tether/Module/Rendering/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Objects
 {
-	Object::Object(ObjectRenderer& objectRenderer)
+	Object::Object(GraphicsContext& graphicsContext, ObjectRenderer& objectRenderer)
 		:
+		m_GraphicsContext(graphicsContext),
 		m_ObjectRenderer(objectRenderer)
 	{}
 
-	Object::~Object()
-	{
-		m_pRenderer->RemoveObject(*this);
-	}
+	Object::~Object() 
+	{}
 
 	void Object::SetX(float value)
 	{
@@ -46,5 +45,10 @@ namespace Tether::Rendering::Objects
 	ObjectRenderer& Object::GetObjectRenderer() const
 	{
 		return m_ObjectRenderer;
+	}
+
+	GraphicsContext& Object::GetGraphicsContext() const
+	{
+		return m_GraphicsContext;
 	}
 }

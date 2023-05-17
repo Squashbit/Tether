@@ -5,7 +5,7 @@
 
 namespace Tether::Rendering
 {
-	class Renderer;
+	class GraphicsContext;
 }
 
 namespace Tether::Rendering::Objects
@@ -18,9 +18,9 @@ namespace Tether::Rendering::Objects
 
 	class TETHER_EXPORT Object
 	{
-		friend Renderer;
 	public:
-		virtual ~Object();
+		Object(GraphicsContext& graphicsContext, ObjectRenderer& objectRenderer);
+		virtual ~Object() = 0;
 		TETHER_NO_COPY(Object);
 
 		void SetX(float value);
@@ -31,16 +31,13 @@ namespace Tether::Rendering::Objects
 		bool IsEnabled();
 		
 		ObjectRenderer& GetObjectRenderer() const;
+		GraphicsContext& GetGraphicsContext() const;
 	protected:
-		Object(ObjectRenderer& objectRenderer);
-
 		float x = 0.0f;
 		float y = 0.0f;
 		bool m_Enabled = true;
-
-		bool m_IsInRenderer = false;
-		Renderer* m_pRenderer = nullptr;
 	private:
+		GraphicsContext& m_GraphicsContext;
 		ObjectRenderer& m_ObjectRenderer;
 	};
 }

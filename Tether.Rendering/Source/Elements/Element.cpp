@@ -7,7 +7,7 @@ namespace Tether::Rendering::Elements
 		:
 		m_WindowUI(windowUI),
 		m_Window(m_WindowUI.GetWindow()),
-		m_Renderer(m_WindowUI.GetRenderer())
+		m_Objects(m_WindowUI.GetObjectsVector())
 	{}
 
 	Element::~Element()
@@ -96,18 +96,6 @@ namespace Tether::Rendering::Elements
 	Math::Vector4f Element::GetBackgroundColor() const
 	{
 		return m_BackgroundColor;
-	}
-
-	void Element::OnAdd()
-	{
-		for (Objects::Object& object : m_Objects)
-			m_Renderer.AddObject(object);
-	}
-
-	void Element::OnRemove()
-	{
-		for (Objects::Object& object : m_Objects)
-			m_Renderer.RemoveObject(object);
 	}
 
 	void Element::ChangeTransform()

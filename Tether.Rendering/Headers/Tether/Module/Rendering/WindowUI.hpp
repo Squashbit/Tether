@@ -3,8 +3,8 @@
 #include <Tether/Window.hpp>
 
 #include <Tether/Module/Rendering/Elements/Element.hpp>
+#include <Tether/Module/Rendering/GraphicsContext.hpp>
 #include <Tether/Module/Rendering/Compositor.hpp>
-#include <Tether/Module/Rendering/Renderer.hpp>
 
 #include <Tether/Math/Types.hpp>
 
@@ -14,8 +14,8 @@ namespace Tether::Rendering
 	{
 		friend Elements::Element;
 	public:
-		WindowUI(Window& window, Renderer& renderer);
-		WindowUI(Window& window, Renderer& renderer, Compositor& compositor);
+		WindowUI(Window& window, GraphicsContext& graphicsContext);
+		WindowUI(Window& window, GraphicsContext& graphicsContext, Compositor& compositor);
 		~WindowUI();
 		TETHER_NO_COPY(WindowUI);
 
@@ -38,8 +38,8 @@ namespace Tether::Rendering
 
 		void Repaint(bool isAutomatic = false);
 
-		Window& GetWindow();
-		Renderer& GetRenderer();
+		Window& GetWindow() const;
+		GraphicsContext& GetGraphicsContext() const;
 	private:
 		bool m_AutoRepaint = true;
 		bool m_RepaintOnResize = false;
@@ -55,14 +55,13 @@ namespace Tether::Rendering
 			WindowUI& m_WindowUI;
 		};
 
-		std::vector<Elements::Element*> m_Elements;
-
-		Renderer& m_Renderer;
+		Window& m_Window;
+		GraphicsContext& m_GraphicsContext;
 
 		std::optional<Repainter> m_Repainter;
 		Compositor* m_Compositor = nullptr;
 
-		Window& m_Window;
+		std::vector<Elements::Element*> m_Elements;
 	};
 
 	class TETHER_EXPORT ScopedNoRepaint
