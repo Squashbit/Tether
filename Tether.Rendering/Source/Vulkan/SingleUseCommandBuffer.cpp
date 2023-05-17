@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
+#include <Tether/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

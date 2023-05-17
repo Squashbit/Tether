@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Vulkan/VertexBuffer.hpp>
-#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/VertexBuffer.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 
 #include <stdexcept>
 

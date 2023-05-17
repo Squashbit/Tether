@@ -2,9 +2,9 @@
 
 #include <Tether/Tether.hpp>
 
-#include <Tether/Module/Rendering/ImageLoader.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
+#include <Tether/Rendering/ImageLoader.hpp>
+#include <Tether/Rendering/Vulkan/GlobalVulkan.hpp>
+#include <Tether/Rendering/Vulkan/Compositor.hpp>
 
 #include <thread>
 #include <chrono>

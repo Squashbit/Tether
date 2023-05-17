@@ -1,14 +1,14 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
-#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
-#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
+#include <Tether/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/Compositor.hpp>
 
-#include <Tether/Module/Rendering/Elements/Button.hpp>
-#include <Tether/Module/Rendering/Elements/Division.hpp>
-#include <Tether/Module/Rendering/Elements/ProgressBar.hpp>
-#include <Tether/Module/Rendering/Elements/Text.hpp>
+#include <Tether/Rendering/Elements/Button.hpp>
+#include <Tether/Rendering/Elements/Division.hpp>
+#include <Tether/Rendering/Elements/ProgressBar.hpp>
+#include <Tether/Rendering/Elements/Text.hpp>
 
 #include <iostream>
 #include <vector>
@@ -47,8 +47,8 @@ public:
 	RendererTestApp()
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
-		m_Context(m_VkContext),
-		m_WindowUI(*m_Window, m_Context),
+		m_GraphicsContext(m_VkContext),
+		m_WindowUI(*m_Window, m_GraphicsContext),
 		m_Button(m_WindowUI),
 		m_Division(m_WindowUI),
 		m_ProgressBar(m_WindowUI),
@@ -56,7 +56,7 @@ public:
 		m_TheVoidText(m_WindowUI),
 		m_TextColor(0.0f, 0.0f, 0.0f, 1.0f)
 	{
-		m_Font = m_Context.CreateFont("Assets/font.ttf");
+		m_Font = m_GraphicsContext.CreateFont("Assets/font.ttf");
 		m_Font->SetSize(24);
 
 		m_WindowUI.SetAutoRepaint(false);
@@ -161,11 +161,9 @@ private:
 
 	DebugLogger vulkanLogger;
 
-	Vulkan::VulkanContext m_VkContext;
-	Vulkan::GraphicsContext m_Context;
-	Vulkan::Compositor m_Compositor;
-	Vulkan::Renderer m_Renderer;
-	
+	Vulkan::VulkanContextCreator m_VkContext;
+	Vulkan::GraphicsContext m_GraphicsContext;
+
 	WindowUI m_WindowUI;
 
 	Scope<Resources::Font> m_Font;

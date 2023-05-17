@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Compositor.hpp>
+#include <Tether/Rendering/Compositor.hpp>
 
 namespace Tether::Rendering
 {

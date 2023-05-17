@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Elements/Division.hpp>
+#include <Tether/Rendering/Elements/Division.hpp>
 
 namespace Tether::Rendering::Elements
 {

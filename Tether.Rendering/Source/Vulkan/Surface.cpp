@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Vulkan/Surface.hpp>
-#include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Rendering/Vulkan/Surface.hpp>
+#include <Tether/Rendering/Vulkan/Instance.hpp>
 
 #include <stdexcept>
 

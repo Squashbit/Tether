@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/Resources/Font.hpp>
+#include <Tether/Rendering/Vulkan/Resources/Font.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

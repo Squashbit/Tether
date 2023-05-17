@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
@@ -54,7 +54,7 @@ namespace Tether::Rendering::Vulkan
 		CreateSampler();
 	}
 
-	GraphicsContext::GraphicsContext(VulkanContext& vulkanContext)
+	GraphicsContext::GraphicsContext(ContextCreator& vulkanContext)
 		:
 		m_GetInstanceProcAddr(vulkanContext.GetVulkanLibrary().GetInstanceProcAddr),
 		m_FramesInFlight(vulkanContext.GetFramesInFlight()),
@@ -75,16 +75,6 @@ namespace Tether::Rendering::Vulkan
 		);
 
 		m_Allocator = m_AllocatorManager->Get();
-	}
-
-	GraphicsContext::GraphicsContext(PFN_vkGetInstanceProcAddr GetInstanceProcAddr, uint32_t framesInFlight, InstanceLoader instanceLoader, /* Must have had Load called */ DeviceLoader deviceLoader, /* Must have had Load called */ VkInstance instance, VkDevice device, VkQueue queue, VkPhysicalDevice physicalDevice, VkRenderPass renderPass, VkCommandPool commandPool, VmaAllocator allocator /* One will be created automatically if it is nullptr */)
-	{
-
-	}
-
-	GraphicsContext::GraphicsContext(VulkanContext& vulkanContext)
-	{
-
 	}
 
 	GraphicsContext::~GraphicsContext()
@@ -223,6 +213,6 @@ namespace Tether::Rendering::Vulkan
 
 	VmaAllocator GraphicsContext::GetAllocator() const
 	{
-
+		return m_Allocator;
 	}
 }

@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Vulkan/Resources/BufferedImage.hpp>
-#include <Tether/Module/Rendering/Vulkan/ImageStager.hpp>
+#include <Tether/Rendering/Vulkan/Resources/BufferedImage.hpp>
+#include <Tether/Rendering/Vulkan/ImageStager.hpp>
 #include <stdexcept>
 
 #include <cstring>

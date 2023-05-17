@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Resources/Font.hpp>
-#include <Tether/Module/Rendering/FreetypeLibrary.hpp>
+#include <Tether/Rendering/Resources/Font.hpp>
+#include <Tether/Rendering/FreetypeLibrary.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Resources

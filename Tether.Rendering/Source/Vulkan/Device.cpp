@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/Instance.hpp>
+#include <Tether/Rendering/Vulkan/Instance.hpp>
 #include <stdexcept>
 
 #include <set>

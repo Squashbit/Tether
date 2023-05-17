@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Elements/Text.hpp>
+#include <Tether/Rendering/Elements/Text.hpp>
 
 namespace Tether::Rendering::Elements
 {

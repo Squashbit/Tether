@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/BufferStager.hpp>
+#include <Tether/Rendering/Vulkan/BufferStager.hpp>
 #include <stdexcept>
 
 #include <cstring>

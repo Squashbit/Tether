@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/DescriptorSetWritable.hpp>
+#include <Tether/Rendering/Vulkan/DescriptorSetWritable.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

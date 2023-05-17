@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
+#include <Tether/Rendering/Vulkan/ShaderModule.hpp>
 #include <stdexcept>
 
 using namespace Tether::Rendering::Vulkan;

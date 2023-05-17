@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Elements/ProgressBar.hpp>
+#include <Tether/Rendering/Elements/ProgressBar.hpp>
 
 namespace Tether::Rendering::Elements
 {

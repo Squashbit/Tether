@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/FreetypeLibrary.hpp>
+#include <Tether/Rendering/FreetypeLibrary.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering

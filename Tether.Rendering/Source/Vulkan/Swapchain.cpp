@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/Swapchain.hpp>
+#include <Tether/Rendering/Vulkan/Swapchain.hpp>
 
 #include <algorithm>
 #include <cmath>

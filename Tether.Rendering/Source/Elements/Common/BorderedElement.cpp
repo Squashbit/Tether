@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Elements/Common/BorderedElement.hpp>
+#include <Tether/Rendering/Elements/Common/BorderedElement.hpp>
 
 namespace Tether::Rendering::Elements
 {

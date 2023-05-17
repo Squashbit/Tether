@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/AllocatorManager.hpp>
+#include <Tether/Rendering/Vulkan/AllocatorManager.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

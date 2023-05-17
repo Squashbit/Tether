@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/DeviceLoader.hpp>
+#include <Tether/Rendering/Vulkan/DeviceLoader.hpp>
 #include <Tether/Application.hpp>
 
 using namespace Tether::Rendering::Vulkan;

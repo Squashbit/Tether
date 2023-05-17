@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/ImageLoader.hpp>
+#include <Tether/Rendering/ImageLoader.hpp>
 #include <stb_image.h>
 
 namespace Tether::Rendering

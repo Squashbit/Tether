@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Elements/Element.hpp>
-#include <Tether/Module/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
+#include <Tether/Rendering/WindowUI.hpp>
 
 namespace Tether::Rendering::Elements
 {

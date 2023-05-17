@@ -2,12 +2,8 @@
 #include <Tether/Common/Stopwatch.hpp>
 #include <Tether/Math/Constants.hpp>
 
-#include <Tether/Module/Rendering/ImageLoader.hpp>
-#include <Tether/Module/Rendering/Objects/Image.hpp>
-#include <Tether/Module/Rendering/Vulkan/Renderer.hpp>
-#include <Tether/Module/Rendering/Vulkan/Compositor.hpp>
-#include <Tether/Module/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Module/Rendering/Vulkan/Common/TypeNames.hpp>
+#include <Tether/Rendering/ImageLoader.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 
 #include <iostream>
 #include <vector>
@@ -16,7 +12,6 @@
 
 using namespace Tether;
 using namespace Rendering;
-using namespace Vulkan;
 
 class DebugLogger : public Rendering::Vulkan::DebugCallback
 {
@@ -40,103 +35,32 @@ public:
 	}
 };
 
-class RendererTestApp
+static Stopwatch fpsTimer;
+static Stopwatch deltaTimer;
+static Stopwatch fullTime;
+
+static const size_t numObjects = 10;
+static const float lineSpacing = 0.1f;
+
+static size_t frames = 0;
+static float time = 0.0f;
+
+static Scope<Window> s_Window = Window::Create(1280, 720, L"Renderer testing");
+static Scope<Resources::BufferedImage> testImage;
+static Scope<WindowRenderer> s_WindowRenderer;
+
+static Vulkan::ContextCreator s_ContextCreator;
+static DebugLogger vulkanLogger;
+
+static void LoadResources(Vulkan::GraphicsContext& graphicsContext)
 {
-public:
-	RendererTestApp()
-		:
-		m_Window(Window::Create(1280, 720, L"Renderer testing")),
-		m_VulkanWindow(*m_Window),
-		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
-		m_Compositor(m_Renderer, m_VulkanWindow)
-	{
-		ImageLoader imageLoader("Assets/Test.png");
-		if (!imageLoader.Load())
-			throw std::runtime_error("Failed to load image");
+	ImageLoader imageLoader("Assets/Test.png");
+	if (!imageLoader.Load())
+		throw std::runtime_error("Failed to load image");
 
-		testImage = m_Renderer.CreateResource<Resources::BufferedImage>(
-			imageLoader.GetImageInfo());
-		
-		objects.resize(numObjects);
-		for (size_t i = 0; i < numObjects; i++)
-		{
-			objects[i] = m_Renderer.CreateObject<Objects::Image>();
-			Objects::Image* image = objects[i].get();
-			image->SetImage(*testImage);
-			
-			m_Renderer.AddObject(*image);
-		}
-
-		m_Window->SetVisible(true);
-	}
-
-	void Run()
-	{
-		while (!m_Window->IsCloseRequested())
-		{
-			float delta = deltaTimer.GetElapsedSeconds();
-			deltaTimer.Set();
-
-			Application::Get().PollEvents();
-
-			time += delta;
-			frames++;
-
-			if (fpsTimer.GetElapsedSeconds() >= 3.0f)
-			{
-				std::cout << "FPS = " << 1.0f / (time / frames) << std::endl;
-
-				time = 0;
-				frames = 0;
-
-				fpsTimer.Set();
-			}
-
-			int windowWidth = m_Window->GetWidth();
-			int windowHeight = m_Window->GetHeight();
-			const float imageWidth = (1.0f / numObjects) * windowWidth;
-			const float imageHeight = (1.0f / numObjects) * windowHeight;
-			
-			for (size_t i = 0; i < numObjects; i++)
-			{
-				Objects::Image* image = objects[i].get();
-
-				float yTime = fullTime.GetElapsedSeconds() / 3;
-				yTime += (numObjects - i) * 0.03f;
-				
-				float ypos = abs(sin(yTime * Math::PI));
-				ypos *= 1 - lineSpacing;
-
-				image->SetX((i / (float)numObjects) * windowWidth);
-				image->SetY((1 - ypos - lineSpacing) * windowHeight);
-				image->SetWidth(imageWidth);
-				image->SetHeight(imageHeight);
-			}
-
-			m_Compositor.RenderFrame();
-		}
-	}
-private:
-	size_t numObjects = 10;
-	float lineSpacing = 0.1f;
-
-	size_t frames = 0;
-	float time = 0.0f;
-
-	Scope<Window> m_Window;
-
-	Vulkan::VulkanWindow m_VulkanWindow;
-	Vulkan::VulkanRenderer m_Renderer;
-	Vulkan::VulkanCompositor m_Compositor;
-
-	Scope<Resources::BufferedImage> testImage;
-	
-	std::vector<Scope<Objects::Image>> objects;
-
-	Stopwatch fpsTimer;
-	Stopwatch deltaTimer;
-	Stopwatch fullTime;
-};
+	testImage = graphicsContext.CreateBufferedImage(
+		imageLoader.GetImageInfo());
+}
 
 #if defined(_WIN32) && !defined(_DEBUG)
 #include <Windows.h>
@@ -147,10 +71,58 @@ int main()
 #endif
 {
 	DebugLogger vulkanLogger;
-	Vulkan::GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
+	s_ContextCreator.AddDebugMessenger(&vulkanLogger);
 
-	RendererTestApp testApp;
-	testApp.Run();
+	Vulkan::GraphicsContext graphicsContext(s_ContextCreator);
+	s_WindowRenderer = graphicsContext.CreateWindowRenderer(*s_Window);
+
+	LoadResources(graphicsContext);
+
+	s_Window->SetVisible(true);
+
+	while (!s_Window->IsCloseRequested())
+	{
+		float delta = deltaTimer.GetElapsedSeconds();
+		deltaTimer.Set();
+
+		Application::Get().PollEvents();
+
+		time += delta;
+		frames++;
+
+		if (fpsTimer.GetElapsedSeconds() >= 3.0f)
+		{
+			std::cout << "FPS = " << 1.0f / (time / frames) << std::endl;
+
+			time = 0;
+			frames = 0;
+
+			fpsTimer.Set();
+		}
+
+		int windowWidth = s_Window->GetWidth();
+		int windowHeight = s_Window->GetHeight();
+		const float imageWidth = (1.0f / numObjects) * windowWidth;
+		const float imageHeight = (1.0f / numObjects) * windowHeight;
+
+		Scope<RenderAction> render = s_WindowRenderer->StartRender();
+
+		for (size_t i = 0; i < numObjects; i++)
+		{
+			float yTime = fullTime.GetElapsedSeconds() / 3;
+			yTime += (numObjects - i) * 0.03f;
+
+			float ypos = abs(sin(yTime * Math::PI));
+			ypos *= 1 - lineSpacing;
+
+			render->DrawImage(
+				(i / (float)numObjects) * windowWidth,
+				(1 - ypos - lineSpacing) * windowHeight,
+				imageWidth, imageHeight,
+				*testImage
+			);
+		}
+	}
 
 	return 0;
 }

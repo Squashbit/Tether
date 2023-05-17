@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/InstanceLoader.hpp>
+#include <Tether/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Application.hpp>
 
 #define TETHER_INSTANCE_FUNC(name) \

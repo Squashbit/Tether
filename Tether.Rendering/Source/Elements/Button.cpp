@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Elements/Button.hpp>
+#include <Tether/Rendering/Elements/Button.hpp>
 
 namespace Tether::Rendering::Elements
 {

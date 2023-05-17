@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/WindowUI.hpp>
 #include <Tether/Controls/Control.hpp>
 
 namespace Tether::Rendering

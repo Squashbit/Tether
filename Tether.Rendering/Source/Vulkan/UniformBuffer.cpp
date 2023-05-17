@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/UniformBuffer.hpp>
+#include <Tether/Rendering/Vulkan/UniformBuffer.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

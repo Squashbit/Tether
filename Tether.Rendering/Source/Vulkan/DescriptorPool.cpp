@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Vulkan/DescriptorPool.hpp>
+#include <Tether/Rendering/Vulkan/DescriptorPool.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan

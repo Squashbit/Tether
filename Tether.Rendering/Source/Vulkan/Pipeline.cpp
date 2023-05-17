@@ -1,5 +1,5 @@
-#include <Tether/Module/Rendering/Vulkan/Pipeline.hpp>
-#include <Tether/Module/Rendering/Vulkan/ShaderModule.hpp>
+#include <Tether/Rendering/Vulkan/Pipeline.hpp>
+#include <Tether/Rendering/Vulkan/ShaderModule.hpp>
 #include <stdexcept>
 
 using namespace Tether::Rendering::Vulkan;

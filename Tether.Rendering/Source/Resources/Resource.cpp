@@ -1,4 +1,4 @@
-#include <Tether/Module/Rendering/Resources/Resource.hpp>
+#include <Tether/Rendering/Resources/Resource.hpp>
 
 namespace Tether::Rendering::Resources
 {
