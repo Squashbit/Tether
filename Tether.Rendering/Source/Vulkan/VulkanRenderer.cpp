@@ -25,14 +25,19 @@ namespace Tether::Rendering::Vulkan
 		Math::Vector2f scale;
 	};
 
+	struct TextPushConstants
+	{
+		Math::Vector2f position;
+		Math::Vector2f scale;
+		Math::Vector4f color;
+	};
+
 	VulkanRenderer::VulkanRenderer(GraphicsContext& graphicsContext)
 		:
 		m_GraphicsContext(graphicsContext),
 		m_Square(m_GraphicsContext.GetSquareBuffer()),
 		m_Dloader(m_GraphicsContext.GetDeviceLoader())
-	{
-
-	}
+	{}
 
 	void VulkanRenderer::FillRect(float x, float y, float width, float height, 
 		Math::Vector4f color)
@@ -109,6 +114,52 @@ namespace Tether::Rendering::Vulkan
 		Resources::Font& font, Math::Vector4f color, float scale, TextJustify justify)
 	{
 		TETHER_THROW_IF_NO_COMMAND_BUFFER();
+		
+		Font& vkFont = (Font&)font;
+
+		float xOffset = 0.0f;
+		float yOffset = std::numeric_limits<float>::min();
+		switch (justify)
+		{
+			case TextJustify::CENTER:
+			{
+				for (size_t i = 0; i < text.size(); i++)
+				{
+					Font::Character& character = vkFont.GetCharacter(text[i]);
+
+					float bearingY = (float)character.bearing.y * scale;
+
+					if (bearingY > yOffset)
+						yOffset = bearingY;
+
+					xOffset -= (character.advance >> 6) * scale;
+				}
+
+				xOffset /= 2.0f;
+				yOffset /= 2.0f;
+			}
+			break;
+
+			case TextJustify::RIGHT:
+			{
+				for (size_t i = 0; i < text.size(); i++)
+				{
+					Font::Character& character = vkFont.GetCharacter(text[i]);
+					xOffset -= (character.advance >> 6) * scale;
+				}
+			}
+			break;
+		}
+
+		for (size_t i = 0; i < text.size(); i++)
+		{
+			Font::Character& character = vkFont.GetCharacter(text[i]);
+
+			if (character.image)
+				RenderCharacter(color, character, scale, x, y, xOffset, yOffset);
+
+			xOffset += (character.advance >> 6) * scale;
+		}
 	}
 
 	void VulkanRenderer::StartNewFrame(uint32_t commandBufferIndex, 
@@ -117,5 +168,50 @@ namespace Tether::Rendering::Vulkan
 		m_CommandBuffer = commandBuffer;
 		m_CBufIndex = commandBufferIndex;
 		m_SwapchainExtent = swapchainExtent;
+	}
+
+	void VulkanRenderer::RenderCharacter(
+		Math::Vector4f color,
+		Font::Character& character,
+		float scale, float x, float y,
+		float xOffset, float yOffset
+	)
+	{
+		float sizeX = (float)character.size.x * scale;
+		float sizeY = (float)character.size.y * scale;
+		float bearingX = (float)character.bearing.x * scale;
+		float bearingY = (float)character.bearing.y * scale;
+
+		TextPushConstants pushConstants;
+		pushConstants.color = color;
+		pushConstants.position.x = x + xOffset + bearingX;
+		pushConstants.position.y = y + yOffset - bearingY;
+		pushConstants.scale.x = sizeX;
+		pushConstants.scale.y = sizeY;
+		pushConstants.position.x /= m_SwapchainExtent.width;
+		pushConstants.position.y /= m_SwapchainExtent.height;
+		pushConstants.scale.x /= m_SwapchainExtent.width;
+		pushConstants.scale.y /= m_SwapchainExtent.height;
+
+		m_Dloader.vkCmdBindDescriptorSets(
+			m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+			m_pTextPipeline->GetLayout(), 0,
+			1, &character.descriptorSets[m_CBufIndex],
+			0, nullptr
+		);
+
+		m_Dloader.vkCmdPushConstants(
+			m_CommandBuffer, m_pTextPipeline->GetLayout(),
+			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
+			0,
+			sizeof(TextPushConstants),
+			&pushConstants
+		);
+
+		m_Dloader.vkCmdDrawIndexed(
+			m_CommandBuffer,
+			static_cast<uint32_t>(m_Square.GetVertexCount()),
+			1, 0, 0, 0
+		);
 	}
 }

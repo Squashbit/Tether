@@ -5,6 +5,7 @@
 #include <Tether/Rendering/Renderer.hpp>
 #include <Tether/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/Resources/Font.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -31,6 +32,13 @@ namespace Tether::Rendering::Vulkan
 			VkCommandBuffer commandBuffer, VkExtent2D swapchainExtent);
 		void SetPipelines(Pipeline& imagePipeline);
 	private:
+		void RenderCharacter(
+			Math::Vector4f color,
+			Font::Character& character, 
+			float scale, float x, float y, 
+			float xOffset, float yOffset
+		);
+
 		GraphicsContext& m_GraphicsContext;
 
 		VertexBuffer& m_Square;
@@ -38,6 +46,7 @@ namespace Tether::Rendering::Vulkan
 
 		Pipeline* m_pRectPipeline = nullptr;
 		Pipeline* m_pImagePipeline = nullptr;
+		Pipeline* m_pTextPipeline = nullptr;
 
 		uint32_t m_CBufIndex = 0;
 		VkCommandBuffer m_CommandBuffer = nullptr;
