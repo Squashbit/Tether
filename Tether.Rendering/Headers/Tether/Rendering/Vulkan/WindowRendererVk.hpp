@@ -5,6 +5,9 @@
 #include <Tether/Rendering/Vulkan/VulkanRenderer.hpp>
 #include <Tether/Rendering/GraphicsContext.hpp>
 
+#include <Tether/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
+#include <Tether/Rendering/Vulkan/Surface.hpp>
+
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT WindowRendererVk : public Rendering::WindowRenderer,
@@ -18,7 +21,18 @@ namespace Tether::Rendering::Vulkan
 		void StartRender() override;
 		void EndRender() override;
 	private:
+		void ChooseSurfaceFormat();
+
 		GraphicsContext& m_Context;
 		Window& m_Window;
+
+		VkDevice m_Device = nullptr;
+		const InstanceLoader& m_Iloader;
+		const DeviceLoader& m_Dloader;
+
+		Surface m_Surface;
+		VkSurfaceFormatKHR m_SurfaceFormat;
+		QueueFamilyIndices indices;
+		VkRenderPass renderPass = nullptr;
 	};
 }
