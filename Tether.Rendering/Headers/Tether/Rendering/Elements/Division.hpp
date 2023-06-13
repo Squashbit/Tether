@@ -2,18 +2,18 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/WindowUI.hpp>
 
-#include <Tether/Module/Rendering/Objects/Rectangle.hpp>
-#include <Tether/Module/Rendering/Elements/Element.hpp>
-#include <Tether/Module/Rendering/Elements/Common/BorderedElement.hpp>
+#include <Tether/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
+#include <Tether/Rendering/Elements/Common/BorderedElement.hpp>
 
 namespace Tether::Rendering::Elements
 {
 	class TETHER_EXPORT Division : public Element, BorderedElement
 	{
 	public:
-		Division(WindowUI& windowUI);
+		Division(WindowUIManager& windowUI);
 	private:
 		void UpdateTransform() override;
 		void UpdateStyle() override;

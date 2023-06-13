@@ -2,18 +2,17 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/WindowUI.hpp>
 
-#include <Tether/Module/Rendering/Objects/Text.hpp>
-#include <Tether/Module/Rendering/Elements/Element.hpp>
-#include <Tether/Module/Rendering/Elements/Common/BorderedElement.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
+#include <Tether/Rendering/Elements/Common/BorderedElement.hpp>
 
 namespace Tether::Rendering::Elements
 {
 	class TETHER_EXPORT Button : public Element, public BorderedElement
 	{
 	public:
-		Button(WindowUI& windowUI);
+		Button(WindowUIManager& windowUI);
 		~Button();
 
 		void SetText(std::string_view text);
@@ -36,8 +35,6 @@ namespace Tether::Rendering::Elements
 		void UpdateTransform();
 		void UpdateStyle();
 
-		Scope<Objects::Text> m_TextObject;
-		
 		ClickListener m_Listener;
 		std::function<void()> m_ClickFunction;
 	};

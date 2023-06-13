@@ -25,19 +25,13 @@ namespace Tether::Rendering::Elements
 		m_Button.Click();
 	}
 
-	Button::Button(WindowUI& windowUI)
+	Button::Button(WindowUIManager& windowUI)
 		:
 		Element(windowUI),
 		BorderedElement(windowUI, *this),
-		m_TextObject(m_Renderer.CreateObject<Objects::Text>()),
 		m_Listener(*this)
 	{
-		AddBorderObjects(m_Objects);
-
 		m_Window.AddInputListener(m_Listener, Input::InputType::MOUSE_CLICK);
-
-		m_TextObject->SetJustify(Objects::Text::Justify::CENTER);
-		m_Objects.push_back(*m_TextObject);
 	}
 
 	Button::~Button()
@@ -47,13 +41,11 @@ namespace Tether::Rendering::Elements
 
 	void Button::SetText(std::string_view text)
 	{
-		m_TextObject->SetText(text.data());
 		m_WindowUI.Repaint(true);
 	}
 
 	void Button::SetFont(Resources::Font& font)
 	{
-		m_TextObject->SetFont(font);
 		m_WindowUI.Repaint(true);
 	}
 

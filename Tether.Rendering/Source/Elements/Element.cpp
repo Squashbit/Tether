@@ -3,17 +3,20 @@
 
 namespace Tether::Rendering::Elements
 {
-	Element::Element(WindowUI& windowUI)
+	Element::Element(GraphicsContext& graphicsContext)
 		:
-		m_WindowUI(windowUI),
-		m_Window(m_WindowUI.GetWindow()),
-		m_Objects(m_WindowUI.GetObjectsVector())
+		m_GraphicsContext(graphicsContext)
+	{}
+
+	Element::Element(GraphicsContext& graphicsContext)
+		:
+		m_GraphicsContext(graphicsContext)
 	{}
 
 	Element::~Element()
 	{
-		if (m_IsInWindowUI)
-			m_WindowUI.RemoveElement(*this);
+		if (m_pWindowUI && m_IsInWindowUI)
+			m_pWindowUI->RemoveElement(*this);
 	}
 
 	void Element::SetX(float x) 
@@ -23,7 +26,7 @@ namespace Tether::Rendering::Elements
 
 		m_X = x;
 
-		ChangeTransform();
+		Repaint();
 	}
 
 	void Element::SetY(float y) 
@@ -33,7 +36,7 @@ namespace Tether::Rendering::Elements
 
 		m_Y = y;
 
-		ChangeTransform();
+		Repaint();
 	}
 
 	void Element::SetWidth(float width) 
@@ -43,7 +46,7 @@ namespace Tether::Rendering::Elements
 
 		m_Width = width;
 
-		ChangeTransform();
+		Repaint();
 	}
 
 	void Element::SetHeight(float height) 
@@ -53,19 +56,19 @@ namespace Tether::Rendering::Elements
 
 		m_Height = height;
 
-		ChangeTransform();
+		Repaint();
 	}
 	
 	void Element::SetColor(Math::Vector4f color)
 	{
 		m_Color = color;
-		ChangeStyle();
+		Repaint();
 	}
 
 	void Element::SetBackgroundColor(Math::Vector4f backgroundColor)
 	{
 		m_BackgroundColor = backgroundColor;
-		ChangeStyle();
+		Repaint();
 	}
 
 	float Element::GetX() const
@@ -98,15 +101,9 @@ namespace Tether::Rendering::Elements
 		return m_BackgroundColor;
 	}
 
-	void Element::ChangeTransform()
+	void Element::Repaint()
 	{
-		UpdateTransform();
-		m_WindowUI.Repaint(true);
-	}
-
-	void Element::ChangeStyle()
-	{
-		UpdateStyle();
-		m_WindowUI.Repaint(true);
+		if (m_pWindowUI)
+			m_pWindowUI->Repaint(true);
 	}
 }

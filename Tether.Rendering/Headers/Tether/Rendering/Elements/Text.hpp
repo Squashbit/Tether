@@ -14,7 +14,7 @@ namespace Tether::Rendering::Elements
 	public:
 		using Justify = Objects::Text::Justify;
 
-		Text(WindowUI& windowUI);
+		Text(WindowUIManager& windowUI);
 		
 		void SetText(std::string_view text);
 		void SetJustify(Justify justify);

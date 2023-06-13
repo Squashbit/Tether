@@ -3,29 +3,28 @@
 
 namespace Tether::Rendering
 {
-	WindowUI::Repainter::Repainter(WindowUI& windowUI)
+	WindowUIManager::Repainter::Repainter(WindowUIManager& windowUI)
 		:
 		m_WindowUI(windowUI)
 	{}
 
-	void WindowUI::Repainter::OnWindowRepaint()
+	void WindowUIManager::Repainter::OnWindowRepaint()
 	{
 		m_WindowUI.Repaint(true);
 	}
 
-	void WindowUI::Repainter::OnWindowResize(const Events::WindowResizeEvent& event)
+	void WindowUIManager::Repainter::OnWindowResize(const Events::WindowResizeEvent& event)
 	{
-		if (m_WindowUI.m_RepaintOnResize)
-			m_WindowUI.Repaint();
+		m_WindowUI.Repaint();
 	}
 
-	WindowUI::WindowUI(Window& window, Renderer& renderer)
+	WindowUIManager::WindowUIManager(Window& window)
 		:
 		m_Window(window),
 		m_Renderer(renderer)
 	{}
 
-	WindowUI::WindowUI(Window& window, Renderer& renderer, Compositor& compositor)
+	WindowUIManager::WindowUIManager(Window& window, Renderer& renderer, Compositor& compositor)
 		:
 		m_Window(window),
 		m_Renderer(renderer),
@@ -36,23 +35,23 @@ namespace Tether::Rendering
 		m_Window.AddEventHandler(*m_Repainter, Events::EventType::WINDOW_RESIZE);
 	}
 
-	WindowUI::~WindowUI()
+	WindowUIManager::~WindowUIManager()
 	{
 		if (m_Compositor)
 			m_Window.RemoveEventHandler(*m_Repainter);
 	}
 
-	void WindowUI::SetAutoRepaint(bool autoRepaint)
+	void WindowUIManager::SetAutoRepaint(bool autoRepaint)
 	{
 		m_AutoRepaint = autoRepaint;
 	}
 
-	void WindowUI::SetRepaintOnResize(bool repaintOnResize)
+	void WindowUIManager::SetRepaintOnResize(bool repaintOnResize)
 	{
 		m_RepaintOnResize = repaintOnResize;
 	}
 
-	void WindowUI::AddElement(Elements::Element& element)
+	void WindowUIManager::AddElement(Elements::Element& element)
 	{
 		if (element.m_IsInWindowUI)
 			return;
@@ -65,7 +64,7 @@ namespace Tether::Rendering
 		Repaint(true);
 	}
 
-	bool WindowUI::RemoveElement(Elements::Element& element)
+	bool WindowUIManager::RemoveElement(Elements::Element& element)
 	{
 		if (!element.m_IsInWindowUI)
 			return false;
@@ -86,7 +85,7 @@ namespace Tether::Rendering
 		return false;
 	}
 
-	void WindowUI::ClearElements()
+	void WindowUIManager::ClearElements()
 	{
 		for (uint64_t i = 0; i < m_Elements.size(); i++)
 			m_Elements[i]->m_IsInWindowUI = false;
@@ -94,7 +93,7 @@ namespace Tether::Rendering
 		m_Elements.clear();
 	}
 
-	void WindowUI::SetBackgroundColor(Math::Vector4f backgroundColor)
+	void WindowUIManager::SetBackgroundColor(Math::Vector4f backgroundColor)
 	{
 		if (!m_Compositor)
 			return;
@@ -102,17 +101,12 @@ namespace Tether::Rendering
 		m_Compositor->SetClearColor(backgroundColor);
 	}
 
-	Window& WindowUI::GetWindow()
+	Window& WindowUIManager::GetWindow()
 	{
 		return m_Window;
 	}
 
-	Renderer& WindowUI::GetRenderer()
-	{
-		return m_Renderer;
-	}
-
-	void WindowUI::Repaint(bool isAutomatic)
+	void WindowUIManager::Repaint(bool isAutomatic)
 	{
 		if (!m_Compositor || (isAutomatic && !m_AutoRepaint))
 			return;
@@ -120,7 +114,7 @@ namespace Tether::Rendering
 		m_Compositor->RenderFrame();
 	}
 
-	ScopedNoRepaint::ScopedNoRepaint(WindowUI& windowUI)
+	ScopedNoRepaint::ScopedNoRepaint(WindowUIManager& windowUI)
 		:
 		m_WindowUI(windowUI)
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tether/Module/Rendering/Resources/Resource.hpp>
+#include <Tether/Rendering/Resources/Resource.hpp>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

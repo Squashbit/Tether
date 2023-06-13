@@ -2,7 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/Resources/BufferedImage.hpp>
+#include <Tether/Rendering/Resources/BufferedImage.hpp>
 
 #include <string>
 #include <vector>

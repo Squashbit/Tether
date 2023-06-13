@@ -2,7 +2,7 @@
 
 namespace Tether::Rendering::Elements
 {
-	Division::Division(WindowUI& windowUI)
+	Division::Division(WindowUIManager& windowUI)
 		:
 		Element(windowUI),
 		BorderedElement(windowUI, *this)

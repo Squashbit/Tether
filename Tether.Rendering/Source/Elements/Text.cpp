@@ -2,7 +2,7 @@
 
 namespace Tether::Rendering::Elements
 {
-	Text::Text(WindowUI& windowUI)
+	Text::Text(WindowUIManager& windowUI)
 		:
 		Element(windowUI),
 		m_TextObject(m_Renderer.CreateObject<Objects::Text>())

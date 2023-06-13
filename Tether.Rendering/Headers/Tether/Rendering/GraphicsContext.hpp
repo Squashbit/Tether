@@ -2,6 +2,7 @@
 
 #include <Tether/Common/Ref.hpp>
 
+#include <Tether/Window.hpp>
 #include <Tether/Rendering/WindowRenderer.hpp>
 
 #include <Tether/Rendering/Resources/BufferedImage.hpp>
@@ -19,6 +20,6 @@ namespace Tether::Rendering
 		virtual Scope<Resources::BufferedImage> CreateBufferedImage(
 			const Resources::BufferedImageInfo& info) = 0;
 		virtual Scope<Resources::Font> CreateFont(
-			const std::string& fontPath) = 0;
+			const std::string& fontPath) = 0; 
 	};
 }

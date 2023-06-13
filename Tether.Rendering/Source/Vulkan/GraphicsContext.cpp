@@ -77,6 +77,11 @@ namespace Tether::Rendering::Vulkan
 		m_Allocator = m_AllocatorManager->Get();
 	}
 
+	GraphicsContext::GraphicsContext(ContextCreator& vulkanContext)
+	{
+
+	}
+
 	GraphicsContext::~GraphicsContext()
 	{
 		m_Dloader.vkDeviceWaitIdle(m_Context.device);
@@ -84,25 +89,9 @@ namespace Tether::Rendering::Vulkan
 		m_Dloader.vkDestroySampler(m_Context.device, sampler, nullptr);
 	}
 
-	Scope<Objects::Rectangle> GraphicsContext::CreateRectangleObject()
+	Scope<WindowRenderer> GraphicsContext::CreateWindowRenderer(Window& window)
 	{
-		return std::make_unique<Rectangle>(
-			m_Context, square.value()
-		);
-	}
-
-	Scope<Objects::Image> GraphicsContext::CreateImageObject()
-	{
-		return std::make_unique<Image>(
-			m_Context, square.value()
-		);
-	}
-
-	Scope<Objects::Text> GraphicsContext::CreateTextObject()
-	{
-		return std::make_unique<Text>(
-			m_Context, square.value()
-		);
+		return std::make_unique<WindowRendererVk>(*this, window);
 	}
 
 	Scope<Resources::BufferedImage> GraphicsContext::CreateBufferedImage(
@@ -169,6 +158,11 @@ namespace Tether::Rendering::Vulkan
 		if (m_Dloader.vkCreateSampler(m_Context.device, &samplerInfo, nullptr,
 			&sampler) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create sampler");
+	}
+
+	VertexBuffer& GraphicsContext::GetSquareBuffer() const
+	{
+		return square;
 	}
 
 	const uint32_t GraphicsContext::GetFramesInFlight() const

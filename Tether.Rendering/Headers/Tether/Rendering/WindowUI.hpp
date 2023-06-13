@@ -2,25 +2,23 @@
 
 #include <Tether/Window.hpp>
 
-#include <Tether/Module/Rendering/Elements/Element.hpp>
-#include <Tether/Module/Rendering/GraphicsContext.hpp>
-#include <Tether/Module/Rendering/Compositor.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
+#include <Tether/Rendering/GraphicsContext.hpp>
+#include <Tether/Rendering/Compositor.hpp>
 
 #include <Tether/Math/Types.hpp>
 
 namespace Tether::Rendering
 {
-	class TETHER_EXPORT WindowUI
+	class TETHER_EXPORT WindowUIManager
 	{
 		friend Elements::Element;
 	public:
-		WindowUI(Window& window, GraphicsContext& graphicsContext);
-		WindowUI(Window& window, GraphicsContext& graphicsContext, Compositor& compositor);
-		~WindowUI();
-		TETHER_NO_COPY(WindowUI);
+		WindowUIManager(Window& window);
+		~WindowUIManager();
+		TETHER_NO_COPY(WindowUIManager);
 
 		void SetAutoRepaint(bool autoRepaint);
-		void SetRepaintOnResize(bool repaintOnResize);
 		
 		void AddElement(Elements::Element& element);
 		bool RemoveElement(Elements::Element& element);
@@ -42,34 +40,29 @@ namespace Tether::Rendering
 		GraphicsContext& GetGraphicsContext() const;
 	private:
 		bool m_AutoRepaint = true;
-		bool m_RepaintOnResize = false;
-
+		
 		class Repainter : public Events::EventHandler
 		{
 		public:
-			Repainter(WindowUI& windowUI);
+			Repainter(WindowUIManager& windowUI);
 
 			void OnWindowRepaint() override;
 			void OnWindowResize(const Events::WindowResizeEvent& event) override;
 		private:
-			WindowUI& m_WindowUI;
+			WindowUIManager& m_WindowUI;
 		};
 
-		Window& m_Window;
-		GraphicsContext& m_GraphicsContext;
-
-		std::optional<Repainter> m_Repainter;
-		Compositor* m_Compositor = nullptr;
-
+		Repainter m_Repainter;
+		
 		std::vector<Elements::Element*> m_Elements;
 	};
 
 	class TETHER_EXPORT ScopedNoRepaint
 	{
 	public:
-		ScopedNoRepaint(WindowUI& windowUI);
+		ScopedNoRepaint(WindowUIManager& windowUI);
 		~ScopedNoRepaint();
 	private:
-		WindowUI& m_WindowUI;
+		WindowUIManager& m_WindowUI;
 	};
 }

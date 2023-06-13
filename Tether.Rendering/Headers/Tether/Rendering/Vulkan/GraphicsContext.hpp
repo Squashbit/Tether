@@ -36,10 +36,13 @@ namespace Tether::Rendering::Vulkan
 		~GraphicsContext();
 		TETHER_NO_COPY(GraphicsContext);
 
+		Scope<WindowRenderer> CreateWindowRenderer(Window& window) override;
+
 		Scope<Resources::BufferedImage> CreateBufferedImage(
 			const Resources::BufferedImageInfo& info) override;
 		Scope<Resources::Font> CreateFont(const std::string& fontPath) override;
 		
+		VertexBuffer& GetSquareBuffer() const;
 		const uint32_t GetFramesInFlight() const;
 		const InstanceLoader& GetInstanceLoader() const;
 		const DeviceLoader& GetDeviceLoader() const;

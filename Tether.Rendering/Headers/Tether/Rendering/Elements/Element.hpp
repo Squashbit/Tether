@@ -3,22 +3,21 @@
 #include <Tether/Common/Defs.hpp>
 #include <Tether/Math/Types.hpp>
 
-#include <Tether/Module/Rendering/Objects/Object.hpp>
-
 #include <Tether/Window.hpp>
 
 namespace Tether::Rendering
 {
-	class WindowUI;
+	class WindowUIManager;
 }
 
 namespace Tether::Rendering::Elements
 {
 	class TETHER_EXPORT Element
 	{
-		friend WindowUI;
+		friend WindowUIManager;
 	public:
-		Element(WindowUI& windowUI);
+		Element(GraphicsContext& graphicsContext);
+		Element(GraphicsContext& graphicsContext, WindowUIManager& windowUI);
 		virtual ~Element() = 0;
 
 		void SetX(float x);
@@ -34,14 +33,10 @@ namespace Tether::Rendering::Elements
 		float GetHeight() const;
 		Math::Vector4f GetColor() const;
 		Math::Vector4f GetBackgroundColor() const;
-
-		void ChangeTransform();
-		void ChangeStyle();
 	protected:
-		bool m_IsInWindowUI = false;
+		void Repaint();
 
-		virtual void UpdateTransform() {}
-		virtual void UpdateStyle() {}
+		bool m_IsInWindowUI = false;
 
 		float m_X = 0.0f;
 		float m_Y = 0.0f;
@@ -50,9 +45,8 @@ namespace Tether::Rendering::Elements
 		Math::Vector4f m_Color;
 		Math::Vector4f m_BackgroundColor;
 
-		WindowUI& m_WindowUI;
-		Window& m_Window;
-		
-		std::vector<Objects::Object*>& m_Objects;
+		GraphicsContext& m_GraphicsContext;
+	private:
+		WindowUIManager* m_pWindowUI = nullptr;
 	};
 }

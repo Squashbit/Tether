@@ -2,15 +2,12 @@
 
 namespace Tether::Rendering::Elements
 {
-	BorderedElement::BorderedElement(WindowUI& windowUI, Element& element)
+	BorderedElement::BorderedElement(WindowUIManager& windowUI, Element& element)
 		:
 		m_BorderWindowUI(windowUI),
 		m_Element(element)
 	{
-		Renderer& renderer = windowUI.GetRenderer();
-
-		m_BackgroundRect = renderer.CreateObject<Objects::Rectangle>();
-		m_BorderRect = renderer.CreateObject<Objects::Rectangle>();
+		
 	}
 
 	void BorderedElement::SetBorderSize(float borderSize)

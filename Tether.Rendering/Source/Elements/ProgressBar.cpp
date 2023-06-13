@@ -2,7 +2,7 @@
 
 namespace Tether::Rendering::Elements
 {
-	ProgressBar::ProgressBar(WindowUI& windowUI)
+	ProgressBar::ProgressBar(WindowUIManager& windowUI)
 		:
 		Element(windowUI),
 		BorderedElement(windowUI, *this),
