@@ -25,6 +25,8 @@ namespace Tether::Rendering::Vulkan
 
 		Renderer& GetRenderer() override;
 	private:
+		VkRenderPass CreateRenderPass();
+
 		Pipeline CreateSolidPipeline();
 		Pipeline CreateTexturedPipeline();
 		Pipeline CreateTextPipeline();
@@ -33,7 +35,6 @@ namespace Tether::Rendering::Vulkan
 		bool IsPresentationSupported();
 
 		void ChooseSurfaceFormat();
-		void CreateRenderPass();
 		void CreateSwapchain();
 		void CreateFramebuffers();
 		void CreateSyncObjects();
@@ -48,20 +49,19 @@ namespace Tether::Rendering::Vulkan
 		const InstanceLoader& m_Iloader;
 		const DeviceLoader& m_Dloader;
 
+		SwapchainDetails m_SwapchainDetails;
+		VkQueue m_PresentQueue = nullptr;
+
 		Surface m_Surface;
 		VkSurfaceFormatKHR m_SurfaceFormat;
 		QueueFamilyIndices indices;
 		VkRenderPass m_RenderPass = nullptr;
-
-		SwapchainDetails m_SwapchainDetails;
 
 		Pipeline m_SolidPipeline;
 		Pipeline m_TexturedPipeline;
 		Pipeline m_TextPipeline;
 		
 		VulkanRenderer m_Renderer;
-
-		VkQueue m_PresentQueue = nullptr;
 
 		class ResizeHandler : public Events::EventHandler
 		{

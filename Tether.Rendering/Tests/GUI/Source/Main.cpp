@@ -48,6 +48,7 @@ public:
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
 		m_GraphicsContext(m_ContextCreator),
+		m_WindowRenderTarget(m_GraphicsContext.CreateWindowRenderTarget(*m_Window)),
 		m_WindowUI(*m_Window),
 		m_Button(m_WindowUI),
 		m_Division(m_WindowUI),
@@ -144,6 +145,9 @@ public:
 			}
 			
 			m_Text.SetColor(m_TextColor);
+
+			m_WindowUI.SetRenderer(m_WindowRenderTarget->GetRenderer());
+			m_WindowUI.Repaint();
 		}
 	}
 
@@ -162,6 +166,8 @@ private:
 
 	Vulkan::ContextCreator m_ContextCreator;
 	Vulkan::GraphicsContext m_GraphicsContext;
+
+	Scope<RenderTarget> m_WindowRenderTarget;
 
 	WindowUIManager m_WindowUI;
 

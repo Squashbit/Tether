@@ -59,6 +59,8 @@ namespace Tether::Rendering::Vulkan
 		VkDescriptorSetLayout GetTexturedPipelineLayout() const;
 		VkDescriptorSetLayout GetTextPipelineLayout() const;
 	private:
+		void Init();
+
 		void CreateDescriptorSetLayouts();
 		void CreateVertexBuffers();
 		void CreateSampler();

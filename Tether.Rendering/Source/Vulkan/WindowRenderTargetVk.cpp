@@ -30,21 +30,14 @@ namespace Tether::Rendering::Vulkan
 		m_Iloader(context.GetInstanceLoader()),
 		m_Dloader(context.GetDeviceLoader()),
 		m_Surface(context, window),
+		m_RenderPass(CreateRenderPass()),
 		m_SolidPipeline(CreateSolidPipeline()),
 		m_TexturedPipeline(CreateTexturedPipeline()),
 		m_TextPipeline(CreateTextPipeline()),
 		m_Renderer(context, m_SolidPipeline, m_TexturedPipeline, m_TextPipeline),
 		m_ResizeHandler(*this),
 		m_FramesInFlight(context.GetFramesInFlight())
-	{
-		if (!IsPresentationSupported())
-			throw std::runtime_error("Presentation not supported");
-
-		QuerySwapchainSupport();
-
-		ChooseSurfaceFormat();
-		CreateRenderPass();
-
+	{	
 		CreateSwapchain();
 		CreateFramebuffers();
 		CreateSyncObjects();
@@ -74,12 +67,63 @@ namespace Tether::Rendering::Vulkan
 		m_Dloader.vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame],
 			VK_TRUE, UINT64_MAX);
 
-		m_Renderer.StartNewFrame(m_CurrentFrame, m_CommandBuffers[m_CurrentFrame],
+		VkCommandBuffer commandBuffer = m_CommandBuffers[m_CurrentFrame];
+
+		m_Dloader.vkResetCommandBuffer(commandBuffer, 0);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+		if (m_Dloader.vkBeginCommandBuffer(commandBuffer,
+			&beginInfo) != VK_SUCCESS)
+			throw std::runtime_error("Failed to begin command buffer!");
+
+		VkClearValue clearColor{};
+		clearColor.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_RenderPass;
+		renderPassInfo.framebuffer = m_SwapchainFramebuffers[m_ImageIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = swapchainExtent;
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		m_Dloader.vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
+			VK_SUBPASS_CONTENTS_INLINE);
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)swapchainExtent.width;
+		viewport.height = (float)swapchainExtent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		m_Dloader.vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset.x = 0;
+		scissor.offset.y = 0;
+		scissor.extent.width = swapchainExtent.width;
+		scissor.extent.height = swapchainExtent.height;
+		m_Dloader.vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		m_Renderer.StartNewFrame(m_CurrentFrame, commandBuffer,
 			m_Swapchain->GetExtent());
 	}
 
 	bool WindowRenderTarget::EndRender()
 	{
+		VkCommandBuffer commandBuffer = m_CommandBuffers[m_CurrentFrame];
+
+		m_Dloader.vkCmdEndRenderPass(commandBuffer);
+
+		if (m_Dloader.vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+			throw std::runtime_error("Failed to end command buffer!");
+
 		m_Dloader.vkResetFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame]);
 
 		VkQueue queue = m_Context.GetQueue();
@@ -378,8 +422,15 @@ namespace Tether::Rendering::Vulkan
 		m_SurfaceFormat = formats[0];
 	}
 
-	void WindowRenderTarget::CreateRenderPass()
+	VkRenderPass WindowRenderTarget::CreateRenderPass()
 	{
+		if (!IsPresentationSupported())
+			throw std::runtime_error("Presentation not supported");
+
+		QuerySwapchainSupport();
+
+		ChooseSurfaceFormat();
+
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = m_SurfaceFormat.format;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -421,9 +472,12 @@ namespace Tether::Rendering::Vulkan
 		desc.dependencyCount = 1;
 		desc.pDependencies = &dependency;
 
+		VkRenderPass renderPass = nullptr;
 		if (m_Dloader.vkCreateRenderPass(m_Device, &desc,
-			nullptr, &m_RenderPass) != VK_SUCCESS)
+			nullptr, &renderPass) != VK_SUCCESS)
 			throw std::runtime_error("Render pass creation failed");
+
+		return renderPass;
 	}
 
 	void WindowRenderTarget::CreateSwapchain()

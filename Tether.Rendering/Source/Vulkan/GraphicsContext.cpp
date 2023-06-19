@@ -39,7 +39,27 @@ namespace Tether::Rendering::Vulkan
 			commandPool != nullptr &&
 			framesInFlight != 0
 		);
-		
+
+		Init();
+	}
+
+	GraphicsContext::GraphicsContext(ContextCreator& vulkanContext)
+		:
+		m_GetInstanceProcAddr(vulkanContext.GetVulkanLibrary().GetInstanceProcAddr),
+		m_FramesInFlight(vulkanContext.GetFramesInFlight()),
+		m_InstanceLoader(vulkanContext.GetInstanceLoader()),
+		m_DeviceLoader(vulkanContext.GetDeviceLoader()),
+		m_Instance(vulkanContext.GetInstance()),
+		m_Device(vulkanContext.GetDevice()),
+		m_Queue(vulkanContext.GetQueue()),
+		m_PhysicalDevice(vulkanContext.GetPhysicalDevice()),
+		m_CommandPool(vulkanContext.GetCommandPool())
+	{
+		Init();
+	}
+
+	void GraphicsContext::Init()
+	{
 		if (!m_Allocator)
 		{
 			m_AllocatorManager.emplace(
@@ -56,29 +76,6 @@ namespace Tether::Rendering::Vulkan
 		CreateDescriptorSetLayouts();
 		CreateVertexBuffers();
 		CreateSampler();
-	}
-
-	GraphicsContext::GraphicsContext(ContextCreator& vulkanContext)
-		:
-		m_GetInstanceProcAddr(vulkanContext.GetVulkanLibrary().GetInstanceProcAddr),
-		m_FramesInFlight(vulkanContext.GetFramesInFlight()),
-		m_InstanceLoader(vulkanContext.GetInstanceLoader()),
-		m_DeviceLoader(vulkanContext.GetDeviceLoader()),
-		m_Instance(vulkanContext.GetInstance()),
-		m_Device(vulkanContext.GetDevice()),
-		m_Queue(vulkanContext.GetQueue()),
-		m_PhysicalDevice(vulkanContext.GetPhysicalDevice()),
-		m_CommandPool(vulkanContext.GetCommandPool())
-	{
-		m_AllocatorManager.emplace(
-			m_GetInstanceProcAddr,
-			m_Instance,
-			m_InstanceLoader,
-			m_Device,
-			m_PhysicalDevice
-		);
-
-		m_Allocator = m_AllocatorManager->Get();
 	}
 
 	GraphicsContext::~GraphicsContext()

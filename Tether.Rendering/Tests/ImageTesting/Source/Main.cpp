@@ -128,8 +128,8 @@ private:
 
 	Scope<Window> m_Window;
 
-	DebugLogger m_VulkanLogger;
 	Vulkan::ContextCreator m_ContextCreator;
+	DebugLogger m_VulkanLogger;
 	Vulkan::GraphicsContext m_GraphicsContext;
 
 	Scope<RenderTarget> m_WndRenderTarget;
