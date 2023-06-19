@@ -2,7 +2,7 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Rendering/Vulkan/Common/VulkanContext.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -12,7 +12,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		ShaderModule(
-			VulkanContext& context,
+			GraphicsContext& context,
 			VkShaderStageFlagBits stage,
 			uint32_t* pCode, size_t codeSize
 		);
@@ -23,7 +23,7 @@ namespace Tether::Rendering::Vulkan
 		VkPipelineShaderStageCreateInfo GetStageInfo();
 	private:
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 
 		VkShaderModule shader = nullptr;
 		VkPipelineShaderStageCreateInfo stageInfo{};

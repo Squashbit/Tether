@@ -1,5 +1,5 @@
-#include <Tether/Rendering/WindowUI.hpp>
-#include <Tether/Controls/Control.hpp>
+#include <Tether/Rendering/WindowUIManager.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
 
 namespace Tether::Rendering
 {
@@ -21,24 +21,15 @@ namespace Tether::Rendering
 	WindowUIManager::WindowUIManager(Window& window)
 		:
 		m_Window(window),
-		m_Renderer(renderer)
-	{}
-
-	WindowUIManager::WindowUIManager(Window& window, Renderer& renderer, Compositor& compositor)
-		:
-		m_Window(window),
-		m_Renderer(renderer),
-		m_Compositor(&compositor)
+		m_Repainter(*this)
 	{
-		m_Repainter.emplace(*this);
-		m_Window.AddEventHandler(*m_Repainter, Events::EventType::WINDOW_REPAINT);
-		m_Window.AddEventHandler(*m_Repainter, Events::EventType::WINDOW_RESIZE);
+		m_Window.AddEventHandler(m_Repainter, Events::EventType::WINDOW_REPAINT);
+		m_Window.AddEventHandler(m_Repainter, Events::EventType::WINDOW_RESIZE);
 	}
 
 	WindowUIManager::~WindowUIManager()
 	{
-		if (m_Compositor)
-			m_Window.RemoveEventHandler(*m_Repainter);
+		m_Window.RemoveEventHandler(m_Repainter);
 	}
 
 	void WindowUIManager::SetAutoRepaint(bool autoRepaint)
@@ -57,8 +48,6 @@ namespace Tether::Rendering
 			return;
 
 		m_Elements.push_back(&element);
-
-		element.OnAdd();
 		element.m_IsInWindowUI = true;
 
 		Repaint(true);
@@ -73,8 +62,6 @@ namespace Tether::Rendering
 			if (m_Elements[i] == &element)
 			{
 				m_Elements.erase(m_Elements.begin() + i);
-
-				element.OnRemove();
 				element.m_IsInWindowUI = false;
 
 				Repaint(true);
@@ -95,23 +82,26 @@ namespace Tether::Rendering
 
 	void WindowUIManager::SetBackgroundColor(Math::Vector4f backgroundColor)
 	{
-		if (!m_Compositor)
-			return;
-
-		m_Compositor->SetClearColor(backgroundColor);
+		m_ClearColor = backgroundColor;
 	}
 
-	Window& WindowUIManager::GetWindow()
+	Window& WindowUIManager::GetWindow() const
 	{
 		return m_Window;
 	}
 
+	void WindowUIManager::SetRenderer(Renderer& renderer)
+	{
+		m_pRenderer = &renderer;
+	}
+
 	void WindowUIManager::Repaint(bool isAutomatic)
 	{
-		if (!m_Compositor || (isAutomatic && !m_AutoRepaint))
+		if (isAutomatic && !m_AutoRepaint || !m_pRenderer)
 			return;
 		
-		m_Compositor->RenderFrame();
+		for (Elements::Element* pElement : m_Elements)
+			pElement->OnRender(*m_pRenderer);
 	}
 
 	ScopedNoRepaint::ScopedNoRepaint(WindowUIManager& windowUI)

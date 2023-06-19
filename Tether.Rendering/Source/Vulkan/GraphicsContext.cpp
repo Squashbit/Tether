@@ -1,4 +1,6 @@
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/ContextCreator.hpp>
+#include <Tether/Rendering/Vulkan/WindowRenderTargetVk.hpp>
 #include <stdexcept>
 
 namespace Tether::Rendering::Vulkan
@@ -84,21 +86,21 @@ namespace Tether::Rendering::Vulkan
 
 	GraphicsContext::~GraphicsContext()
 	{
-		m_Dloader.vkDeviceWaitIdle(m_Context.device);
+		m_DeviceLoader.vkDeviceWaitIdle(m_Device);
 
-		m_Dloader.vkDestroySampler(m_Context.device, sampler, nullptr);
+		m_DeviceLoader.vkDestroySampler(m_Device, sampler, nullptr);
 	}
 
-	Scope<WindowRenderer> GraphicsContext::CreateWindowRenderer(Window& window)
+	Scope<RenderTarget> GraphicsContext::CreateWindowRenderTarget(Window& window)
 	{
-		return std::make_unique<WindowRendererVk>(*this, window);
+		return std::make_unique<WindowRenderTarget>(*this, window);
 	}
 
 	Scope<Resources::BufferedImage> GraphicsContext::CreateBufferedImage(
 		const Resources::BufferedImageInfo& info)
 	{
 		return std::make_unique<BufferedImage>(
-			m_Context, sampler,
+			*this, sampler,
 			texturedPipelineSetLayout,
 			info
 		);
@@ -108,7 +110,7 @@ namespace Tether::Rendering::Vulkan
 		const std::string& fontPath)
 	{
 		return std::make_unique<Font>(
-			m_Context,
+			*this,
 			textPipelineLayout, sampler,
 			fontPath
 		);

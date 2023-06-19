@@ -46,7 +46,7 @@ namespace Tether::Rendering::Vulkan
 			const char* const* deviceExtentions, uint64_t extentionCount);
 
 		Instance& m_Instance;
-		InstanceLoader& m_Iloader;
+		const InstanceLoader& m_Iloader;
 		
 		DeviceLoader m_Loader;
 

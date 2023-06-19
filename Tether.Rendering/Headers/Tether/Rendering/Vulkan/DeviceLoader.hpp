@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 	public:
 		DeviceLoader() = default;
 		
-		void Load(InstanceLoader& instanceLoader, VkDevice device);
+		void Load(const InstanceLoader& instanceLoader, VkDevice device);
 
 		TETHER_DEVICE_FUNC_VAR(AcquireNextImageKHR);
 		TETHER_DEVICE_FUNC_VAR(AllocateCommandBuffers);

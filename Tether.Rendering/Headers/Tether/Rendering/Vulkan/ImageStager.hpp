@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Tether/Rendering/Vulkan/SingleUseCommandBuffer.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
@@ -8,7 +9,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		ImageStager(
-			VulkanContext& context,
+			GraphicsContext& context,
 			VkImage image, uint32_t imageWidth, 
 			uint32_t imageHeight, uint32_t bytesPerPixel, void* imageData, 
 			VkFormat imageFormat

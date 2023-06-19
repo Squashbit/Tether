@@ -3,8 +3,10 @@
 #include <Tether/Rendering/Vulkan/AllocatorManager.hpp>
 
 #include <Tether/Rendering/GraphicsContext.hpp>
-#include <Tether/Rendering/Vulkan/ContextCreator.hpp>
+#include <Tether/Rendering/RenderTarget.hpp>
 #include <Tether/Rendering/Vulkan/VertexBuffer.hpp>
+
+#include <Tether/Rendering/Vulkan/Device.hpp>
 
 #include <optional>
 
@@ -13,6 +15,7 @@
 
 namespace Tether::Rendering::Vulkan
 {
+	class ContextCreator;
 	class TETHER_EXPORT GraphicsContext : public Rendering::GraphicsContext
 	{
 	public:
@@ -36,7 +39,7 @@ namespace Tether::Rendering::Vulkan
 		~GraphicsContext();
 		TETHER_NO_COPY(GraphicsContext);
 
-		Scope<WindowRenderer> CreateWindowRenderer(Window& window) override;
+		Scope<RenderTarget> CreateWindowRenderTarget(Window& window) override;
 
 		Scope<Resources::BufferedImage> CreateBufferedImage(
 			const Resources::BufferedImageInfo& info) override;

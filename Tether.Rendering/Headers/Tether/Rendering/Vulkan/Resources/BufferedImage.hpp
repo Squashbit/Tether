@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Tether/RenderingResources/BufferedImage.hpp>
+#include <Tether/Rendering/Resources/BufferedImage.hpp>
 #include <Tether/Rendering/Vulkan/Device.hpp>
 #include <Tether/Rendering/Vulkan/DescriptorSetWritable.hpp>
 

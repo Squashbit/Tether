@@ -1,14 +1,22 @@
 #pragma once
 
-#include <Tether/Rendering/Vulkan/Common/VulkanInfo.hpp>
+#include <Tether/Common/Defs.hpp>
+
+#include <Tether/Rendering/Vulkan/DeviceLoader.hpp>
+
+#include <string>
+
+#include <vk_mem_alloc.h>
+#include <vulkan/vulkan.h>
 
 namespace Tether::Rendering::Vulkan
 {
+	class GraphicsContext;
 	class TETHER_EXPORT BufferStager
 	{
 	public:
 		BufferStager(
-			VulkanInfo& context,
+			GraphicsContext& context,
 			VkBuffer buffer,
 			size_t bufferSize
 		);
@@ -36,10 +44,10 @@ namespace Tether::Rendering::Vulkan
 		VkCommandBuffer m_CommandBuffer = nullptr;
 		VkFence m_CompletedFence = nullptr;
 
-		VulkanInfo& m_Context;
+		GraphicsContext& m_Context;
 
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 		
 		VkBuffer m_Buffer = nullptr;
 		size_t m_BufferSize = 0;

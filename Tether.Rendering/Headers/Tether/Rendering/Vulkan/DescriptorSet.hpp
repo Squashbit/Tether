@@ -34,6 +34,6 @@ namespace Tether::Rendering::Vulkan
 		
 		DescriptorPool& m_Pool;
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 	};
 }

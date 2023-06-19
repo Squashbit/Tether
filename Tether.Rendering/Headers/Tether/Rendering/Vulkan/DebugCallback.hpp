@@ -8,6 +8,7 @@ namespace Tether::Rendering::Vulkan
 {
     class TETHER_EXPORT DebugCallback
     {
+    public:
         virtual void OnDebugLog(
             VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
             VkDebugUtilsMessageTypeFlagsEXT messageType,

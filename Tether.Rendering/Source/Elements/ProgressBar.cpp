@@ -5,40 +5,32 @@ namespace Tether::Rendering::Elements
 	ProgressBar::ProgressBar(WindowUIManager& windowUI)
 		:
 		Element(windowUI),
-		BorderedElement(windowUI, *this),
-		m_ProgressRect(m_Renderer.CreateObject<Objects::Rectangle>())
-	{
-		AddBorderObjects(m_Objects);
-
-		m_Objects.push_back(*m_ProgressRect);
-	}
+		BorderedElement(windowUI, *this)
+	{}
 
 	void ProgressBar::SetProgress(float progress)
 	{
 		m_Progress = progress;
-		UpdateTransform();
+		Repaint();
 	}
 
 	void ProgressBar::SetMaxProgress(float maxProgress)
 	{
 		m_MaxProgress = maxProgress;
-		UpdateTransform();
+		Repaint();
 	}
 
-	void ProgressBar::UpdateTransform()
+	void ProgressBar::OnRender(Renderer& renderer)
 	{
-		UpdateBorderTransform();
+		DrawBorder(renderer);
 
-		m_ProgressRect->SetX(m_X);
-		m_ProgressRect->SetY(m_Y);
-		m_ProgressRect->SetWidth((m_Progress / m_MaxProgress) * m_Width);
-		m_ProgressRect->SetHeight(m_Height);
+		// Progress rect
+		renderer.FillRect(m_X, m_Y, (m_Progress / m_MaxProgress) * m_Width, 
+			m_Height, m_ProgressColor);
 	}
 
-	void ProgressBar::UpdateStyle()
+	void ProgressBar::SetProgressColor(Math::Vector4f color)
 	{
-		UpdateBorderStyle();
-
-		m_ProgressRect->SetColor(Math::Vector4f(0.0f, 1.0f, 0.2f, 1.0f));
+		m_ProgressColor = color;
 	}
 }

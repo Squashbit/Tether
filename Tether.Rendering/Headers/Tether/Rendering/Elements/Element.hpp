@@ -4,20 +4,18 @@
 #include <Tether/Math/Types.hpp>
 
 #include <Tether/Window.hpp>
-
-namespace Tether::Rendering
-{
-	class WindowUIManager;
-}
+#include <Tether/Rendering/WindowUIManager.hpp>
 
 namespace Tether::Rendering::Elements
 {
+	class BorderedElement;
+
 	class TETHER_EXPORT Element
 	{
 		friend WindowUIManager;
+		friend BorderedElement;
 	public:
-		Element(GraphicsContext& graphicsContext);
-		Element(GraphicsContext& graphicsContext, WindowUIManager& windowUI);
+		Element(WindowUIManager& windowUI);
 		virtual ~Element() = 0;
 
 		void SetX(float x);
@@ -34,6 +32,8 @@ namespace Tether::Rendering::Elements
 		Math::Vector4f GetColor() const;
 		Math::Vector4f GetBackgroundColor() const;
 	protected:
+		virtual void OnRender(Renderer& renderer) = 0;
+
 		void Repaint();
 
 		bool m_IsInWindowUI = false;
@@ -45,8 +45,8 @@ namespace Tether::Rendering::Elements
 		Math::Vector4f m_Color;
 		Math::Vector4f m_BackgroundColor;
 
-		GraphicsContext& m_GraphicsContext;
+		Window& m_Window;
 	private:
-		WindowUIManager* m_pWindowUI = nullptr;
+		WindowUIManager& m_WindowUI;
 	};
 }

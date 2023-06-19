@@ -194,7 +194,7 @@ namespace Tether::Rendering::Vulkan
 			}
 	}
 
-	const VkInstance Instance::Get() const
+	VkInstance Instance::Get() const
 	{
 		return instance;
 	}

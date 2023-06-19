@@ -13,7 +13,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Swapchain(
-			VulkanContext& context,
+			GraphicsContext& context,
 			uint32_t graphicsFamilyIndex,
 			const SwapchainDetails& details,
 			VkSurfaceFormatKHR format,
@@ -40,10 +40,10 @@ namespace Tether::Rendering::Vulkan
 		uint32_t FindImageCount(const SwapchainDetails& details);
 
 		VkInstance m_Instance = nullptr;
-		InstanceLoader& m_Iloader;
+		const InstanceLoader& m_Iloader;
 
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 
 		VkSwapchainKHR m_Swapchain = nullptr;
 

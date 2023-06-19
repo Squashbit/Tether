@@ -14,7 +14,28 @@ namespace Tether::Rendering::Vulkan
 	class TETHER_EXPORT VulkanRenderer : public Renderer
 	{
 	public:
-		VulkanRenderer(GraphicsContext& graphicsContext);
+		struct RectanglePushConstants
+		{
+			Math::Vector2f position;
+			Math::Vector2f scale;
+			Math::Vector4f color;
+		};
+
+		struct ImagePushConstants
+		{
+			Math::Vector2f position;
+			Math::Vector2f scale;
+		};
+
+		struct TextPushConstants
+		{
+			Math::Vector2f position;
+			Math::Vector2f scale;
+			Math::Vector4f color;
+		};
+
+		VulkanRenderer(GraphicsContext& graphicsContext, Pipeline& rectPipeline,
+			Pipeline& imagePipeline, Pipeline& textPipeline);
 
 		void FillRect(float x, float y, float width, float height,
 			Math::Vector4f color) override;
@@ -27,10 +48,9 @@ namespace Tether::Rendering::Vulkan
 			Math::Vector4f color = Math::Vector4f(1.0f),
 			float scale = 1.0f, TextJustify justify = TextJustify::RIGHT
 		) override;
-	protected:
+		
 		void StartNewFrame(uint32_t commandBufferIndex, 
 			VkCommandBuffer commandBuffer, VkExtent2D swapchainExtent);
-		void SetPipelines(Pipeline& imagePipeline);
 	private:
 		void RenderCharacter(
 			Math::Vector4f color,
@@ -44,9 +64,9 @@ namespace Tether::Rendering::Vulkan
 		VertexBuffer& m_Square;
 		const DeviceLoader& m_Dloader;
 
-		Pipeline* m_pRectPipeline = nullptr;
-		Pipeline* m_pImagePipeline = nullptr;
-		Pipeline* m_pTextPipeline = nullptr;
+		Pipeline& m_RectPipeline;
+		Pipeline& m_ImagePipeline;
+		Pipeline& m_TextPipeline;
 
 		uint32_t m_CBufIndex = 0;
 		VkCommandBuffer m_CommandBuffer = nullptr;

@@ -16,7 +16,7 @@ namespace Tether::Rendering::Vulkan
 		VkDescriptorPool Get();
 	protected:
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 	private:
 		VkDescriptorPool descriptorPool = nullptr;
 	};

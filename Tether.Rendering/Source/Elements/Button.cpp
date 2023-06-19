@@ -41,17 +41,28 @@ namespace Tether::Rendering::Elements
 
 	void Button::SetText(std::string_view text)
 	{
-		m_WindowUI.Repaint(true);
+		m_Text = text;
+		Repaint();
 	}
 
 	void Button::SetFont(Resources::Font& font)
 	{
-		m_WindowUI.Repaint(true);
+		m_pFont = &font;
+		Repaint();
 	}
 
 	void Button::SetOnClickFunction(std::function<void()> clickFunction)
 	{
 		m_ClickFunction = clickFunction;
+	}
+
+	void Button::OnRender(Renderer& renderer)
+	{
+		DrawBorder(renderer);
+
+		if (m_pFont)
+			renderer.DrawText(m_X + m_Width / 2.0f, m_Y + m_Height / 2.0f, m_Text,
+				*m_pFont, m_Color, 1.0f, Renderer::TextJustify::CENTER);
 	}
 
 	void Button::Click()
@@ -60,20 +71,6 @@ namespace Tether::Rendering::Elements
 			return;
 
 		m_ClickFunction();
-		m_WindowUI.Repaint(true);
-	}
-
-	void Button::UpdateTransform()
-	{
-		UpdateBorderTransform();
-
-		m_TextObject->SetX(m_X + m_Width / 2.0f);
-		m_TextObject->SetY(m_Y + m_Height / 2.0f);
-	}
-
-	void Button::UpdateStyle()
-	{
-		UpdateBorderStyle();
-		m_TextObject->SetColor(m_Color);
+		Repaint();
 	}
 }

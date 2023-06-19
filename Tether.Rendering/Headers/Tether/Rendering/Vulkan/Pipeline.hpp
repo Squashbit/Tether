@@ -23,7 +23,7 @@ namespace Tether::Rendering::Vulkan
 		VkPipelineLayout Get();
 	private:
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 
 		VkPipelineLayout layout = nullptr;
 	};
@@ -32,7 +32,7 @@ namespace Tether::Rendering::Vulkan
 	{
 	public:
 		Pipeline(
-			VulkanContext& context,
+			GraphicsContext& context, VkRenderPass renderPass,
 			VkExtent2D viewportExtent, uint32_t subpass,
 			uint32_t* pVertexCode, size_t vertexCodeSize,
 			uint32_t* pFragmentCode, size_t fragmentCodeSize,
@@ -47,7 +47,7 @@ namespace Tether::Rendering::Vulkan
 		VkPipelineLayout GetLayout();
 	private:
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 
 		VkPipeline pipeline = nullptr;
 		std::optional<PipelineLayout> layout;

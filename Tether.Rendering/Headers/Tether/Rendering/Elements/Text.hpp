@@ -2,17 +2,16 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Module/Rendering/WindowUI.hpp>
-
-#include <Tether/Module/Rendering/Objects/Text.hpp>
-#include <Tether/Module/Rendering/Elements/Element.hpp>
+#include <Tether/Rendering/Renderer.hpp>
+#include <Tether/Rendering/Resources/Font.hpp>
+#include <Tether/Rendering/Elements/Element.hpp>
 
 namespace Tether::Rendering::Elements
 {
 	class TETHER_EXPORT Text : public Element
 	{
 	public:
-		using Justify = Objects::Text::Justify;
+		using Justify = Renderer::TextJustify;
 
 		Text(WindowUIManager& windowUI);
 		
@@ -20,9 +19,10 @@ namespace Tether::Rendering::Elements
 		void SetJustify(Justify justify);
 		void SetFont(Resources::Font& font);
 	private:
-		void UpdateTransform() override;
-		void UpdateStyle() override;
+		void OnRender(Renderer& renderer) override;
 
-		Scope<Objects::Text> m_TextObject;
+		std::string m_Text;
+		Justify m_Justify;
+		Resources::Font* m_pFont = nullptr;
 	};
 }

@@ -1,4 +1,5 @@
 #include <Tether/Rendering/Vulkan/BufferStager.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 #include <stdexcept>
 
 #include <cstring>
@@ -6,14 +7,14 @@
 namespace Tether::Rendering::Vulkan
 {
 	BufferStager::BufferStager(
-		VulkanInfo& context,
+		GraphicsContext& context,
 		VkBuffer buffer,
 		size_t bufferSize
 	)
 		:
 		m_Context(context),
-		m_Device(context.device),
-		m_Dloader(*context.deviceLoader),
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader()),
 		m_Buffer(buffer),
 		m_BufferSize(bufferSize)
 	{
@@ -28,8 +29,9 @@ namespace Tether::Rendering::Vulkan
 	{
 		Wait();
 
-		vmaDestroyBuffer(m_Context.allocator, m_StagingBuffer, m_StagingAllocation);
-		m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.commandPool, 1, &m_CommandBuffer);
+		vmaDestroyBuffer(m_Context.GetAllocator(), m_StagingBuffer, m_StagingAllocation);
+		m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.GetCommandPool(), 1, 
+			&m_CommandBuffer);
 		m_Dloader.vkDestroyFence(m_Device, m_CompletedFence, nullptr);
 	}
 
@@ -49,7 +51,7 @@ namespace Tether::Rendering::Vulkan
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
 		m_Dloader.vkResetFences(m_Device, 1, &m_CompletedFence);
-		m_Dloader.vkQueueSubmit(m_Context.queue, 1, &submitInfo, 
+		m_Dloader.vkQueueSubmit(m_Context.GetQueue(), 1, &submitInfo, 
 			m_CompletedFence);
 	}
 
@@ -63,7 +65,7 @@ namespace Tether::Rendering::Vulkan
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandPool = m_Context.commandPool;
+		allocInfo.commandPool = m_Context.GetCommandPool();
 		allocInfo.commandBufferCount = 1;
 
 		if (m_Dloader.vkAllocateCommandBuffers(m_Device, &allocInfo,
@@ -82,10 +84,10 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 		allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-		if (vmaCreateBuffer(m_Context.allocator, &bufferInfo,
+		if (vmaCreateBuffer(m_Context.GetAllocator(), &bufferInfo,
 			&allocInfo, &m_StagingBuffer, &m_StagingAllocation, &m_StagingInfo) != VK_SUCCESS)
 		{
-			m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.commandPool, 1, 
+			m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.GetCommandPool(), 1, 
 				&m_CommandBuffer);
 			throw std::runtime_error("Failed to create staging buffer");
 		}
@@ -100,7 +102,7 @@ namespace Tether::Rendering::Vulkan
 		if (m_Dloader.vkCreateFence(m_Device, &fenceInfo, nullptr,
 			&m_CompletedFence) != VK_SUCCESS)
 		{
-			m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.commandPool, 1, 
+			m_Dloader.vkFreeCommandBuffers(m_Device, m_Context.GetCommandPool(), 1, 
 				&m_CommandBuffer);
 			throw std::runtime_error("Failed to create staging buffer fence");
 		}

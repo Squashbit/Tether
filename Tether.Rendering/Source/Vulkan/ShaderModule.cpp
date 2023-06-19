@@ -4,13 +4,13 @@
 using namespace Tether::Rendering::Vulkan;
 
 ShaderModule::ShaderModule(
-	VulkanContext& context,
+	GraphicsContext& context,
 	VkShaderStageFlagBits stage,
 	uint32_t* pCode, size_t codeSize
 )
 	:
-	m_Device(context.device),
-	m_Dloader(context.deviceLoader)
+	m_Device(context.GetDevice()),
+	m_Dloader(context.GetDeviceLoader())
 {
 	VkShaderModuleCreateInfo createInfo{};
 	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;

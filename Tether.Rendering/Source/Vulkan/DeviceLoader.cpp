@@ -6,7 +6,7 @@ using namespace Tether::Rendering::Vulkan;
 #define TETHER_DEVICE_FUNC(name) \
 	vk##name = (PFN_vk##name)instanceLoader.vkGetDeviceProcAddr(device, "vk"#name)
 
-void DeviceLoader::Load(InstanceLoader& instanceLoader, VkDevice device)
+void DeviceLoader::Load(const InstanceLoader& instanceLoader, VkDevice device)
 {
 	TETHER_DEVICE_FUNC(AcquireNextImageKHR);
 	TETHER_DEVICE_FUNC(AllocateCommandBuffers);

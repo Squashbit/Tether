@@ -2,9 +2,6 @@
 
 #include <Tether/Common/Defs.hpp>
 
-#include <Tether/Rendering/WindowUI.hpp>
-
-#include <Tether/Rendering/Objects/Rectangle.hpp>
 #include <Tether/Rendering/Elements/Element.hpp>
 #include <Tether/Rendering/Elements/Common/BorderedElement.hpp>
 
@@ -19,13 +16,13 @@ namespace Tether::Rendering::Elements
 
 		void SetProgress(float progress);
 		void SetMaxProgress(float maxProgress);
+		void SetProgressColor(Math::Vector4f color);
 	private:
-		void UpdateTransform();
-		void UpdateStyle();
+		void OnRender(Renderer& renderer) override;
 		
-		Scope<Objects::Rectangle> m_ProgressRect;
-
 		std::atomic<float> m_Progress = 0.0f;
 		std::atomic<float> m_MaxProgress = 100.0f;
+
+		Math::Vector4f m_ProgressColor = Math::Vector4f(0.0f, 1.0f, 0.2f, 1.0f);
 	};
 }

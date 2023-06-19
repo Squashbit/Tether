@@ -1,13 +1,13 @@
 #pragma once
 
-#include <Tether/Rendering/Vulkan/Common/VulkanInfo.hpp>
+#include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 
 namespace Tether::Rendering::Vulkan
 {
 	class TETHER_EXPORT SingleUseCommandBuffer
 	{
 	public:
-		SingleUseCommandBuffer(VulkanInfo& info);
+		SingleUseCommandBuffer(GraphicsContext& context);
 		SingleUseCommandBuffer(SingleUseCommandBuffer&& other) noexcept;
 		~SingleUseCommandBuffer();
 		
@@ -36,7 +36,7 @@ namespace Tether::Rendering::Vulkan
 		VkFence m_Fence = nullptr;
 
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
+		const DeviceLoader& m_Dloader;
 		VkCommandPool m_CommandPool = nullptr;
 		VkQueue m_Queue = nullptr;
 	};

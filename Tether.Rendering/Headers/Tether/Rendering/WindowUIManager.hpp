@@ -2,14 +2,18 @@
 
 #include <Tether/Window.hpp>
 
-#include <Tether/Rendering/Elements/Element.hpp>
 #include <Tether/Rendering/GraphicsContext.hpp>
-#include <Tether/Rendering/Compositor.hpp>
+#include <Tether/Rendering/Renderer.hpp>
 
 #include <Tether/Math/Types.hpp>
 
 namespace Tether::Rendering
 {
+	namespace Elements
+	{
+		class Element;
+	}
+	
 	class TETHER_EXPORT WindowUIManager
 	{
 		friend Elements::Element;
@@ -19,6 +23,7 @@ namespace Tether::Rendering
 		TETHER_NO_COPY(WindowUIManager);
 
 		void SetAutoRepaint(bool autoRepaint);
+		void SetRepaintOnResize(bool repaintOnResize);
 		
 		void AddElement(Elements::Element& element);
 		bool RemoveElement(Elements::Element& element);
@@ -34,11 +39,12 @@ namespace Tether::Rendering
 		 */
 		void SetBackgroundColor(Math::Vector4f backgroundColor);
 
+		void SetRenderer(Renderer& renderer);
 		void Repaint(bool isAutomatic = false);
 
 		Window& GetWindow() const;
-		GraphicsContext& GetGraphicsContext() const;
 	private:
+		bool m_RepaintOnResize = true;
 		bool m_AutoRepaint = true;
 		
 		class Repainter : public Events::EventHandler
@@ -55,6 +61,11 @@ namespace Tether::Rendering
 		Repainter m_Repainter;
 		
 		std::vector<Elements::Element*> m_Elements;
+
+		Math::Vector4f m_ClearColor;
+
+		Renderer* m_pRenderer = nullptr;
+		Window& m_Window;
 	};
 
 	class TETHER_EXPORT ScopedNoRepaint

@@ -4,37 +4,32 @@ namespace Tether::Rendering::Elements
 {
 	Text::Text(WindowUIManager& windowUI)
 		:
-		Element(windowUI),
-		m_TextObject(m_Renderer.CreateObject<Objects::Text>())
-	{
-		m_Objects.push_back(*m_TextObject);
-	}
+		Element(windowUI)
+	{}
 
 	void Text::SetText(std::string_view text)
 	{
-		m_TextObject->SetText(text.data());
-		m_WindowUI.Repaint(true);
+		m_Text = text;
+		Repaint();
 	}
 
 	void Text::SetJustify(Justify justify)
 	{
-		m_TextObject->SetJustify(justify);
+		m_Justify = justify;
+		Repaint();
 	}
 
 	void Text::SetFont(Resources::Font& font)
 	{
-		m_TextObject->SetFont(font);
-		m_WindowUI.Repaint(true);
+		m_pFont = &font;
+		Repaint();
 	}
 
-	void Text::UpdateTransform()
+	void Text::OnRender(Renderer& renderer)
 	{
-		m_TextObject->SetX(m_X);
-		m_TextObject->SetY(m_Y);
-	}
+		if (!m_pFont)
+			return;
 
-	void Text::UpdateStyle()
-	{
-		m_TextObject->SetColor(m_Color);
+		renderer.DrawText(m_X, m_Y, m_Text, *m_pFont, m_Color, 1.0f, m_Justify);
 	}
 }

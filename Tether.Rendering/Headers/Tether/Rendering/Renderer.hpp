@@ -18,9 +18,6 @@ namespace Tether::Rendering
 			RIGHT
 		};
 
-		virtual void StartRender() = 0;
-		virtual void EndRender() = 0;
-
 		virtual void FillRect(float x, float y, float width, float height,
 			Math::Vector4f color) = 0;
 		virtual void DrawImage(float x, float y, float width, float height,

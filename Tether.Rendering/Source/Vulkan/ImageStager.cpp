@@ -5,14 +5,14 @@
 namespace Tether::Rendering::Vulkan
 {
 	ImageStager::ImageStager(
-		VulkanContext& context,
+		GraphicsContext& context,
 		VkImage image, uint32_t imageWidth,
 		uint32_t imageHeight, uint32_t bytesPerPixel, void* imageData,
 		VkFormat imageFormat
 	)
 		:
 		m_CommandBuffer(context),
-		m_Allocator(context.allocator)
+		m_Allocator(context.GetAllocator())
 	{
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;

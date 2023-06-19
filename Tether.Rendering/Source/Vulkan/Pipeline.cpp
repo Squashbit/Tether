@@ -4,11 +4,11 @@
 
 using namespace Tether::Rendering::Vulkan;
 
-PipelineLayout::PipelineLayout(VulkanContext& context,
+PipelineLayout::PipelineLayout(GraphicsContext& context,
 	VkPipelineLayoutCreateInfo* createInfo)
 	:
-	m_Device(context.device),
-	m_Dloader(context.deviceLoader)
+	m_Device(context.GetDevice()),
+	m_Dloader(context.GetDeviceLoader())
 {
 	if (m_Dloader.vkCreatePipelineLayout(m_Device, createInfo,
 		nullptr, &layout) != VK_SUCCESS)
@@ -26,7 +26,7 @@ VkPipelineLayout PipelineLayout::Get()
 }
 
 Pipeline::Pipeline(
-	VulkanContext& context,
+	GraphicsContext& context, VkRenderPass renderPass,
 	VkExtent2D viewportExtent, uint32_t subpass,
 	uint32_t* pVertexCode, size_t vertexCodeSize,
 	uint32_t* pFragmentCode, size_t fragmentCodeSize,
@@ -35,8 +35,8 @@ Pipeline::Pipeline(
 	VkPipelineLayoutCreateInfo* customLayoutInfo
 )
 	:
-	m_Device(context.device),
-	m_Dloader(context.deviceLoader)
+	m_Device(context.GetDevice()),
+	m_Dloader(context.GetDeviceLoader())
 {
 	if (customLayoutInfo != nullptr)
 		layout.emplace(context, customLayoutInfo);
@@ -153,7 +153,7 @@ Pipeline::Pipeline(
 	createInfo.layout = layout->Get();
 	createInfo.stageCount = sizeof(stages) / sizeof(VkPipelineShaderStageCreateInfo);
 	createInfo.pStages = stages;
-	createInfo.renderPass = context.renderPass;
+	createInfo.renderPass = renderPass;
 	createInfo.subpass = subpass;
 	createInfo.pViewportState = &viewportState;
 	createInfo.pDynamicState = &dynamicState;

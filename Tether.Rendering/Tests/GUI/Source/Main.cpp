@@ -1,9 +1,9 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Rendering/WindowUI.hpp>
+#include <Tether/Rendering/WindowUIManager.hpp>
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
-#include <Tether/Rendering/Vulkan/Compositor.hpp>
+#include <Tether/Rendering/Vulkan/ContextCreator.hpp>
 
 #include <Tether/Rendering/Elements/Button.hpp>
 #include <Tether/Rendering/Elements/Division.hpp>
@@ -47,8 +47,8 @@ public:
 	RendererTestApp()
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
-		m_GraphicsContext(m_VkContext),
-		m_WindowUI(*m_Window, m_GraphicsContext),
+		m_GraphicsContext(m_ContextCreator),
+		m_WindowUI(*m_Window),
 		m_Button(m_WindowUI),
 		m_Division(m_WindowUI),
 		m_ProgressBar(m_WindowUI),
@@ -60,7 +60,6 @@ public:
 		m_Font->SetSize(24);
 
 		m_WindowUI.SetAutoRepaint(false);
-		m_WindowUI.SetRepaintOnResize(true);
 		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
 
 		m_Button.SetX(100.0f);
@@ -161,10 +160,10 @@ private:
 
 	DebugLogger vulkanLogger;
 
-	Vulkan::VulkanContextCreator m_VkContext;
+	Vulkan::ContextCreator m_ContextCreator;
 	Vulkan::GraphicsContext m_GraphicsContext;
 
-	WindowUI m_WindowUI;
+	WindowUIManager m_WindowUI;
 
 	Scope<Resources::Font> m_Font;
 

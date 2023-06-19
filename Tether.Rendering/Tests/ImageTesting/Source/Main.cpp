@@ -4,6 +4,7 @@
 
 #include <Tether/Rendering/ImageLoader.hpp>
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/ContextCreator.hpp>
 
 #include <iostream>
 #include <vector>
@@ -48,7 +49,8 @@ public:
 		m_Window(Window::Create(1280, 720, L"Image testing")),
 		m_VulkanLogger(m_ContextCreator),
 		m_GraphicsContext(m_ContextCreator),
-		m_WindowRenderer(m_GraphicsContext.CreateWindowRenderer(*m_Window))
+		m_WndRenderTarget(m_GraphicsContext.CreateWindowRenderTarget(*m_Window)),
+		m_WindowRenderer(m_WndRenderTarget->GetRenderer())
 	{
 		LoadResources();
 	}
@@ -82,7 +84,7 @@ public:
 			const float imageWidth = (1.0f / numObjects) * windowWidth;
 			const float imageHeight = (1.0f / numObjects) * windowHeight;
 
-			m_WindowRenderer->StartRender();
+			m_WndRenderTarget->StartRender();
 
 			for (size_t i = 0; i < numObjects; i++)
 			{
@@ -92,7 +94,7 @@ public:
 				float ypos = abs(sin(yTime * Math::PI));
 				ypos *= 1 - lineSpacing;
 
-				m_WindowRenderer->DrawImage(
+				m_WindowRenderer.DrawImage(
 					(i / (float)numObjects) * windowWidth,
 					(1 - ypos - lineSpacing) * windowHeight,
 					imageWidth, imageHeight,
@@ -100,7 +102,7 @@ public:
 				);
 			}
 
-			m_WindowRenderer->EndRender();
+			m_WndRenderTarget->EndRender();
 		}
 	}
 private:
@@ -126,10 +128,12 @@ private:
 
 	Scope<Window> m_Window;
 
-	Vulkan::ContextCreator m_ContextCreator;
 	DebugLogger m_VulkanLogger;
+	Vulkan::ContextCreator m_ContextCreator;
 	Vulkan::GraphicsContext m_GraphicsContext;
-	Scope<WindowRenderer> m_WindowRenderer;
+
+	Scope<RenderTarget> m_WndRenderTarget;
+	Renderer& m_WindowRenderer;
 
 	Scope<Resources::BufferedImage> testImage;
 };

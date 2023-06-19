@@ -4,15 +4,15 @@
 namespace Tether::Rendering::Vulkan
 {
 	Font::Font(
-		VulkanContext& context,
+		GraphicsContext& context,
 		VkDescriptorSetLayout setLayout,
 		VkSampler sampler,
 		const std::string& fontPath
 	)
 		:
 		Resources::Font(fontPath),
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader),
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader()),
 		m_Context(context),
 		m_SetLayout(setLayout),
 		m_Sampler(sampler)
@@ -22,12 +22,12 @@ namespace Tether::Rendering::Vulkan
 
 	Font::~Font()
 	{
-		m_Dloader.vkDeviceWaitIdle(m_Context.device);
+		m_Dloader.vkDeviceWaitIdle(m_Device);
 
 		DisposeCharacters();
 
 		if (m_Pool)
-			m_Dloader.vkDestroyDescriptorPool(m_Context.device, m_Pool, nullptr);
+			m_Dloader.vkDestroyDescriptorPool(m_Device, m_Pool, nullptr);
 	}
 
 	void Font::DisposeCharacters()
@@ -38,8 +38,9 @@ namespace Tether::Rendering::Vulkan
 			if (!value.image)
 				continue;
 
-			m_Dloader.vkDestroyImageView(m_Context.device, value.imageView, nullptr);
-			vmaDestroyImage(m_Context.allocator, value.image, value.imageAllocation);
+			m_Dloader.vkDestroyImageView(m_Device, value.imageView, nullptr);
+			vmaDestroyImage(m_Context.GetAllocator(), value.image, 
+				value.imageAllocation);
 		}
 
 		m_Chars.clear();
@@ -73,14 +74,14 @@ namespace Tether::Rendering::Vulkan
 
 	void Font::RecreateDescriptorSets()
 	{
-		m_Dloader.vkDeviceWaitIdle(m_Context.device);
+		m_Dloader.vkDeviceWaitIdle(m_Device);
 
 		if (m_Pool)
-			m_Dloader.vkDestroyDescriptorPool(m_Context.device, m_Pool, nullptr);
+			m_Dloader.vkDestroyDescriptorPool(m_Device, m_Pool, nullptr);
 
 		VkDescriptorPoolSize poolSize{};
 		poolSize.descriptorCount = 
-			static_cast<uint32_t>(m_Chars.size() * m_Context.framesInFlight);
+			static_cast<uint32_t>(m_Chars.size() * m_Context.GetFramesInFlight());
 		poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 
 		VkDescriptorPoolCreateInfo poolInfo{};
@@ -89,11 +90,12 @@ namespace Tether::Rendering::Vulkan
 		poolInfo.pPoolSizes = &poolSize;
 		poolInfo.maxSets = poolSize.descriptorCount;
 
-		if (m_Dloader.vkCreateDescriptorPool(m_Context.device, &poolInfo, nullptr,
+		if (m_Dloader.vkCreateDescriptorPool(m_Device, &poolInfo, nullptr,
 			&m_Pool) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create descriptor pool");
 
-		std::vector<VkDescriptorSetLayout> layouts(m_Context.framesInFlight, m_SetLayout);
+		std::vector<VkDescriptorSetLayout> layouts(m_Context.GetFramesInFlight(), 
+			m_SetLayout);
 
 		for (auto it = m_Chars.begin(); it != m_Chars.end(); it++)
 		{
@@ -101,15 +103,15 @@ namespace Tether::Rendering::Vulkan
 			if (!character.image)
 				continue;
 
-			character.descriptorSets.resize(m_Context.framesInFlight);
+			character.descriptorSets.resize(m_Context.GetFramesInFlight());
 
 			VkDescriptorSetAllocateInfo allocInfo{};
 			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			allocInfo.descriptorSetCount = m_Context.framesInFlight;
+			allocInfo.descriptorSetCount = m_Context.GetFramesInFlight();
 			allocInfo.descriptorPool = m_Pool;
 			allocInfo.pSetLayouts = layouts.data();
 
-			m_Dloader.vkAllocateDescriptorSets(m_Context.device, &allocInfo,
+			m_Dloader.vkAllocateDescriptorSets(m_Device, &allocInfo,
 				character.descriptorSets.data());
 
 			UpdateDescriptorSets(character);
@@ -134,7 +136,7 @@ namespace Tether::Rendering::Vulkan
 			writeInfo.descriptorCount = 1;
 			writeInfo.pImageInfo = &imageInfo;
 
-			m_Dloader.vkUpdateDescriptorSets(m_Context.device, 1, &writeInfo, 0,
+			m_Dloader.vkUpdateDescriptorSets(m_Device, 1, &writeInfo, 0,
 				nullptr);
 		}
 	}
@@ -188,7 +190,7 @@ namespace Tether::Rendering::Vulkan
 		allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
 		VkResult result = vmaCreateImage(
-			m_Context.allocator, &imageInfo, &allocInfo,
+			m_Context.GetAllocator(), &imageInfo, &allocInfo,
 			&character.image, &character.imageAllocation,
 			nullptr
 		);
@@ -207,7 +209,7 @@ namespace Tether::Rendering::Vulkan
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.layerCount = 1;
 
-		if (m_Dloader.vkCreateImageView(m_Context.device, &viewInfo, nullptr,
+		if (m_Dloader.vkCreateImageView(m_Device, &viewInfo, nullptr,
 			&character.imageView) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create texture image view");
 

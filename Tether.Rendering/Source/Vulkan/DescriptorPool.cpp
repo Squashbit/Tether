@@ -3,11 +3,11 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	DescriptorPool::DescriptorPool(VulkanContext& context, uint32_t maxSets,
+	DescriptorPool::DescriptorPool(GraphicsContext& context, uint32_t maxSets,
 		uint32_t sizeCount, VkDescriptorPoolSize* sizes)
 		:
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader)
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader())
 	{
 		VkDescriptorPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;

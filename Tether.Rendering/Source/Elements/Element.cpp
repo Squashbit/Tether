@@ -1,22 +1,17 @@
 #include <Tether/Rendering/Elements/Element.hpp>
-#include <Tether/Rendering/WindowUI.hpp>
 
 namespace Tether::Rendering::Elements
 {
-	Element::Element(GraphicsContext& graphicsContext)
+	Element::Element(WindowUIManager& windowUI)
 		:
-		m_GraphicsContext(graphicsContext)
-	{}
-
-	Element::Element(GraphicsContext& graphicsContext)
-		:
-		m_GraphicsContext(graphicsContext)
+		m_WindowUI(windowUI),
+		m_Window(windowUI.GetWindow())
 	{}
 
 	Element::~Element()
 	{
-		if (m_pWindowUI && m_IsInWindowUI)
-			m_pWindowUI->RemoveElement(*this);
+		if (m_IsInWindowUI)
+			m_WindowUI.RemoveElement(*this);
 	}
 
 	void Element::SetX(float x) 
@@ -103,7 +98,6 @@ namespace Tether::Rendering::Elements
 
 	void Element::Repaint()
 	{
-		if (m_pWindowUI)
-			m_pWindowUI->Repaint(true);
+		m_WindowUI.Repaint(true);
 	}
 }

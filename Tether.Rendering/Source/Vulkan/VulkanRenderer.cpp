@@ -12,31 +12,16 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	struct RectanglePushConstants
-	{
-		Math::Vector2f position;
-		Math::Vector2f scale;
-		Math::Vector4f color;
-	};
-
-	struct ImagePushConstants
-	{
-		Math::Vector2f position;
-		Math::Vector2f scale;
-	};
-
-	struct TextPushConstants
-	{
-		Math::Vector2f position;
-		Math::Vector2f scale;
-		Math::Vector4f color;
-	};
-
-	VulkanRenderer::VulkanRenderer(GraphicsContext& graphicsContext)
+	VulkanRenderer::VulkanRenderer(GraphicsContext& graphicsContext,
+		Pipeline& rectPipeline, Pipeline& imagePipeline, 
+		Pipeline& textPipeline)
 		:
 		m_GraphicsContext(graphicsContext),
 		m_Square(m_GraphicsContext.GetSquareBuffer()),
-		m_Dloader(m_GraphicsContext.GetDeviceLoader())
+		m_Dloader(m_GraphicsContext.GetDeviceLoader()),
+		m_RectPipeline(rectPipeline),
+		m_ImagePipeline(imagePipeline),
+		m_TextPipeline(textPipeline)
 	{}
 
 	void VulkanRenderer::FillRect(float x, float y, float width, float height, 
@@ -52,7 +37,7 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.color = color;
 
 		m_Dloader.vkCmdPushConstants(
-			m_CommandBuffer, m_pRectPipeline->GetLayout(),
+			m_CommandBuffer, m_RectPipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(RectanglePushConstants),
@@ -80,7 +65,7 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.scale.y = height / m_SwapchainExtent.height;
 
 		m_Dloader.vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_pImagePipeline->Get());
+			m_ImagePipeline.Get());
 
 		VkBuffer vbuffers[] = { m_Square.GetBuffer() };
 		VkDeviceSize offsets[] = { 0 };
@@ -89,7 +74,7 @@ namespace Tether::Rendering::Vulkan
 			m_Square.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 		m_Dloader.vkCmdPushConstants(
-			m_CommandBuffer, m_pImagePipeline->GetLayout(),
+			m_CommandBuffer, m_ImagePipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT,
 			0,
 			sizeof(ImagePushConstants),
@@ -98,7 +83,7 @@ namespace Tether::Rendering::Vulkan
 
 		m_Dloader.vkCmdBindDescriptorSets(
 			m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_pImagePipeline->GetLayout(), 0,
+			m_ImagePipeline.GetLayout(), 0,
 			1, vkImage.GetSetAtIndex(m_CBufIndex),
 			0, nullptr
 		);
@@ -195,13 +180,13 @@ namespace Tether::Rendering::Vulkan
 
 		m_Dloader.vkCmdBindDescriptorSets(
 			m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_pTextPipeline->GetLayout(), 0,
+			m_TextPipeline.GetLayout(), 0,
 			1, &character.descriptorSets[m_CBufIndex],
 			0, nullptr
 		);
 
 		m_Dloader.vkCmdPushConstants(
-			m_CommandBuffer, m_pTextPipeline->GetLayout(),
+			m_CommandBuffer, m_TextPipeline.GetLayout(),
 			VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
 			0,
 			sizeof(TextPushConstants),

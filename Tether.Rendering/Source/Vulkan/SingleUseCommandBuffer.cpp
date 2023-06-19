@@ -3,12 +3,12 @@
 
 namespace Tether::Rendering::Vulkan
 {
-	SingleUseCommandBuffer::SingleUseCommandBuffer(VulkanContext& context)
+	SingleUseCommandBuffer::SingleUseCommandBuffer(GraphicsContext& context)
 		:
-		m_Device(context.device),
-		m_Dloader(context.deviceLoader),
-		m_CommandPool(context.commandPool),
-		m_Queue(context.queue)
+		m_Device(context.GetDevice()),
+		m_Dloader(context.GetDeviceLoader()),
+		m_CommandPool(context.GetCommandPool()),
+		m_Queue(context.GetQueue())
 	{
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

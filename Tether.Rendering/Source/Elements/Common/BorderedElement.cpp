@@ -6,38 +6,18 @@ namespace Tether::Rendering::Elements
 		:
 		m_BorderWindowUI(windowUI),
 		m_Element(element)
-	{
-		
-	}
+	{}
 
 	void BorderedElement::SetBorderSize(float borderSize)
 	{
 		m_BorderSize = borderSize;
-		m_Element.ChangeTransform();
+		m_Element.Repaint();
 	}
 
 	void BorderedElement::SetBorderColor(Math::Vector4f color)
 	{
-		m_BorderRect->SetColor(color);
-		m_BorderWindowUI.Repaint(true);
-	}
-
-	void BorderedElement::UpdateBorderTransform()
-	{
-		m_BorderRect->SetX(m_Element.GetX() - m_BorderSize);
-		m_BorderRect->SetY(m_Element.GetY() - m_BorderSize);
-		m_BorderRect->SetWidth(m_Element.GetWidth() + m_BorderSize * 2.0f);
-		m_BorderRect->SetHeight(m_Element.GetHeight() + m_BorderSize * 2.0f);
-
-		m_BackgroundRect->SetX(m_Element.GetX());
-		m_BackgroundRect->SetY(m_Element.GetY());
-		m_BackgroundRect->SetWidth(m_Element.GetWidth());
-		m_BackgroundRect->SetHeight(m_Element.GetHeight());
-	}
-
-	void BorderedElement::UpdateBorderStyle()
-	{
-		m_BackgroundRect->SetColor(m_Element.GetBackgroundColor());
+		m_BorderColor = color;
+		m_Element.Repaint();
 	}
 
 	const float BorderedElement::GetBorderSize() const
@@ -45,10 +25,24 @@ namespace Tether::Rendering::Elements
 		return m_BorderSize;
 	}
 
-	void BorderedElement::AddBorderObjects(
-		std::vector<std::reference_wrapper<Objects::Object>>& objects)
+	void BorderedElement::DrawBorder(Renderer& renderer)
 	{
-		objects.push_back(*m_BorderRect);
-		objects.push_back(*m_BackgroundRect);
+		// Border rect
+		renderer.FillRect(
+			m_Element.GetX() - m_BorderSize,
+			m_Element.GetY() - m_BorderSize,
+			m_Element.GetWidth() + m_BorderSize * 2.0f,
+			m_Element.GetHeight() + m_BorderSize * 2.0f,
+			m_BorderColor
+		);
+
+		// Background rect
+		renderer.FillRect(
+			m_Element.GetX(),
+			m_Element.GetY(),
+			m_Element.GetWidth(),
+			m_Element.GetHeight(),
+			m_Element.GetBackgroundColor()
+		);
 	}
 }

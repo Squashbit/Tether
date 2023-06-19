@@ -6,17 +6,10 @@ namespace Tether::Rendering::Elements
 		:
 		Element(windowUI),
 		BorderedElement(windowUI, *this)
-	{
-		AddBorderObjects(m_Objects);
-	}
+	{}
 
-	void Division::UpdateTransform()
+	void Division::OnRender(Renderer& renderer)
 	{
-		UpdateBorderTransform();
-	}
-
-	void Division::UpdateStyle()
-	{
-		UpdateBorderStyle();
+		renderer.FillRect(m_X, m_Y, m_Width, m_Height, m_BackgroundColor);
 	}
 }

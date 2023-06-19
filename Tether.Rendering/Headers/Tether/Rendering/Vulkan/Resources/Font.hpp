@@ -2,7 +2,7 @@
 
 #include <Tether/Math/Vector2.hpp>
 
-#include <Tether/RenderingResources/Font.hpp>
+#include <Tether/Rendering/Resources/Font.hpp>
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 #include <Tether/Rendering/Vulkan/ImageStager.hpp>
 
@@ -52,8 +52,8 @@ namespace Tether::Rendering::Vulkan
 			Character& character);
 		
 		VkDevice m_Device = nullptr;
-		DeviceLoader& m_Dloader;
-		VulkanContext& m_Context;
+		const DeviceLoader& m_Dloader;
+		GraphicsContext& m_Context;
 		
 		VkDescriptorPool m_Pool = nullptr;
 		VkDescriptorSetLayout m_SetLayout = nullptr;
