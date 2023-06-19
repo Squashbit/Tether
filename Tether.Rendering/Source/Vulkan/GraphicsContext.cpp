@@ -1,5 +1,6 @@
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
 #include <Tether/Rendering/Vulkan/ContextCreator.hpp>
+#include <Tether/Rendering/Vulkan/Resources/BufferedImage.hpp>
 #include <Tether/Rendering/Vulkan/WindowRenderTargetVk.hpp>
 #include <stdexcept>
 
@@ -52,6 +53,7 @@ namespace Tether::Rendering::Vulkan
 			m_Allocator = m_AllocatorManager->Get();
 		}
 
+		CreateDescriptorSetLayouts();
 		CreateVertexBuffers();
 		CreateSampler();
 	}
@@ -79,14 +81,14 @@ namespace Tether::Rendering::Vulkan
 		m_Allocator = m_AllocatorManager->Get();
 	}
 
-	GraphicsContext::GraphicsContext(ContextCreator& vulkanContext)
-	{
-
-	}
-
 	GraphicsContext::~GraphicsContext()
 	{
 		m_DeviceLoader.vkDeviceWaitIdle(m_Device);
+
+		m_DeviceLoader.vkDestroyDescriptorSetLayout(m_Device, 
+			m_TexturedPipelineSetLayout, nullptr);
+		m_DeviceLoader.vkDestroyDescriptorSetLayout(m_Device, 
+			m_TextPipelineLayout, nullptr);
 
 		m_DeviceLoader.vkDestroySampler(m_Device, sampler, nullptr);
 	}
@@ -101,7 +103,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		return std::make_unique<BufferedImage>(
 			*this, sampler,
-			texturedPipelineSetLayout,
+			m_TexturedPipelineSetLayout,
 			info
 		);
 	}
@@ -111,9 +113,56 @@ namespace Tether::Rendering::Vulkan
 	{
 		return std::make_unique<Font>(
 			*this,
-			textPipelineLayout, sampler,
+			m_TextPipelineLayout, sampler,
 			fontPath
 		);
+	}
+
+	VkDescriptorSetLayout GraphicsContext::GetTexturedPipelineLayout() const
+	{
+		return m_TexturedPipelineSetLayout;
+	}
+
+	VkDescriptorSetLayout GraphicsContext::GetTextPipelineLayout() const
+	{
+		return m_TextPipelineLayout;
+	}
+
+	void GraphicsContext::CreateDescriptorSetLayouts()
+	{
+		{
+			VkDescriptorSetLayoutBinding layoutBinding{};
+			layoutBinding.binding = 0;
+			layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			layoutBinding.descriptorCount = 1;
+			layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+			VkDescriptorSetLayoutCreateInfo layoutInfo{};
+			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			layoutInfo.bindingCount = 1;
+			layoutInfo.pBindings = &layoutBinding;
+
+			if (m_DeviceLoader.vkCreateDescriptorSetLayout(m_Device,
+				&layoutInfo, nullptr, &m_TexturedPipelineSetLayout) != VK_SUCCESS)
+				throw std::runtime_error("Failed to create descriptor set layout");
+		}
+
+		{
+			VkDescriptorSetLayoutBinding layoutBinding{};
+			layoutBinding.binding = 0;
+			layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			layoutBinding.descriptorCount = 1;
+			layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+			VkDescriptorSetLayoutCreateInfo layoutInfo{};
+			layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			layoutInfo.bindingCount = 1;
+			layoutInfo.pBindings = &layoutBinding;
+
+			if (m_DeviceLoader.vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr,
+				&m_TextPipelineLayout) != VK_SUCCESS)
+				throw std::runtime_error("Failed to create descriptor set layout");
+		}
 	}
 
 	void GraphicsContext::CreateVertexBuffers()
@@ -131,7 +180,7 @@ namespace Tether::Rendering::Vulkan
 			0, 1, 2, 2, 3, 0
 		};
 
-		square.emplace(m_Context, sizeof(vertices),
+		square.emplace(*this, sizeof(vertices),
 			sizeof(indices) / sizeof(uint32_t));
 		square->UploadData(vertices, indices);
 		square->FinishDataUpload();
@@ -157,14 +206,14 @@ namespace Tether::Rendering::Vulkan
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
 
-		if (m_Dloader.vkCreateSampler(m_Context.device, &samplerInfo, nullptr,
+		if (m_DeviceLoader.vkCreateSampler(m_Device, &samplerInfo, nullptr,
 			&sampler) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create sampler");
 	}
 
-	VertexBuffer& GraphicsContext::GetSquareBuffer() const
+	VertexBuffer& GraphicsContext::GetSquareBuffer()
 	{
-		return square;
+		return square.value();
 	}
 
 	const uint32_t GraphicsContext::GetFramesInFlight() const

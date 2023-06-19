@@ -45,7 +45,7 @@ namespace Tether::Rendering::Vulkan
 			const Resources::BufferedImageInfo& info) override;
 		Scope<Resources::Font> CreateFont(const std::string& fontPath) override;
 		
-		VertexBuffer& GetSquareBuffer() const;
+		VertexBuffer& GetSquareBuffer();
 		const uint32_t GetFramesInFlight() const;
 		const InstanceLoader& GetInstanceLoader() const;
 		const DeviceLoader& GetDeviceLoader() const;
@@ -55,7 +55,11 @@ namespace Tether::Rendering::Vulkan
 		VkPhysicalDevice GetPhysicalDevice() const;
 		VkCommandPool GetCommandPool() const;
 		VmaAllocator GetAllocator() const;
+
+		VkDescriptorSetLayout GetTexturedPipelineLayout() const;
+		VkDescriptorSetLayout GetTextPipelineLayout() const;
 	private:
+		void CreateDescriptorSetLayouts();
 		void CreateVertexBuffers();
 		void CreateSampler();
 
@@ -70,6 +74,9 @@ namespace Tether::Rendering::Vulkan
 		VkPhysicalDevice m_PhysicalDevice = nullptr;
 		VkCommandPool m_CommandPool = nullptr;
 		VmaAllocator m_Allocator = nullptr;
+
+		VkDescriptorSetLayout m_TexturedPipelineSetLayout = nullptr;
+		VkDescriptorSetLayout m_TextPipelineLayout = nullptr;
 
 		std::optional<AllocatorManager> m_AllocatorManager;
 

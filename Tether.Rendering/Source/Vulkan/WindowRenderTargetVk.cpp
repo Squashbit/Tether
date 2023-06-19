@@ -196,20 +196,7 @@ namespace Tether::Rendering::Vulkan
 	{
 		using namespace Assets;
 
-		VkDescriptorSetLayoutBinding layoutBinding{};
-		layoutBinding.binding = 0;
-		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		layoutBinding.descriptorCount = 1;
-		layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 1;
-		layoutInfo.pBindings = &layoutBinding;
-
-		if (m_Dloader.vkCreateDescriptorSetLayout(m_Device,
-			&layoutInfo, nullptr, &m_TexturedPipelineSetLayout) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create descriptor set layout");
+		VkDescriptorSetLayout pipelineLayout = m_Context.GetTexturedPipelineLayout();
 
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.offset = 0;
@@ -219,7 +206,7 @@ namespace Tether::Rendering::Vulkan
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &m_TexturedPipelineSetLayout;
+		pipelineLayoutInfo.pSetLayouts = &pipelineLayout;
 		pipelineLayoutInfo.pushConstantRangeCount = 1;
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -257,21 +244,8 @@ namespace Tether::Rendering::Vulkan
 	Pipeline WindowRenderTarget::CreateTextPipeline()
 	{
 		using namespace Assets;
-
-		VkDescriptorSetLayoutBinding layoutBinding{};
-		layoutBinding.binding = 0;
-		layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		layoutBinding.descriptorCount = 1;
-		layoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-		VkDescriptorSetLayoutCreateInfo layoutInfo{};
-		layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-		layoutInfo.bindingCount = 1;
-		layoutInfo.pBindings = &layoutBinding;
-
-		if (m_Dloader.vkCreateDescriptorSetLayout(m_Device, &layoutInfo, nullptr,
-			&m_TextPipelineLayout) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create descriptor set layout");
+		
+		VkDescriptorSetLayout pipelineLayout = m_Context.GetTextPipelineLayout();
 
 		VkPushConstantRange pushConstantRange{};
 		pushConstantRange.offset = 0;
@@ -282,7 +256,7 @@ namespace Tether::Rendering::Vulkan
 		VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 		pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 		pipelineLayoutInfo.setLayoutCount = 1;
-		pipelineLayoutInfo.pSetLayouts = &m_TextPipelineLayout;
+		pipelineLayoutInfo.pSetLayouts = &pipelineLayout;
 		pipelineLayoutInfo.pushConstantRangeCount = 1;
 		pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
@@ -369,8 +343,7 @@ namespace Tether::Rendering::Vulkan
 			m_Surface.Get(), &presentSupport
 		);
 
-		if (!presentSupport)
-			throw std::runtime_error("Device has no present queue family");
+		return presentSupport;
 	}
 
 	void WindowRenderTarget::ChooseSurfaceFormat()

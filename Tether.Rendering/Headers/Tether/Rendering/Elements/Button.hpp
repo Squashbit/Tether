@@ -20,7 +20,7 @@ namespace Tether::Rendering::Elements
 	private:
 		void OnRender(Renderer& renderer) override;
 
-		class ClickListener : public Input::InputListener
+		class TETHER_EXPORT ClickListener : public Input::InputListener
 		{
 		public:
 			ClickListener(Button& button);

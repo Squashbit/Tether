@@ -58,9 +58,6 @@ namespace Tether::Rendering::Vulkan
 		Pipeline m_SolidPipeline;
 		Pipeline m_TexturedPipeline;
 		Pipeline m_TextPipeline;
-
-		VkDescriptorSetLayout m_TexturedPipelineSetLayout;
-		VkDescriptorSetLayout m_TextPipelineLayout;
 		
 		VulkanRenderer m_Renderer;
 
