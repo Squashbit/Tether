@@ -17,7 +17,7 @@ namespace Tether::Rendering::Resources
 
 		void SetSize(uint32_t fontSize);
 
-		virtual void LoadCharactersFromString(const std::string& text) = 0;
+		virtual void LoadCharactersFromString(std::string_view text) = 0;
 	protected:
 		Font(const std::string& fontPath);
 		

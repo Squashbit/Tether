@@ -22,6 +22,18 @@ using namespace Rendering;
 class DebugLogger : public Vulkan::DebugCallback
 {
 public:
+	DebugLogger(Vulkan::ContextCreator& contextCreator)
+		:
+		m_ContextCreator(contextCreator)
+	{
+		m_ContextCreator.AddDebugMessenger(this);
+	}
+
+	~DebugLogger()
+	{
+		m_ContextCreator.RemoveDebugMessenger(this);
+	}
+
 	void OnDebugLog(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -39,6 +51,8 @@ public:
 			break;
 		}
 	}
+private:
+	Vulkan::ContextCreator& m_ContextCreator;
 };
 
 class RendererTestApp
@@ -48,7 +62,9 @@ public:
 		:
 		m_Window(Window::Create(1280, 720, L"GUI testing")),
 		m_GraphicsContext(m_ContextCreator),
+		m_DebugLogger(m_ContextCreator),
 		m_WindowRenderTarget(m_GraphicsContext.CreateWindowRenderTarget(*m_Window)),
+		m_WindowRenderer(m_WindowRenderTarget->GetRenderer()),
 		m_WindowUI(*m_Window),
 		m_Button(m_WindowUI),
 		m_Division(m_WindowUI),
@@ -61,8 +77,7 @@ public:
 		m_Font->SetSize(24);
 
 		m_WindowUI.SetAutoRepaint(false);
-		m_WindowUI.SetBackgroundColor(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
-
+		
 		m_Button.SetX(100.0f);
 		m_Button.SetY(100.0f);
 		m_Button.SetWidth(140.0f);
@@ -146,8 +161,9 @@ public:
 			
 			m_Text.SetColor(m_TextColor);
 
-			m_WindowUI.SetRenderer(m_WindowRenderTarget->GetRenderer());
-			m_WindowUI.Repaint();
+			m_WindowRenderTarget->StartRender(Math::Vector4f(0.02f, 0.02f, 0.02f, 1.0f));
+			m_WindowUI.Render(m_WindowRenderer);
+			m_WindowRenderTarget->EndRender();
 		}
 	}
 
@@ -162,12 +178,14 @@ public:
 private:
 	Scope<Window> m_Window;
 
-	DebugLogger vulkanLogger;
 
 	Vulkan::ContextCreator m_ContextCreator;
+	DebugLogger m_DebugLogger;
+
 	Vulkan::GraphicsContext m_GraphicsContext;
 
 	Scope<RenderTarget> m_WindowRenderTarget;
+	Renderer& m_WindowRenderer;
 
 	WindowUIManager m_WindowUI;
 

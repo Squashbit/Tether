@@ -55,6 +55,11 @@ public:
 		LoadResources();
 	}
 
+	~ImageTesting()
+	{
+
+	}
+
 	void Run()
 	{
 		m_Window->SetVisible(true);
@@ -104,6 +109,7 @@ public:
 
 			m_WndRenderTarget->EndRender();
 		}
+
 	}
 private:
 	void LoadResources()

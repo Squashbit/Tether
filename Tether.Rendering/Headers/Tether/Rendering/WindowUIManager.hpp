@@ -39,8 +39,10 @@ namespace Tether::Rendering
 		 */
 		void SetBackgroundColor(Math::Vector4f backgroundColor);
 
-		void SetRenderer(Renderer& renderer);
+		void SetRepaintRenderer(RenderTarget& renderTarget, Renderer& renderer);
 		void Repaint(bool isAutomatic = false);
+
+		void Render(Renderer& renderer);
 
 		Window& GetWindow() const;
 	private:
@@ -64,6 +66,7 @@ namespace Tether::Rendering
 
 		Math::Vector4f m_ClearColor;
 
+		RenderTarget* m_pRenderTarget = nullptr;
 		Renderer* m_pRenderer = nullptr;
 		Window& m_Window;
 	};

@@ -49,10 +49,25 @@ namespace Tether::Rendering::Vulkan
 
 	WindowRenderTarget::~WindowRenderTarget()
 	{
+		m_Dloader.vkDeviceWaitIdle(m_Device);
+
+		DestroySwapchain();
+
+		for (uint32_t i = 0; i < m_FramesInFlight; i++)
+		{
+			m_Dloader.vkDestroySemaphore(m_Device, m_ImageAvailableSemaphores[i],
+				nullptr);
+			m_Dloader.vkDestroySemaphore(m_Device, m_RenderFinishedSemaphores[i],
+				nullptr);
+			m_Dloader.vkDestroyFence(m_Device, m_InFlightFences[i], nullptr);
+		}
+
+		m_Window.RemoveEventHandler(m_ResizeHandler);
+
 		m_Dloader.vkDestroyRenderPass(m_Device, m_RenderPass, nullptr);
 	}
 
-	void WindowRenderTarget::StartRender()
+	void WindowRenderTarget::StartRender(Math::Vector4f clearColor)
 	{
 		if (m_IsRendering)
 			throw std::runtime_error("StartRender called while still rendering");
@@ -64,13 +79,37 @@ namespace Tether::Rendering::Vulkan
 			m_ShouldRecreateSwapchain = false;
 		}
 
+		if (!AcquireSwapchainImage())
+			return;
+
 		m_Dloader.vkWaitForFences(m_Device, 1, &m_InFlightFences[m_CurrentFrame],
 			VK_TRUE, UINT64_MAX);
 
+		BeginCommandBuffer(clearColor);
+	}
+
+	bool WindowRenderTarget::AcquireSwapchainImage()
+	{
+		VkResult imageResult = m_Dloader.vkAcquireNextImageKHR(m_Device,
+			m_Swapchain->Get(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame],
+			VK_NULL_HANDLE, &m_ImageIndex);
+
+		if (imageResult != VK_SUCCESS)
+		{
+			m_ShouldRecreateSwapchain = true;
+			return imageResult == VK_ERROR_OUT_OF_DATE_KHR ||
+				imageResult == VK_SUBOPTIMAL_KHR;
+		}
+
+		return true;
+	}
+
+	void WindowRenderTarget::BeginCommandBuffer(Math::Vector4f clear)
+	{
 		VkCommandBuffer commandBuffer = m_CommandBuffers[m_CurrentFrame];
 
 		m_Dloader.vkResetCommandBuffer(commandBuffer, 0);
-
+		
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
@@ -79,7 +118,7 @@ namespace Tether::Rendering::Vulkan
 			throw std::runtime_error("Failed to begin command buffer!");
 
 		VkClearValue clearColor{};
-		clearColor.color = { 0.0f, 0.0f, 0.0f, 1.0f };
+		clearColor.color = { clear.x, clear.y, clear.z, clear.w };
 
 		VkExtent2D swapchainExtent = m_Swapchain->GetExtent();
 

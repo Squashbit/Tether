@@ -19,6 +19,8 @@ namespace Tether::Rendering::Vulkan
 			VkImage image = nullptr;
 			VkImageView imageView = nullptr;
 			VmaAllocation imageAllocation = nullptr;
+
+			VkDescriptorPool pool = nullptr;
 			std::vector<VkDescriptorSet> descriptorSets;
 
 			Math::Vector2<int> size;
@@ -35,27 +37,33 @@ namespace Tether::Rendering::Vulkan
 		~Font();
 		TETHER_NO_COPY(Font);
 
-		void LoadCharactersFromString(const std::string& text) override;
+		void LoadCharactersFromString(std::string_view text) override;
 
 		Character& GetCharacter(char c);
 	private:
-		void DisposeCharacters();
+		struct CharacterCreation
+		{
+			CharacterCreation(ImageStager stager, Character& character);
+			
+			Character& character;
+			ImageStager stager;
+		};
 
-		void RecreateDescriptorSets();
-		void UpdateDescriptorSets(Character& character);
+		void DisposeCharacters();
 
 		void OnSetSize(uint32_t fontSize) override;
 
-		void LoadChar(std::vector<ImageStager>& imageStagers, char c);
+		void LoadChar(std::vector<CharacterCreation>& imageStagers, char c);
 
-		void CreateCharacterImage(std::vector<ImageStager>& imageStagers,
+		void CreateCharacterImage(std::vector<CharacterCreation>& imageStagers,
 			Character& character);
+		void CreateCharacterDescriptorSets(Character& character);
+		void UpdateDescriptorSets(Character& character);
 		
 		VkDevice m_Device = nullptr;
 		const DeviceLoader& m_Dloader;
 		GraphicsContext& m_Context;
 		
-		VkDescriptorPool m_Pool = nullptr;
 		VkDescriptorSetLayout m_SetLayout = nullptr;
 		VkSampler m_Sampler = nullptr;
 

@@ -18,7 +18,7 @@ namespace Tether::Rendering::Vulkan
 		~WindowRenderTarget();
 		TETHER_NO_COPY(WindowRenderTarget);
 
-		void StartRender() override;
+		void StartRender(Math::Vector4f clearColor) override;
 		bool EndRender() override;
 
 		bool RecreateSwapchain();
@@ -39,6 +39,9 @@ namespace Tether::Rendering::Vulkan
 		void CreateFramebuffers();
 		void CreateSyncObjects();
 		void CreateCommandBuffers();
+
+		bool AcquireSwapchainImage();
+		void BeginCommandBuffer(Math::Vector4f clearColor);
 
 		void DestroySwapchain();
 

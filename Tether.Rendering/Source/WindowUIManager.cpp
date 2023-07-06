@@ -15,7 +15,8 @@ namespace Tether::Rendering
 
 	void WindowUIManager::Repainter::OnWindowResize(const Events::WindowResizeEvent& event)
 	{
-		m_WindowUI.Repaint();
+		if (m_WindowUI.m_RepaintOnResize)
+			m_WindowUI.Repaint(true);
 	}
 
 	WindowUIManager::WindowUIManager(Window& window)
@@ -90,18 +91,27 @@ namespace Tether::Rendering
 		return m_Window;
 	}
 
-	void WindowUIManager::SetRenderer(Renderer& renderer)
+	void WindowUIManager::SetRepaintRenderer(RenderTarget& renderTarget, 
+		Renderer& renderer)
 	{
+		m_pRenderTarget = &renderTarget;
 		m_pRenderer = &renderer;
 	}
 
 	void WindowUIManager::Repaint(bool isAutomatic)
 	{
-		if (isAutomatic && !m_AutoRepaint || !m_pRenderer)
+		if (isAutomatic && !m_AutoRepaint || !m_pRenderer || !m_pRenderTarget)
 			return;
 		
+		m_pRenderTarget->StartRender(m_ClearColor);
+		Render(*m_pRenderer);
+		m_pRenderTarget->EndRender();
+	}
+
+	void WindowUIManager::Render(Renderer& renderer)
+	{
 		for (Elements::Element* pElement : m_Elements)
-			pElement->OnRender(*m_pRenderer);
+			pElement->OnRender(renderer);
 	}
 
 	ScopedNoRepaint::ScopedNoRepaint(WindowUIManager& windowUI)

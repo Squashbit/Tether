@@ -29,6 +29,12 @@ namespace Tether::Rendering::Vulkan
 	{
 		TETHER_THROW_IF_NO_COMMAND_BUFFER();
 
+		m_CommandBufferState->BindPipelineIfNotBound(m_RectPipeline.Get(),
+			VK_PIPELINE_BIND_POINT_GRAPHICS);
+		m_CommandBufferState->BindVertexBufferIfNotBound(m_Square.GetBuffer());
+		m_CommandBufferState->BindIndexBufferIfNotBound(m_Square.GetIndexBuffer(),
+			VK_INDEX_TYPE_UINT32);
+
 		RectanglePushConstants pushConstants;
 		pushConstants.position.x = x / m_SwapchainExtent.width;
 		pushConstants.position.y = y / m_SwapchainExtent.height;
@@ -64,14 +70,11 @@ namespace Tether::Rendering::Vulkan
 		pushConstants.scale.x = width / m_SwapchainExtent.width;
 		pushConstants.scale.y = height / m_SwapchainExtent.height;
 
-		m_Dloader.vkCmdBindPipeline(m_CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-			m_ImagePipeline.Get());
-
-		VkBuffer vbuffers[] = { m_Square.GetBuffer() };
-		VkDeviceSize offsets[] = { 0 };
-		m_Dloader.vkCmdBindVertexBuffers(m_CommandBuffer, 0, 1, vbuffers, offsets);
-		m_Dloader.vkCmdBindIndexBuffer(m_CommandBuffer, 
-			m_Square.GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+		m_CommandBufferState->BindPipelineIfNotBound(m_ImagePipeline.Get(),
+			VK_PIPELINE_BIND_POINT_GRAPHICS);
+		m_CommandBufferState->BindVertexBufferIfNotBound(m_Square.GetBuffer());
+		m_CommandBufferState->BindIndexBufferIfNotBound(m_Square.GetIndexBuffer(),
+			VK_INDEX_TYPE_UINT32);
 
 		m_Dloader.vkCmdPushConstants(
 			m_CommandBuffer, m_ImagePipeline.GetLayout(),
@@ -101,6 +104,13 @@ namespace Tether::Rendering::Vulkan
 		TETHER_THROW_IF_NO_COMMAND_BUFFER();
 		
 		Font& vkFont = (Font&)font;
+		vkFont.LoadCharactersFromString(text);
+
+		m_CommandBufferState->BindPipelineIfNotBound(m_TextPipeline.Get(),
+			VK_PIPELINE_BIND_POINT_GRAPHICS);
+		m_CommandBufferState->BindVertexBufferIfNotBound(m_Square.GetBuffer());
+		m_CommandBufferState->BindIndexBufferIfNotBound(m_Square.GetIndexBuffer(),
+			VK_INDEX_TYPE_UINT32);
 
 		float xOffset = 0.0f;
 		float yOffset = std::numeric_limits<float>::min();
@@ -153,6 +163,9 @@ namespace Tether::Rendering::Vulkan
 		m_CommandBuffer = commandBuffer;
 		m_CBufIndex = commandBufferIndex;
 		m_SwapchainExtent = swapchainExtent;
+
+		m_CommandBufferState.emplace(m_GraphicsContext.GetDevice(), 
+			m_GraphicsContext.GetDeviceLoader(), m_CommandBuffer);
 	}
 
 	void VulkanRenderer::RenderCharacter(

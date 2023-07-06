@@ -5,6 +5,7 @@
 #include <Tether/Rendering/Renderer.hpp>
 #include <Tether/Rendering/Vulkan/Pipeline.hpp>
 #include <Tether/Rendering/Vulkan/GraphicsContext.hpp>
+#include <Tether/Rendering/Vulkan/CommandBufferState.hpp>
 #include <Tether/Rendering/Vulkan/Resources/Font.hpp>
 
 #include <vulkan/vulkan.h>
@@ -71,5 +72,7 @@ namespace Tether::Rendering::Vulkan
 		uint32_t m_CBufIndex = 0;
 		VkCommandBuffer m_CommandBuffer = nullptr;
 		VkExtent2D m_SwapchainExtent = {};
+
+		std::optional<CommandBufferState> m_CommandBufferState;
 	};
 }

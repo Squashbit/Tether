@@ -10,10 +10,13 @@
 
 namespace Tether::Rendering
 {
-	class RenderTarget
+	class TETHER_EXPORT RenderTarget
 	{
 	public:
-		virtual void StartRender() = 0;
+		virtual ~RenderTarget() = default;
+
+		virtual void StartRender(Math::Vector4f clearColor = 
+			Math::Vector4f(0.0f, 0.0f, 0.0f, 1.0f)) = 0;
 		virtual bool EndRender() = 0;
 
 		virtual Renderer& GetRenderer() = 0;

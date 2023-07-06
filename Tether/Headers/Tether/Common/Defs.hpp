@@ -18,7 +18,7 @@
 #define TETHER_DEBUG_BREAK()
 #endif
 
-#ifdef _DEBUG
+#ifndef NDEBUG
 #define TETHER_ASSERT(check) assert(check)
 #else
 #define TETHER_ASSERT(check)

@@ -3,6 +3,13 @@
 
 namespace Tether::Rendering::Vulkan
 {
+	Font::CharacterCreation::CharacterCreation(ImageStager stager, 
+		Character& character)
+		:
+		stager(std::move(stager)),
+		character(character)
+	{}
+
 	Font::Font(
 		GraphicsContext& context,
 		VkDescriptorSetLayout setLayout,
@@ -16,18 +23,13 @@ namespace Tether::Rendering::Vulkan
 		m_Context(context),
 		m_SetLayout(setLayout),
 		m_Sampler(sampler)
-	{
-		
-	}
+	{}
 
 	Font::~Font()
 	{
 		m_Dloader.vkDeviceWaitIdle(m_Device);
 
 		DisposeCharacters();
-
-		if (m_Pool)
-			m_Dloader.vkDestroyDescriptorPool(m_Device, m_Pool, nullptr);
 	}
 
 	void Font::DisposeCharacters()
@@ -38,6 +40,7 @@ namespace Tether::Rendering::Vulkan
 			if (!value.image)
 				continue;
 
+			m_Dloader.vkDestroyDescriptorPool(m_Device, value.pool, nullptr);
 			m_Dloader.vkDestroyImageView(m_Device, value.imageView, nullptr);
 			vmaDestroyImage(m_Context.GetAllocator(), value.image, 
 				value.imageAllocation);
@@ -46,25 +49,26 @@ namespace Tether::Rendering::Vulkan
 		m_Chars.clear();
 	}
 
-	void Font::LoadCharactersFromString(const std::string& text)
+	void Font::LoadCharactersFromString(std::string_view text)
 	{
 		if (text.size() == 0)
 			return;
 
-		std::vector<ImageStager> imageCreations;
+		std::vector<CharacterCreation> characterCreations;
 
 		for (size_t i = 0; i < text.size(); i++)
 		{
 			char c = text.at(i);
 
 			if (!m_Chars.count(c))
-				LoadChar(imageCreations, c);
+				LoadChar(characterCreations, c);
 		}
 
-		for (size_t i = 0; i < imageCreations.size(); i++)
-			imageCreations[i].Wait();
-
-		RecreateDescriptorSets();
+		for (size_t i = 0; i < characterCreations.size(); i++)
+		{
+			characterCreations[i].stager.Wait();
+			CreateCharacterDescriptorSets(characterCreations[i].character);
+		}
 	}
 
 	Font::Character& Font::GetCharacter(char c)
@@ -72,98 +76,27 @@ namespace Tether::Rendering::Vulkan
 		return m_Chars.at(c);
 	}
 
-	void Font::RecreateDescriptorSets()
-	{
-		m_Dloader.vkDeviceWaitIdle(m_Device);
-
-		if (m_Pool)
-			m_Dloader.vkDestroyDescriptorPool(m_Device, m_Pool, nullptr);
-
-		VkDescriptorPoolSize poolSize{};
-		poolSize.descriptorCount = 
-			static_cast<uint32_t>(m_Chars.size() * m_Context.GetFramesInFlight());
-		poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-
-		VkDescriptorPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		poolInfo.poolSizeCount = 1;
-		poolInfo.pPoolSizes = &poolSize;
-		poolInfo.maxSets = poolSize.descriptorCount;
-
-		if (m_Dloader.vkCreateDescriptorPool(m_Device, &poolInfo, nullptr,
-			&m_Pool) != VK_SUCCESS)
-			throw std::runtime_error("Failed to create descriptor pool");
-
-		std::vector<VkDescriptorSetLayout> layouts(m_Context.GetFramesInFlight(), 
-			m_SetLayout);
-
-		for (auto it = m_Chars.begin(); it != m_Chars.end(); it++)
-		{
-			Character& character = it->second;
-			if (!character.image)
-				continue;
-
-			character.descriptorSets.resize(m_Context.GetFramesInFlight());
-
-			VkDescriptorSetAllocateInfo allocInfo{};
-			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			allocInfo.descriptorSetCount = m_Context.GetFramesInFlight();
-			allocInfo.descriptorPool = m_Pool;
-			allocInfo.pSetLayouts = layouts.data();
-
-			m_Dloader.vkAllocateDescriptorSets(m_Device, &allocInfo,
-				character.descriptorSets.data());
-
-			UpdateDescriptorSets(character);
-		}
-	}
-
-	void Font::UpdateDescriptorSets(Character& character)
-	{
-		for (uint32_t i = 0; i < character.descriptorSets.size(); i++)
-		{
-			VkDescriptorImageInfo imageInfo{};
-			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-			imageInfo.imageView = character.imageView;
-			imageInfo.sampler = m_Sampler;
-			
-			VkWriteDescriptorSet writeInfo{};
-			writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			writeInfo.dstSet = character.descriptorSets[i];
-			writeInfo.dstBinding = 0;
-			writeInfo.dstArrayElement = 0;
-			writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			writeInfo.descriptorCount = 1;
-			writeInfo.pImageInfo = &imageInfo;
-
-			m_Dloader.vkUpdateDescriptorSets(m_Device, 1, &writeInfo, 0,
-				nullptr);
-		}
-	}
-
 	void Font::OnSetSize(uint32_t fontSize)
 	{
 		DisposeCharacters();
 	}
 
-	void Font::LoadChar(std::vector<ImageStager>& imageStagers, char c)
+	void Font::LoadChar(std::vector<CharacterCreation>& imageStagers, char c)
 	{
 		if (FT_Load_Char(m_FontFace, c, FT_LOAD_RENDER))
 			return;
 
 		FT_GlyphSlot glyph = m_FontFace->glyph;
 
-		Character character;
+		Character& character = m_Chars[c];
 		character.size = Math::Vector2<int>(glyph->bitmap.width, glyph->bitmap.rows);
 		character.bearing = Math::Vector2<int>(glyph->bitmap_left, glyph->bitmap_top);
 		character.advance = glyph->advance.x;
 		
 		CreateCharacterImage(imageStagers, character);
-		
-		m_Chars[c] = character;
 	}
 
-	void Font::CreateCharacterImage(std::vector<ImageStager>& imageStagers,
+	void Font::CreateCharacterImage(std::vector<CharacterCreation>& imageStagers,
 		Character& character)
 	{
 		// Some characters have zero-width, so they don't have images.
@@ -213,12 +146,74 @@ namespace Tether::Rendering::Vulkan
 			&character.imageView) != VK_SUCCESS)
 			throw std::runtime_error("Failed to create texture image view");
 
-		ImageStager& stager = imageStagers.emplace_back(
+		ImageStager stager = ImageStager(
 			m_Context,
 			character.image, character.size.x, character.size.y, 1,
 			m_FontFace->glyph->bitmap.buffer, imageInfo.format
 		);
 
-		stager.Upload(false);
+		CharacterCreation& creation = imageStagers.emplace_back(
+			std::move(stager),
+			character
+		);
+
+		creation.stager.Upload(false);
+	}
+
+	void Font::CreateCharacterDescriptorSets(Character& character)
+	{
+		VkDescriptorPoolSize poolSize{};
+		poolSize.descriptorCount =
+			static_cast<uint32_t>(m_Context.GetFramesInFlight());
+		poolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.poolSizeCount = 1;
+		poolInfo.pPoolSizes = &poolSize;
+		poolInfo.maxSets = poolSize.descriptorCount;
+
+		if (m_Dloader.vkCreateDescriptorPool(m_Device, &poolInfo, nullptr,
+			&character.pool) != VK_SUCCESS)
+			throw std::runtime_error("Failed to create descriptor pool");
+
+		std::vector<VkDescriptorSetLayout> layouts(m_Context.GetFramesInFlight(),
+			m_SetLayout);
+
+		character.descriptorSets.resize(m_Context.GetFramesInFlight());
+
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorSetCount = m_Context.GetFramesInFlight();
+		allocInfo.descriptorPool = character.pool;
+		allocInfo.pSetLayouts = layouts.data();
+
+		m_Dloader.vkAllocateDescriptorSets(m_Device, &allocInfo,
+			character.descriptorSets.data());
+
+		UpdateDescriptorSets(character);
+	}
+
+	void Font::UpdateDescriptorSets(Character& character)
+	{
+		for (uint32_t i = 0; i < character.descriptorSets.size(); i++)
+		{
+			VkDescriptorImageInfo imageInfo{};
+			imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+			imageInfo.imageView = character.imageView;
+			imageInfo.sampler = m_Sampler;
+
+			VkWriteDescriptorSet writeInfo{};
+			writeInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeInfo.dstSet = character.descriptorSets[i];
+			writeInfo.dstBinding = 0;
+			writeInfo.dstArrayElement = 0;
+			writeInfo.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeInfo.descriptorCount = 1;
+			writeInfo.pImageInfo = &imageInfo;
+
+			m_Dloader.vkUpdateDescriptorSets(m_Device, 1, &writeInfo, 0,
+				nullptr);
+		}
 	}
 }
