@@ -1,10 +1,7 @@
 #include <Tether/Tether.hpp>
 #include <Tether/Common/Stopwatch.hpp>
 
-#include <Tether/Rendering/Vulkan/Renderer.hpp>
-#include <Tether/Rendering/Vulkan/Compositor.hpp>
-#include <Tether/Rendering/Vulkan/GlobalVulkan.hpp>
-#include <Tether/Rendering/Objects/Rectangle.hpp>
+#include <Tether/Rendering/Vulkan/ContextCreator.hpp>
 
 #include <iostream>
 #include <vector>
@@ -14,9 +11,21 @@ using namespace Tether;
 using namespace Rendering;
 using namespace Vulkan;
 
-class DebugLogger : public Rendering::Vulkan::DebugCallback
+class DebugLogger : public Vulkan::DebugCallback
 {
 public:
+	DebugLogger(Vulkan::ContextCreator& contextCreator)
+		:
+		m_ContextCreator(contextCreator)
+	{
+		m_ContextCreator.AddDebugMessenger(this);
+	}
+
+	~DebugLogger()
+	{
+		m_ContextCreator.RemoveDebugMessenger(this);
+	}
+
 	void OnDebugLog(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
@@ -34,6 +43,8 @@ public:
 			break;
 		}
 	}
+private:
+	Vulkan::ContextCreator& m_ContextCreator;
 };
 
 class RendererTestApp
@@ -42,20 +53,13 @@ public:
 	RendererTestApp()
 		:
 		m_Window(Window::Create(1280, 720, L"Text testing")),
-		m_VulkanWindow(*m_Window),
-		m_Renderer(m_VulkanWindow.MakeVulkanContext()),
-		m_Compositor(m_Renderer, m_VulkanWindow)
+		m_VulkanLogger(m_ContextCreator),
+		m_GraphicsContext(m_ContextCreator),
+		m_WindowRenderTarget(m_GraphicsContext.CreateWindowRenderTarget(*m_Window)),
+		m_WindowRenderer(m_WindowRenderTarget->GetRenderer())
 	{
-		font = m_Renderer.CreateResource<Resources::Font>("Assets/font.ttf");
-		font->SetSize(64);
-
-		text = m_Renderer.CreateObject<Objects::Text>();
-		text->SetX(100.0f);
-		text->SetY(100.0f);
-		text->SetFont(font.get());
-		text->SetText("FPS = 0");
-
-		m_Renderer.AddObject(*text);
+		m_Font = m_GraphicsContext.CreateFont("Assets/font.ttf");
+		m_Font->SetSize(64);
 
 		m_Window->SetVisible(true);
 	}
@@ -70,19 +74,24 @@ public:
 			time += delta;
 			frames++;
 
+			Application::Get().PollEvents();
+
 			if (printFpsTimer.GetElapsedSeconds() >= 1.0f)
 			{
 				printFpsTimer.Set();
 
 				int fps = (int)round(1.0f / (time / frames));
-				text->SetText("FPS = " + std::to_string(fps));
+				m_FpsText = "FPS = " + std::to_string(fps);
 
 				time = 0;
 				frames = 0;
 			}
-
-			m_Window->PollEvents();
-			m_Compositor.RenderFrame();
+			
+			m_WindowRenderTarget->StartRender();
+			{
+				m_WindowRenderer.DrawText(100.0f, 100.0f, m_FpsText, *m_Font);
+			}
+			m_WindowRenderTarget->EndRender();
 		}
 	}
 private:
@@ -91,13 +100,16 @@ private:
 
 	Scope<Window> m_Window;
 
-	Vulkan::VulkanWindow m_VulkanWindow;
-	Vulkan::VulkanRenderer m_Renderer;
-	Vulkan::VulkanCompositor m_Compositor;
+	Vulkan::ContextCreator m_ContextCreator;
+	DebugLogger m_VulkanLogger;
+	Vulkan::GraphicsContext m_GraphicsContext;
+	Scope<RenderTarget> m_WindowRenderTarget;
+	Renderer& m_WindowRenderer;
 
-	Scope<Resources::Font> font;
-	Scope<Objects::Text> text;
+	Scope<Resources::Font> m_Font;
 
+	std::string m_FpsText = "FPS = 0";
+	
 	Stopwatch printFpsTimer;
 	Stopwatch deltaTimer;
 };
@@ -110,9 +122,6 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 int main()
 #endif
 {
-	DebugLogger vulkanLogger;
-	GlobalVulkan::Get().AddDebugMessenger(vulkanLogger);
-
 	RendererTestApp testApp;
 	testApp.Run();
 

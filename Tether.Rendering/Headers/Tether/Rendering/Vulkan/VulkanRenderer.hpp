@@ -47,7 +47,7 @@ namespace Tether::Rendering::Vulkan
 			float x, float y,
 			std::string_view text, Resources::Font& font,
 			Math::Vector4f color = Math::Vector4f(1.0f),
-			float scale = 1.0f, TextJustify justify = TextJustify::RIGHT
+			float scale = 1.0f, TextJustify justify = TextJustify::LEFT
 		) override;
 		
 		void StartNewFrame(uint32_t commandBufferIndex, 

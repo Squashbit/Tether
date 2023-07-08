@@ -178,7 +178,6 @@ public:
 private:
 	Scope<Window> m_Window;
 
-
 	Vulkan::ContextCreator m_ContextCreator;
 	DebugLogger m_DebugLogger;
 

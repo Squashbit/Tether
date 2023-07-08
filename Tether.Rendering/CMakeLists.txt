@@ -17,7 +17,7 @@ if (IS_DIRECTORY ${TETHER_FREETYPE_DIR})
 	set_property(TARGET freetype PROPERTY POSITION_INDEPENDENT_CODE ON)
 endif()
 
-add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/WindowUIManager.cpp" "Source/Resources/BufferedImage.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp"  "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp" "Source/Elements/Common/BorderedElement.cpp" "Source/Elements/Text.cpp" "Source/Vulkan/VulkanRenderer.cpp")
+add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/WindowUIManager.cpp" "Source/Resources/BufferedImage.cpp" "Source/Resources/Resource.cpp" "Source/ImageLoader.cpp" "Source/StbImageImpl.cpp" "Source/FreetypeLibrary.cpp" "Source/Resources/Font.cpp" "Source/Elements/Element.cpp" "Source/Elements/Division.cpp"  "Source/Elements/Button.cpp" "Source/Elements/ProgressBar.cpp" "Source/Elements/Common/BorderedElement.cpp" "Source/Elements/Text.cpp" "Source/Vulkan/VulkanRenderer.cpp" "Source/Elements/ImageView.cpp")
 
 if (TETHER_RENDERING_VULKAN_API)
 	find_package(Vulkan REQUIRED)
