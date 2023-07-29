@@ -418,17 +418,6 @@ namespace Tether::Rendering::Vulkan
 		}
 	}
 
-	bool WindowRenderTarget::IsPresentationSupported()
-	{
-		VkBool32 presentSupport = false;
-		m_Iloader.vkGetPhysicalDeviceSurfaceSupportKHR(
-			m_Context.GetPhysicalDevice(), indices.graphicsFamilyIndex,
-			m_Surface.Get(), &presentSupport
-		);
-
-		return presentSupport;
-	}
-
 	void WindowRenderTarget::ChooseSurfaceFormat()
 	{
 		VkPhysicalDevice physicalDevice = m_Context.GetPhysicalDevice();
@@ -463,9 +452,6 @@ namespace Tether::Rendering::Vulkan
 
 	VkRenderPass WindowRenderTarget::CreateRenderPass()
 	{
-		if (!IsPresentationSupported())
-			throw std::runtime_error("Presentation not supported");
-
 		QuerySwapchainSupport();
 
 		ChooseSurfaceFormat();
@@ -523,7 +509,6 @@ namespace Tether::Rendering::Vulkan
 	{
 		m_Swapchain.emplace(
 			m_Context,
-			indices.graphicsFamilyIndex,
 			m_SwapchainDetails,
 			m_SurfaceFormat,
 			m_Surface.Get(),

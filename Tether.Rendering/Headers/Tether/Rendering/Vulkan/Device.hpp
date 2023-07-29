@@ -4,6 +4,7 @@
 
 #include <Tether/Rendering/Vulkan/InstanceLoader.hpp>
 #include <Tether/Rendering/Vulkan/DeviceLoader.hpp>
+#include <Tether/Rendering/Vulkan/Common/QueueFamilyIndices.hpp>
 
 #include <vulkan/vulkan.h>
 
@@ -33,6 +34,8 @@ namespace Tether::Rendering::Vulkan
 		void WaitIdle();
 
 		VkPhysicalDeviceProperties GetPhysicalDeviceProperties();
+
+		QueueFamilyIndices GetQueueFamilyIndices() const;
 		
 		VkDevice Get() const;
 		VkPhysicalDevice GetPhysicalDevice() const;
@@ -44,11 +47,14 @@ namespace Tether::Rendering::Vulkan
 		bool IsDeviceSuitable(VkPhysicalDevice device);
 		bool CheckDeviceExtentionSupport(VkPhysicalDevice device,
 			const char* const* deviceExtentions, uint64_t extentionCount);
+		void FindQueueFamilies(VkPhysicalDevice device);
 
 		Instance& m_Instance;
 		const InstanceLoader& m_Iloader;
 		
 		DeviceLoader m_Loader;
+
+		QueueFamilyIndices m_Indices;
 
 		VkPhysicalDevice m_PhysicalDevice = nullptr;
 		VkDevice m_Device = nullptr;

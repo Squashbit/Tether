@@ -14,7 +14,6 @@ namespace Tether::Rendering::Vulkan
 	public:
 		Swapchain(
 			GraphicsContext& context,
-			uint32_t graphicsFamilyIndex,
 			const SwapchainDetails& details,
 			VkSurfaceFormatKHR format,
 			VkSurfaceKHR surface,

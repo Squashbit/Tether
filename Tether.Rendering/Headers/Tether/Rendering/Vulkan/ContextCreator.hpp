@@ -27,9 +27,17 @@ namespace Tether::Rendering::Vulkan
 		};
 
 #ifdef NDEBUG
-		ContextCreator(bool debugMode = false);
+		ContextCreator(
+			bool debugMode = false,
+			std::string_view applicationName = "VulkanApp",
+			std::string_view engineName = "Tether"
+		);
 #else
-		ContextCreator(bool debugMode = true);
+		ContextCreator(
+			bool debugMode = true, 
+			std::string_view applicationName = "VulkanApp",
+			std::string_view engineName = "Tether"
+		);
 #endif
 		~ContextCreator();
 		TETHER_NO_COPY(ContextCreator);
@@ -57,6 +65,7 @@ namespace Tether::Rendering::Vulkan
 		std::optional<Device> m_Device;
 
 		VkQueue m_Queue = nullptr;
+
 		VkCommandPool m_CommandPool = nullptr;
 	};
 }

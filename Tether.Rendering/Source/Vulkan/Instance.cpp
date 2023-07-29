@@ -137,38 +137,6 @@ namespace Tether::Rendering::Vulkan
 		loader.vkDestroyInstance(instance, nullptr);
 	}
 
-	QueueFamilyIndices Instance::FindQueueFamilies(VkPhysicalDevice device)
-	{
-		QueueFamilyIndices queueFamilies;
-
-		uint32_t familyCount = 0;
-		loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
-
-		if (familyCount == 0)
-			return queueFamilies;
-
-		std::vector<VkQueueFamilyProperties> families(familyCount);
-		loader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount,
-			families.data());
-		
-		for (size_t i = 0; i < families.size(); i++)
-		{
-			const VkQueueFamilyProperties& queueFamily = families[i];
-
-			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT
-				&& !queueFamilies.hasGraphicsFamily)
-			{
-				queueFamilies.hasGraphicsFamily = true;
-				queueFamilies.graphicsFamilyIndex = static_cast<uint32_t>(i);
-			}
-
-			if (queueFamilies.hasGraphicsFamily)
-				break;
-		}
-
-		return queueFamilies;
-	}
-
 	void Instance::AddDebugMessenger(DebugCallback& callback)
 	{
 		if (!m_DebugMode)

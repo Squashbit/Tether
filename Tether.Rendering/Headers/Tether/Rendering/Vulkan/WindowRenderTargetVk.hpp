@@ -32,8 +32,7 @@ namespace Tether::Rendering::Vulkan
 		Pipeline CreateTextPipeline();
 
 		void QuerySwapchainSupport();
-		bool IsPresentationSupported();
-
+		
 		void ChooseSurfaceFormat();
 		void CreateSwapchain();
 		void CreateFramebuffers();
@@ -57,7 +56,6 @@ namespace Tether::Rendering::Vulkan
 
 		Surface m_Surface;
 		VkSurfaceFormatKHR m_SurfaceFormat;
-		QueueFamilyIndices indices;
 		VkRenderPass m_RenderPass = nullptr;
 
 		Pipeline m_SolidPipeline;

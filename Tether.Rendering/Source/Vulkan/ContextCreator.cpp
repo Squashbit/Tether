@@ -26,9 +26,12 @@ namespace Tether::Rendering::Vulkan
 		TETHER_INSTANCE_FUNC_NULL(EnumerateInstanceLayerProperties);
 	}
 
-	ContextCreator::ContextCreator(bool debugMode)
+	ContextCreator::ContextCreator(bool debugMode, std::string_view applicationName,
+		std::string_view engineName)
 	{
 		InstanceInfo info;
+		info.applicationName = applicationName.data();
+		info.engineName = engineName.data();
 		info.CreateInstance = m_VulkanLibrary.CreateInstance;
 		info.GetInstanceProcAddr = m_VulkanLibrary.GetInstanceProcAddr;
 		info.EnumerateInstanceExtensionProperties =

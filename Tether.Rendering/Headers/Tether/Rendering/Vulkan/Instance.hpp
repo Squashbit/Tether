@@ -34,7 +34,6 @@ namespace Tether::Rendering::Vulkan
 		~Instance();
 		TETHER_NO_COPY(Instance);
 
-		QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
 		bool CheckDeviceExtentionSupport(VkPhysicalDevice device, 
 			const char*const * deviceExtentions, uint64_t extentionCount);
 		

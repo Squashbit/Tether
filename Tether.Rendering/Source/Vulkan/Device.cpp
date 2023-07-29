@@ -17,8 +17,6 @@ namespace Tether::Rendering::Vulkan
 	{
 		PickDevice();
 
-		QueueFamilyIndices families = m_Instance.FindQueueFamilies(m_PhysicalDevice);
-
 		float queuePriority = 1.0f;
 		VkDeviceQueueCreateInfo queueCreateInfos[1] = {};
 		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -124,15 +122,13 @@ namespace Tether::Rendering::Vulkan
 		m_Iloader.vkGetPhysicalDeviceProperties(device, &deviceProperties);
 		m_Iloader.vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 
-		QueueFamilyIndices families = m_Instance.FindQueueFamilies(device);
-
 		bool extentionsSupported = CheckDeviceExtentionSupport(device,
 			deviceExtensions.data(), deviceExtensions.size());
 
 		return
 			deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 			&& deviceFeatures.geometryShader
-			&& families.hasGraphicsFamily
+			&& HasGraphicsFamily(device)
 			&& extentionsSupported;
 	}
 
@@ -161,5 +157,42 @@ namespace Tether::Rendering::Vulkan
 			requiredExtentionSet.erase(availableExtentions[i].extensionName);
 
 		return requiredExtentionSet.empty();
+	}
+
+	void Device::FindQueueFamilies(VkPhysicalDevice device)
+	{
+		// kinda hacky. if this physical device isn't chosen, this function will
+		// just run again and overwrite this value, so it will still choose the
+		// correct queue family indices. TLDR; it works, it just doesn't look like it does.
+
+		uint32_t familyCount = 0;
+		m_Iloader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
+
+		if (familyCount == 0)
+			return;
+
+		std::vector<VkQueueFamilyProperties> families(familyCount);
+		m_Iloader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount,
+			families.data());
+
+		for (size_t i = 0; i < families.size(); i++)
+		{
+			const VkQueueFamilyProperties& queueFamily = families[i];
+
+			if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT
+				&& !m_Indices.hasGraphicsFamily)
+			{
+				m_Indices.hasGraphicsFamily = true;
+				m_Indices.graphicsFamilyIndex = static_cast<uint32_t>(i);
+			}
+
+			if (m_Indices.hasGraphicsFamily)
+				break;
+		}
+	}
+
+	QueueFamilyIndices Device::GetQueueFamilyIndices() const
+	{
+		return m_Indices;
 	}
 }
