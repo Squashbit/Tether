@@ -518,7 +518,7 @@ namespace Tether::Rendering::Vulkan
 		);
 
 		m_SwapchainImages = m_Swapchain->GetImages();
-		m_Swapchain->CreateImageViews(&m_SwapchainImageViews);
+		m_SwapchainImageViews = m_Swapchain->CreateImageViews();
 	}
 
 	void WindowRenderTarget::CreateFramebuffers()
@@ -603,5 +603,8 @@ namespace Tether::Rendering::Vulkan
 
 		for (VkImageView imageView : m_SwapchainImageViews)
 			m_Dloader.vkDestroyImageView(m_Device, imageView, nullptr);
+
+		m_SwapchainImages.clear();
+		m_SwapchainImageViews.clear();
 	}
 }

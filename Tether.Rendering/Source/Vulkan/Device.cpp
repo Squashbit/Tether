@@ -20,7 +20,7 @@ namespace Tether::Rendering::Vulkan
 		float queuePriority = 1.0f;
 		VkDeviceQueueCreateInfo queueCreateInfos[1] = {};
 		queueCreateInfos[0].sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		queueCreateInfos[0].queueFamilyIndex = families.graphicsFamilyIndex;
+		queueCreateInfos[0].queueFamilyIndex = m_Indices.graphicsFamilyIndex;
 		queueCreateInfos[0].queueCount = 1;
 		queueCreateInfos[0].pQueuePriorities = &queuePriority;
 
@@ -125,10 +125,16 @@ namespace Tether::Rendering::Vulkan
 		bool extentionsSupported = CheckDeviceExtentionSupport(device,
 			deviceExtensions.data(), deviceExtensions.size());
 
+		// kinda hacky. if this physical device isn't chosen, this function will
+		// run again and overwrite m_Indices, so it will still choose the
+		// correct queue family indices. 
+		// TLDR; it works, it just doesn't look like it does.
+		FindQueueFamilies(device);
+
 		return
 			deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU
 			&& deviceFeatures.geometryShader
-			&& HasGraphicsFamily(device)
+			&& m_Indices.hasGraphicsFamily
 			&& extentionsSupported;
 	}
 
@@ -161,10 +167,6 @@ namespace Tether::Rendering::Vulkan
 
 	void Device::FindQueueFamilies(VkPhysicalDevice device)
 	{
-		// kinda hacky. if this physical device isn't chosen, this function will
-		// just run again and overwrite this value, so it will still choose the
-		// correct queue family indices. TLDR; it works, it just doesn't look like it does.
-
 		uint32_t familyCount = 0;
 		m_Iloader.vkGetPhysicalDeviceQueueFamilyProperties(device, &familyCount, nullptr);
 

@@ -121,11 +121,12 @@ namespace Tether::Rendering::Vulkan
 		return swapchainImages;
 	}
 
-	void Swapchain::CreateImageViews(std::vector<VkImageView>* pVec)
+	std::vector<VkImageView> Swapchain::CreateImageViews()
 	{
+		std::vector<VkImageView> vec;
 		std::vector<VkImage> images = GetImages();
 
-		pVec->resize(images.size());
+		vec.resize(images.size());
 		for (uint64_t i = 0; i < images.size(); i++)
 		{
 			VkImage image = images[i];
@@ -146,9 +147,11 @@ namespace Tether::Rendering::Vulkan
 			createInfo.subresourceRange.layerCount = 1;
 
 			if (m_Dloader.vkCreateImageView(m_Device, &createInfo, nullptr,
-				&pVec->at(i)) != VK_SUCCESS)
+				&vec[i]) != VK_SUCCESS)
 				throw std::runtime_error("Swapchain image view creation failed");
 		}
+
+		return vec;
 	}
 
 	uint32_t Swapchain::GetImageCount()

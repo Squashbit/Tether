@@ -536,7 +536,7 @@ namespace Tether::Platform
 				Application& application = Application::Get();
 				const int16_t* keycodes = application.GetKeycodes();
 
-				SpawnKeyInput(scancode, keycodes[wParam32], true);
+				SpawnKeyInput(scancode, keycodes[scancode], true);
 			}
 			break;
 
@@ -555,7 +555,7 @@ namespace Tether::Platform
 				Application& application = Application::Get();
 				const int16_t* keycodes = application.GetKeycodes();
 
-				SpawnKeyInput(scancode, keycodes[wParam32], false);
+				SpawnKeyInput(scancode, keycodes[scancode], false);
 				return 0;
 			}
 			break;

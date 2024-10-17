@@ -2,7 +2,6 @@
 Tether is a app creation/GUI library created in C++. 
 
 # How to contribute
-Message SawtoothGabe#6139 on discord that you would like to work on Tether (and some prior experience in C++ would help too).
 
 *Naming conventions*
 

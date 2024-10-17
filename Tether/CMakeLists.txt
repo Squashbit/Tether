@@ -7,6 +7,13 @@ endif()
 
 add_library(${PROJECT_NAME} ${TETHER_LIBRARY_MODE} "Source/Application.cpp" "Source/Common/HashedString.cpp"  "Source/Common/Stopwatch.cpp" "Source/Common/StringTools.cpp" "Source/Controls/Control.cpp" "Source/Devices/Monitor.cpp"  "Source/Events/WindowMoveEvent.cpp" "Source/Events/WindowResizeEvent.cpp" "Source/Input/KeyCharInfo.cpp" "Source/Input/KeyInfo.cpp" "Source/Input/MouseMoveInfo.cpp" "Source/Input/RawMouseMoveInfo.cpp" "Source/Module.cpp" "Source/Platform/CreateWindow.cpp"  "Source/Window.cpp" "Source/Common/Stopwatch.cpp"  "Source/Input/MouseClickInfo.cpp")
 
+if (MSVC)
+	target_compile_options(${PROJECT_NAME} 
+        PRIVATE
+            "/wd4251;" # Disable the dll-interface warning thingy
+    )
+endif()
+
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
 	"Headers"

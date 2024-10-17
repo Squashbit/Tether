@@ -42,8 +42,7 @@ namespace Tether::Rendering::Vulkan
 		m_Instance.emplace(info, debugMode);
 		m_Device.emplace(*m_Instance);
 
-		QueueFamilyIndices queueIndices = 
-			m_Instance->FindQueueFamilies(m_Device->GetPhysicalDevice());
+		QueueFamilyIndices queueIndices = m_Device->GetQueueFamilyIndices();
 
 		m_Queue = m_Device->GetDeviceQueue(queueIndices.graphicsFamilyIndex,
 			0);
